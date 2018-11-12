@@ -3,9 +3,9 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 一人得道
+title: RIGUZ Lee
 subtitle: Riguz Lee | Not only a programmer
-description: Riguz Lee's personal site
+description: 筋肉程序员
 keywords: Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing
 author: Riguz Lee
 language:
@@ -39,8 +39,8 @@ post_asset_folder: false
 relative_link: false
 future: true
 highlight:
-  enable: true
-  line_number: true
+  enable: false
+  line_number: false
   auto_detect: false
   tab_replace:
   
@@ -50,7 +50,7 @@ highlight:
 # order_by: Posts order. (Order by date descending by default)
 index_generator:
   path: ''
-  per_page: 10
+  per_page: 2
   order_by: -date
   
 # Category & Tag
@@ -73,7 +73,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: next
+theme: riguz
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html

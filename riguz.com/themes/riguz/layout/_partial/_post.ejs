@@ -1,0 +1,14 @@
+<div class="blog-post">
+    <h5><a href="<%- url_for(post.path) %>" class="blog-title"><%= post.title %></a></h5>
+    <small class="subheader"><%- date(post.date, "YYYY-MM-DD") %></small>
+    <% for(var i = 0; i < post.categories.length; i++) { %>
+    <small class="subheader"><%= post.categories.data[i].name %></small>
+    <% } %>
+    <p><%- post.excerpt %></p>
+    <div>
+        <% for(var i = 0; i < post.tags.length; i++) { %>
+        <span class="blog-tag"><i class="fa fa-tag"></i><%= post.tags.data[i].name %></span>
+        <% } %>
+    </div>
+    <hr>
+</div>

@@ -1,7 +1,7 @@
 ---
 title: Db Schema序列号生成
 date: 2016-07-22
-categories: Hack
+categories:  Hack
 tags:
 	- DB Schema
 	- 序列号
@@ -10,15 +10,17 @@ tags:
 ---
 我始终认为数据库设计在系统设计中是一个很重要的工作，然而一直没有比较好的ER建模工具。使用过MySQL Workbench和Power Designer两种工具，但都存在很多不喜欢的地方，直到遇到DbSchema后眼前一亮，这才是一个Nice的工具嘛。
 很可惜对于我们这种屌丝来说，是不舍得花钱去购买一个license的，试用期15天到了怎么办呢？当时也没发现有可用的破解版，因为它是基于Java的，这对破解来说减小了难度，于是趁着辞职后在家没事的空档来研究了一下破解。其实也就上午花了一会时间就搞定了。记录下破解的过程。
-
+<!--more-->
 首先是找到dbschema.jar，这是程序的主要jar包，其他是一些第三方的jar包和jdbc驱动等，于是它就是破解的关键。利用jd-gui反编译这个jar包，首先把源码都保存下来。
 
 顺藤摸瓜，首先打开dbschema的注册窗口，根据里面的关键字搜索，比如Registration，然后一个个去找，这时，发现一个对话框：
-```java
+<pre>
+<code class="java">
 public class RegistrationDialog
 ...
 JButton localJButton1 = new JButton(getAction("register"));
-```
+<code>
+</pre>
 这不就是注册的按钮么？然后就看它的action:
 ```java
 /*     */   public void register() {

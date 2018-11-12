@@ -1,0 +1,34 @@
+<div class="title-bar" data-responsive-toggle="widemenu" data-hide-for="medium">
+    <div class="title-bar-left">
+        <button class="menu-icon" type="button" data-open="offCanvasLeft"></button>
+        <span class="title-bar-title"><%= config.title %></span>
+    </div>
+</div>
+
+<nav class="off-canvas position-left blog-menu" id="offCanvasLeft" data-off-canvas>
+    <ul class="vertical dropdown menu blog-links" data-dropdown-menu>
+        <% for (name in theme.nav) { %>
+        <li><a href="<%- url_for(theme.nav[name]) %>"><%= name %></a></li>
+        <% } %>
+    </ul>
+</nav>
+
+<nav id="widemenu" class="top-bar blog-menu">
+    <div class="top-bar-left">
+        <a href="/" class="blog-logo-title">
+            <strong class="blog-logo-title-prefix">Dr.</strong>
+            <strong><%= config.title %></strong>
+        </a>
+    </div>
+    <div class="top-bar-right">
+        <ul class="menu dropdown medium-horizontal vertical blog-links">
+            <% for (name in theme.nav) { %>
+            <li><a href="<%- url_for(theme.nav[name]) %>"><%= name %></a></li>
+            <% } %>
+        </ul>
+    </div>
+</nav>
+
+<div class="large primary blog-topbar-container text-right">
+    <img src="/assets/angry.gif" alt="skin" class="blog-topbar-gif">
+</div>
