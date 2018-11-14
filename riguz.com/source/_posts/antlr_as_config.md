@@ -132,3 +132,6 @@ ScopeVisitor scopeVisitor = new ScopeVisitor(context);
 
 另外一个问题是，对于错误的处理，我们在哪一步做？比如```bool s = "123";```这是错误的，我们其实可以在定义grammar的时候就避免这种错误来，但写起来会麻烦一些。目前的实现是在Visitor中去对逻辑进行判断的，前面只做语法检查就可以了。
 
+参考:
+
+* http://jakubdziworski.github.io/java/2016/04/01/antlr_visitor_vs_listener.html
