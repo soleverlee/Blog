@@ -9,7 +9,7 @@ body {
 }
 
 .blog-menu, .blog-menu ul {
-    background: #2c3840;
+    background: #990000;
 }
 
 .menu .menu-text {
@@ -22,18 +22,24 @@ a.blog-logo-title {
 }
 
 a.blog-title {
-    color: black;
+    color: #990000;
 }
 
 .blog-tag {
     font-size: x-small;
-    color: gray;
+    color: #990000;
     padding-right: 10px;
     text-decoration: underline;
 }
 
-.blog-logo-title-prefix {
-    color: #00ff00;
+.blog-link {
+    color: #990000;
+}
+
+.blog-group-title {
+    color: #990000;
+    font-size: small;
+    font-weight: bold;
 }
 
 ul.blog-links > li > a {
@@ -43,6 +49,7 @@ ul.blog-links > li > a {
 }
 
 .blog-footer {
+    font-size: x-small;
     padding-top: 20px;
     margin-bottom: 5px;
 }

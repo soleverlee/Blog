@@ -1,10 +1,23 @@
 <div class="medium-3 cell" data-sticky-container>
     <div class="sticky" data-sticky data-anchor="content">
-        <p><% console.log(site.categories) %></p>
-        <h5>Categories</h5>
-        <%- list_categories({class:"menu dropdown medium-horizontal vertical"}) %>
+        <h5 class="blog-group-title">CATEGORIES</h5>
+        <% site.categories.each(i => { %>
+        <div class="grid-x">
+            <div class="cell small-8">
+                <a  class="blog-link" href="<%= url_for(i.path) %>"><%= i.name %></a>
+            </div>
+            <div class="cell small-4"><span class="badge alert"><%= i.length %></span></div>
+        </div>
+        <% }) %>
 
-        <h5>Tags</h5>
-        <%- list_tags() %>
+        <h5 class="blog-group-title">TAGS</h5>
+        <% site.tags.each(i => { %>
+        <div class="grid-x">
+            <div class="cell small-8">
+                <a class="blog-link" href="<%= url_for(i.path) %>"><%= i.name %></a>
+            </div>
+            <div class="cell small-4"><span class="badge alert"><%= i.length %></span></div>
+        </div>
+        <% }) %>
     </div>
 </div>

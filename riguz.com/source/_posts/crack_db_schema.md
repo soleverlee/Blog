@@ -1,7 +1,9 @@
 ---
 title: Db Schema序列号生成
 date: 2016-07-22
-categories:  Hack
+categories:  
+    - 计算机程序
+    - Hack
 tags:
 	- DB Schema
 	- 序列号

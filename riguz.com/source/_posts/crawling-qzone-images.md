@@ -1,7 +1,10 @@
 ---
 title: 抓取QQ空间皮肤图片
 date: 2017-01-11
-categories: DataBase
+categories: 
+    - 计算机程序
+    - 爬虫
+
 tags:
 	- 爬虫
 	- Scrapy
