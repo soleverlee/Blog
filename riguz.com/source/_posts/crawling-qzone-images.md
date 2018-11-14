@@ -2,11 +2,11 @@
 title: 抓取QQ空间皮肤图片
 date: 2017-01-11
 categories: 
-    - 计算机程序
-    - 爬虫
+    - Programing
+    - Scrapy
 
 tags:
-	- 爬虫
+	- Python
 	- Scrapy
 ---
 最近把博客重新整理了一下，博文设置featured image果然看起来现代不少，但是要去哪找这么多合适的图片呢？当然PS是一个不错的选择，但是费时费力。看到QQ空间的皮肤倒是做的不错，直接拿来用吧，反正不违法。于是想用爬虫抓取。
