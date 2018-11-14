@@ -74,5 +74,13 @@ a.page-number {
 
 code, pre {
     font-size: small;
-    font-family: 'Source Code Pro', monospace;
+    font-family: 'Space Mono', monospace;
+}
+
+p.blog-post-more-mark {
+    margin-top: 0;
+}
+
+.blog-post p {
+    margin-bottom: 0;
 }

@@ -5,14 +5,18 @@
       <h5 class="blog-link"><%= page.title %></h5>
       <small class="subheader"><%- date(page.date, "YYYY-MM-DD") %></small>
       <% for(var i = 0; i < page.categories.length; i++) { %>
-      <small class="subheader"><%= page.categories.data[i].name %></small>
+      <a href="<%- url_for(page.categories.data[i].path) %>">
+        <small class="subheader blog-link">/ <%= page.categories.data[i].name %></small>
+      </a>
       <% } %>
       <div class="blog-content">
       <%- page.content %>
       </div>
       <div>
         <% for(var i = 0; i < page.tags.length; i++) { %>
-        <span class="blog-tag"><i class="fa fa-tag"></i><%= page.tags.data[i].name %></span>
+        <a href="<%- url_for(page.tags.data[i].path) %>">
+          <span class="blog-tag"><i class="fa fa-tag"></i><%= page.tags.data[i].name %></span>
+        </a>
         <% } %>
       </div>
     </div>
