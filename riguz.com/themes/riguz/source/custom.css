@@ -21,7 +21,7 @@ a.blog-logo-title {
     color: white;
 }
 
-a.blog-title {
+a {
     color: #990000;
 }
 
@@ -83,4 +83,8 @@ p.blog-post-more-mark {
 
 .blog-post p {
     margin-bottom: 0;
+}
+
+.blog-tags {
+    margin-top: 20px;
 }

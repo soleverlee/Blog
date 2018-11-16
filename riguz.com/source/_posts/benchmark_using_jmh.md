@@ -7,6 +7,8 @@ categories:
 tags:
 	- JMH
 	- Benchmark
+	- Base64
+	- Perfomance
 ---
 JMH是一个测试Java程序性能的工具，比如我们现在要测试一下JDK8自带的Base64和[另一个实现](http://www.java2s.com/Code/Java/Development-Class/AfastandmemoryefficientclasstoencodeanddecodetoandfromBASE64infullaccordancewithRFC2045.htm)的性能。
 <!--more-->

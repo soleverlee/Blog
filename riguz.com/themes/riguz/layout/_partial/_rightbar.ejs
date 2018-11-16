@@ -3,20 +3,23 @@
         <h5 class="blog-group-title">CATEGORIES</h5>
         <% site.categories.each(i => { %>
         <div class="grid-x">
-            <div class="cell small-8">
-                <a  class="blog-link" href="<%= url_for(i.path) %>"><%= i.name %></a>
+            <div class="cell small-1">
             </div>
-            <div class="cell small-4"><span class="badge alert"><%= i.length %></span></div>
+            <div class="cell small-8">
+                <a  class="blog-link" href="<%= url_for(i.path) %>"><img src="/assets/blt_red_arrow.png"/> <%= i.name %></a>
+            </div>
+            <div class="cell small-2">/<%= i.length %>/</div>
         </div>
         <% }) %>
 
-        <h5 class="blog-group-title">TAGS</h5>
+        <h5 class="blog-group-title blog-tags">TAGS</h5>
         <% site.tags.each(i => { %>
         <div class="grid-x">
-            <div class="cell small-8">
-                <a class="blog-link" href="<%= url_for(i.path) %>"><%= i.name %></a>
+            <div class="cell small-1">
             </div>
-            <div class="cell small-4"><span class="badge alert"><%= i.length %></span></div>
+            <div class="cell small-10">
+                <a class="blog-link" href="<%= url_for(i.path) %>"><img src="/assets/blt_red_arrow.png"/> <%= i.name %></a>
+            </div>
         </div>
         <% }) %>
     </div>
