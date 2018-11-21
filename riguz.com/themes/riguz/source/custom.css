@@ -74,7 +74,7 @@ a.page-number {
 
 code, pre {
     font-size: small;
-    font-family: 'Space Mono', monospace;
+    font-family: Menlo, Monaco, Consolas, "Lucida Console", "Courier New", monospace;
 }
 
 p.blog-post-more-mark {
@@ -87,4 +87,9 @@ p.blog-post-more-mark {
 
 .blog-tags {
     margin-top: 20px;
+}
+
+.blog-page-nav-container {
+    padding-top: 20px;
+    font-size: small;
 }
