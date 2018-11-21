@@ -93,3 +93,23 @@ p.blog-post-more-mark {
     padding-top: 20px;
     font-size: small;
 }
+
+.blog-content h1 {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.blog-content h2 {
+    font-size: 1.15rem;
+    font-weight: bold;
+}
+
+.blog-content h3 {
+    font-size: 1.05rem;
+    font-weight: bold;
+}
+
+.blog-content h4 {
+    font-size: 1.00rem;
+    font-weight: bold;
+}
