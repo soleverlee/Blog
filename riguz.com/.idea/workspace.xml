@@ -11,7 +11,7 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="custom.css" pinned="false" current-in-tab="true">
+      <file leaf-file-name="custom.css" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/themes/riguz/source/custom.css">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="590">
@@ -19,6 +19,18 @@
               <folding>
                 <marker date="1542777858565" expanded="true" signature="61:77" ph="..." />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="compile_openjdk8_in_macosx.md" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/source/_posts/compile_openjdk8_in_macosx.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="SPLIT">
+              <first_editor relative-caret-position="386">
+                <caret line="136" column="12" lean-forward="true" selection-start-line="136" selection-start-column="12" selection-end-line="136" selection-end-column="12" />
+              </first_editor>
+              <second_editor />
             </state>
           </provider>
         </entry>
@@ -53,8 +65,8 @@
       <file leaf-file-name="layout.ejs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/themes/riguz/layout/layout.ejs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" column="74" lean-forward="true" selection-start-line="9" selection-start-column="74" selection-end-line="9" selection-end-column="74" />
+            <state relative-caret-position="170">
+              <caret line="10" column="50" selection-start-line="10" selection-start-column="40" selection-end-line="10" selection-end-column="50" />
             </state>
           </provider>
         </entry>
@@ -87,15 +99,6 @@
         </entry>
       </file>
       <file leaf-file-name="_config.yml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/themes/riguz/_config.yml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret column="4" selection-start-column="4" selection-end-column="4" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="_config.yml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/_config.yml">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="136">
@@ -123,6 +126,7 @@
       <find>categories</find>
       <find>list_tags</find>
       <find>blog-logo-title</find>
+      <find>[3]</find>
     </findStrings>
   </component>
   <component name="GradleLocalSettings">
@@ -184,6 +188,7 @@
         <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_footer.ejs" />
         <option value="$PROJECT_DIR$/themes/riguz/layout/post.ejs" />
         <option value="$PROJECT_DIR$/themes/riguz/source/custom.css" />
+        <option value="$PROJECT_DIR$/source/_posts/compile_openjdk8_in_macosx.md" />
       </list>
     </option>
   </component>
@@ -202,8 +207,8 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="140" />
-    <option name="y" value="41" />
+    <option name="x" value="129" />
+    <option name="y" value="23" />
     <option name="width" value="1240" />
     <option name="height" value="786" />
   </component>
@@ -265,14 +270,6 @@
               <item name="riguz" type="462c0819:PsiDirectoryNode" />
               <item name="source" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="riguz.com" type="b2602c69:ProjectViewProjectNode" />
-              <item name="riguz.com" type="462c0819:PsiDirectoryNode" />
-              <item name="themes" type="462c0819:PsiDirectoryNode" />
-              <item name="riguz" type="462c0819:PsiDirectoryNode" />
-              <item name="source" type="462c0819:PsiDirectoryNode" />
-              <item name="assets" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -288,16 +285,16 @@
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/themes/riguz/source/assets" />
-      <recent name="$PROJECT_DIR$/source/_posts" />
-      <recent name="$PROJECT_DIR$/themes/riguz/layout/_partial" />
-      <recent name="$PROJECT_DIR$/themes/riguz/scripts" />
-      <recent name="$PROJECT_DIR$/fd" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/themes/riguz/source" />
       <recent name="$PROJECT_DIR$/themes/riguz/layout" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/source/_posts" />
+      <recent name="$PROJECT_DIR$/themes/riguz/source/assets" />
+      <recent name="$PROJECT_DIR$/themes/riguz/layout/_partial" />
+      <recent name="$PROJECT_DIR$/themes/riguz/scripts" />
+      <recent name="$PROJECT_DIR$/fd" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -338,7 +335,7 @@
     </configuration>
   </component>
   <component name="ToolWindowManager">
-    <frame x="140" y="41" width="1240" height="786" extended-state="0" />
+    <frame x="129" y="23" width="1240" height="786" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
@@ -368,7 +365,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/themes/solar/source/css/style.styl" />
     <entry file="file://$PROJECT_DIR$/themes/riguz/layout/index.js" />
     <entry file="file://$PROJECT_DIR$/themes/solar/layout/_partial/post/actions_mobile.ejs" />
     <entry file="file://$PROJECT_DIR$/themes/solar/layout/_partial/post/date.ejs" />
@@ -449,7 +445,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/_posts/crawling-qzone-images.md">
+    <entry file="file://$PROJECT_DIR$/source/_posts/crawling_qzone_images.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
           <first_editor relative-caret-position="136">
@@ -508,13 +504,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/layout.ejs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="9" column="74" lean-forward="true" selection-start-line="9" selection-start-column="74" selection-end-line="9" selection-end-column="74" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_post.ejs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
@@ -557,6 +546,23 @@
           <folding>
             <marker date="1542777858565" expanded="true" signature="61:77" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/layout.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="50" selection-start-line="10" selection-start-column="40" selection-end-line="10" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/_posts/compile_openjdk8_in_macosx.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="386">
+            <caret line="136" column="12" lean-forward="true" selection-start-line="136" selection-start-column="12" selection-end-line="136" selection-end-column="12" />
+          </first_editor>
+          <second_editor />
         </state>
       </provider>
     </entry>
