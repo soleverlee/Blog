@@ -59,12 +59,36 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="about_comments.md" pinned="false" current-in-tab="true">
+      <file leaf-file-name="about_comments.md" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/_posts/about_comments.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
               <first_editor relative-caret-position="374">
                 <caret line="22" selection-start-line="22" selection-end-line="22" />
+              </first_editor>
+              <second_editor />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="why_not_lombok.md" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/source/_posts/why_not_lombok.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="SPLIT">
+              <first_editor relative-caret-position="521">
+                <caret line="45" lean-forward="true" selection-start-line="45" selection-end-line="45" />
+              </first_editor>
+              <second_editor />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="about_java_generics.md" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/source/_posts/about_java_generics.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="FIRST">
+              <first_editor relative-caret-position="122">
+                <caret line="62" column="73" selection-start-line="62" selection-start-column="73" selection-end-line="62" selection-end-column="73" />
               </first_editor>
               <second_editor />
             </state>
@@ -94,24 +118,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="170">
               <caret line="10" column="50" selection-start-line="10" selection-start-column="40" selection-end-line="10" selection-end-column="50" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="_footer.ejs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_footer.ejs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
-              <caret line="2" column="6" selection-start-line="2" selection-start-column="6" selection-end-line="2" selection-end-column="6" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="index.ejs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/themes/riguz/layout/index.ejs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" column="10" selection-start-line="1" selection-start-column="4" selection-end-line="9" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -201,6 +207,8 @@
         <option value="$PROJECT_DIR$/source/_posts/strange_unicode_chars.md" />
         <option value="$PROJECT_DIR$/source/_posts/new_config_format.md" />
         <option value="$PROJECT_DIR$/source/_posts/about_comments.md" />
+        <option value="$PROJECT_DIR$/source/_posts/why_not_lombok.md" />
+        <option value="$PROJECT_DIR$/source/_posts/about_java_generics.md" />
       </list>
     </option>
   </component>
@@ -219,8 +227,8 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="174" />
-    <option name="y" value="65" />
+    <option name="x" value="201" />
+    <option name="y" value="23" />
     <option name="width" value="1240" />
     <option name="height" value="786" />
   </component>
@@ -308,8 +316,8 @@
       <recent name="$PROJECT_DIR$/themes/riguz/layout" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/source/images" />
       <recent name="$PROJECT_DIR$/source/_posts" />
+      <recent name="$PROJECT_DIR$/source/images" />
       <recent name="$PROJECT_DIR$/themes/riguz/source/assets" />
       <recent name="$PROJECT_DIR$/themes/riguz/layout/_partial" />
       <recent name="$PROJECT_DIR$/themes/riguz/scripts" />
@@ -353,7 +361,7 @@
     </configuration>
   </component>
   <component name="ToolWindowManager">
-    <frame x="174" y="65" width="1240" height="786" extended-state="0" />
+    <frame x="201" y="23" width="1240" height="786" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
@@ -383,8 +391,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/themes/riguz/source/lib/highlight-9.12.0/highlight.pack.js" />
-    <entry file="file://$PROJECT_DIR$/themes/riguz/source/design.html" />
     <entry file="file://$PROJECT_DIR$/themes/solar/_config.yml" />
     <entry file="file://$PROJECT_DIR$/themes/solar/layout/archive.ejs" />
     <entry file="file://$PROJECT_DIR$/themes/solar/layout/layout/layout.ejs" />
@@ -606,6 +612,26 @@
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="374">
             <caret line="22" selection-start-line="22" selection-end-line="22" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/_posts/why_not_lombok.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="521">
+            <caret line="45" lean-forward="true" selection-start-line="45" selection-end-line="45" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/_posts/about_java_generics.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="FIRST">
+          <first_editor relative-caret-position="122">
+            <caret line="62" column="73" selection-start-line="62" selection-start-column="73" selection-end-line="62" selection-end-column="73" />
           </first_editor>
           <second_editor />
         </state>
