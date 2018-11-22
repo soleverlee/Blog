@@ -12,15 +12,39 @@
         </div>
         <% }) %>
 
-        <h5 class="blog-group-title blog-tags">TAGS</h5>
-        <% site.tags.each(i => { %>
-        <div class="grid-x">
-            <div class="cell small-1">
-            </div>
-            <div class="cell small-10">
-                <a class="blog-link" href="<%= url_for(i.path) %>"><img src="/assets/blt_red_arrow.png"/> <%= i.name %></a>
-            </div>
-        </div>
-        <% }) %>
+        <div class="blog-tags" id="blog-tags-cloud"></div>
     </div>
 </div>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/wordcloud.js"></script>
+<script>
+  var data = [];
+  <% site.tags.each(i=>{ %>
+  data.push({name:"<%= i.name %>", weight: <%= i.length %>, url: "<%- url_for(i.path) %>"});
+  <% }); %>
+  Highcharts.chart('blog-tags-cloud', {
+    series: [{
+      type: 'wordcloud',
+      data,
+      name: 'Posts'
+    }],
+    title: {
+      text: null
+    },
+    credits: {
+      enabled: false
+    },
+    plotOptions: {
+      series: {
+        cursor: 'pointer',
+        point: {
+          events: {
+            click: function(e) {
+              window.location = e.point.url;
+            }
+          }
+        }
+      }
+    },
+  });
+</script>
