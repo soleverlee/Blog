@@ -36,4 +36,23 @@
       <% }%>
     </div>
   </div>
+  <div class="grid-x grid-margin-x blog-page-comment">
+    <div class="medium-10 cell text-left">
+      <div id="blog-page-comment-container"></div>
+      <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+      <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+      <script>
+        var gitment = new Gitment({
+          id: '<%= page.path %>',
+          owner: 'soleverlee',
+          repo: 'git@github.com:soleverlee/soleverlee.github.io.git',
+          oauth: {
+            client_id: '57d61245ff82e94d67b3',
+            client_secret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+          },
+        })
+        gitment.render('blog-page-comment-container');
+      </script>
+    </div>
+  </div>
 </article>
