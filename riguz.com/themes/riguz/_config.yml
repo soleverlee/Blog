@@ -3,6 +3,14 @@ nav:
   Archives: /archives
   Wiki: http://wiki.riguz.com
   About: /about/
-  Writing: /archives/
   Github: https://github.com/soleverlee
 favicon: /images/cat_128.png
+copyright: &copy;2016-2018 Riguz Lee <a href="http://www.miitbeian.gov.cn/" class="blog-link">鄂ICP备15003868号-1</a>
+gitalk:
+  enabled: true
+  clientId: 57d61245ff82e94d67b3
+  clientSecret: dac16d0960bdce5d0041def03bdcf35754308431
+  repo: soleverlee.github.io
+  owner: soleverlee
+  admin: soleverlee
+  distractionFreeMode: false
