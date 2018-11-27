@@ -42,16 +42,16 @@
       <link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
       <script src="https://jjeejj.github.io/js/gitment.js"></script>
       <script>
-        var gitment = new Gitment({
-          id: '<%= page.path %>',
-          owner: 'soleverlee',
+        var gitalk = new Gitalk({
+          clientID: '57d61245ff82e94d67b3',
+          clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
           repo: 'soleverlee.github.io',
-          oauth: {
-            client_id: '57d61245ff82e94d67b3',
-            client_secret: 'dac16d0960bdce5d0041def03bdcf35754308431',
-          },
+          owner: 'soleverlee',
+          admin: ['soleverlee'],
+          id: '<%= page.path %>',      // Ensure uniqueness and length less than 50
+          distractionFreeMode: false  // Facebook-like distraction free mode
         })
-        gitment.render('blog-page-comment-container');
+        gitalk.render('blog-page-comment-container')
       </script>
     </div>
   </div>
