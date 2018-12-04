@@ -1,5 +1,5 @@
 ---
-title: MicroServices实践6:搭建Nexus私服
+title: 搭建Nexus私服
 date: 2017-06-25
 categories:  
     - Programing

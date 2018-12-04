@@ -1,5 +1,5 @@
 ---
-title: MicroServices实践4:Event Sourcing架构
+title: 关于Event Sourcing架构
 date: 2017-06-23
 categories:  
     - Programing

@@ -10,9 +10,11 @@
     <link rel="shortcut icon " type="images/x-icon" href="/assets/yr.png">
     <link href="https://cdn.bootcss.com/foundation/6.4.3/css/foundation.min.css" rel="stylesheet">
     <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="https://cdn.bootcss.com/highlight.js/9.13.1/styles/github.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/highlight.js/9.13.1/styles/<%= theme.highlight.theme %>.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
-    <%- css('custom.css') %>
+    <%- css('common.css') %>
+    <%- css(theme.theme + '.css') %>
+    <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </head>
 <body>
 <div class="off-canvas-wrapper">

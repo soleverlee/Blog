@@ -8,36 +8,21 @@ body {
     padding-left: 1rem;
 }
 
-.blog-menu, .blog-menu ul {
-    background: #990000;
-}
-
 .menu .menu-text {
     color: white;
-    font-family: 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 a.blog-logo-title {
     color: white;
 }
 
-a {
-    color: #990000;
-}
-
 .blog-tag {
     font-size: x-small;
-    color: #990000;
     padding-right: 10px;
     text-decoration: underline;
 }
 
-.blog-link {
-    color: #990000;
-}
-
 .blog-group-title {
-    color: #990000;
     font-size: small;
     font-weight: bold;
 }
@@ -57,10 +42,6 @@ ul.blog-links > li > a {
 .blog-topbar-gif {
     height: 50px;
     margin-top: -1px;
-}
-
-.blog-topbar-container {
-    background: #fefbfb;
 }
 
 .page-nav {
@@ -92,6 +73,11 @@ p.blog-post-more-mark {
 .blog-page-nav-container {
     padding-top: 20px;
     font-size: small;
+}
+
+h1, h2, h3, h4 {
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .blog-content h1 {

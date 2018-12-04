@@ -1,5 +1,5 @@
 ---
-title: MicroServices实践2:搭建Gitlab私服
+title: 搭建Gitlab私服
 date: 2017-06-18
 categories:  
     - Programing

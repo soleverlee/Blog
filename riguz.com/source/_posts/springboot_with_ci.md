@@ -1,5 +1,5 @@
 ---
-title: MicroServices实践7:使用GOCD部署一个SpringBoot应用
+title: 使用GOCD部署一个SpringBoot应用
 date: 2017-06-26
 categories:  
     - Programing

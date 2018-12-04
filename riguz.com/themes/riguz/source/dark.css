@@ -1,0 +1,30 @@
+body{
+    color: gray;
+}
+.blog-menu, .blog-menu ul {
+    background: #990000;
+}
+
+.menu .menu-text {
+    color: white;
+}
+
+a.blog-logo-title {
+    color: white;
+}
+
+a {
+    color: #990000;
+}
+
+.blog-tag {
+    color: #990000;
+}
+
+.blog-link {
+    color: #990000;
+}
+
+.blog-group-title {
+    color: #990000;
+}

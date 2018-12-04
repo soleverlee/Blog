@@ -5,7 +5,10 @@ nav:
   About: /about/
   Github: https://github.com/soleverlee
 favicon: /images/cat_128.png
-copyright: &copy;2016-2018 Riguz Lee <a href="http://www.miitbeian.gov.cn/" class="blog-link">鄂ICP备15003868号-1</a>
+copyright: 2016-2018 Riguz Lee All rights reserved<br/><a href="http://www.miitbeian.gov.cn/" class="blog-link">鄂ICP备15003868号-1</a>
+theme: light
+highlight:
+  theme: vs
 gitalk:
   enabled: true
   clientId: 57d61245ff82e94d67b3

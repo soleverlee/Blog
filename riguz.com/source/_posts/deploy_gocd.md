@@ -1,5 +1,5 @@
 ---
-title: MicroServices实践3:搭建GOCD Server
+title: 搭建GOCD Server
 date: 2017-06-20
 categories:  
     - Programing
