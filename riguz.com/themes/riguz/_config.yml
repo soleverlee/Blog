@@ -17,3 +17,6 @@ gitalk:
   owner: soleverlee
   admin: soleverlee
   distractionFreeMode: false
+baiduAnalysis:
+  enabled: true
+  appId: 87ca39969c1788f94d5046526af77c45
