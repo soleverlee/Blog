@@ -6,7 +6,8 @@
             <div class="cell small-1">
             </div>
             <div class="cell small-8">
-                <a  class="blog-link" href="<%= url_for(i.path) %>"><img src="/assets/blt_red_arrow.png"/> <%= i.name %></a>
+                <a class="blog-link" href="<%= url_for(i.path) %>"><img src="/assets/blt_red_arrow.png"/> <%= i.name %>
+                </a>
             </div>
             <div class="cell small-2">(<%= i.length %>)</div>
         </div>
@@ -20,9 +21,10 @@
 <script>
   var data = [];
   <% site.tags.each(i=>{ %>
-  data.push({name:"<%= i.name %>", weight: <%= i.length %>, url: "<%- url_for(i.path) %>"});
+  data.push({name: "<%= i.name %>", weight: <%= i.length %>, url: "<%- url_for(i.path) %>"});
   <% }); %>
   Highcharts.chart('blog-tags-cloud', {
+    chart: {backgroundColor: 'null'},
     series: [{
       type: 'wordcloud',
       data,
@@ -39,7 +41,7 @@
         cursor: 'pointer',
         point: {
           events: {
-            click: function(e) {
+            click: function (e) {
               window.location = e.point.url;
             }
           }

@@ -6,6 +6,7 @@ body {
 .blog-menu {
     padding: 0;
     padding-left: 1rem;
+    margin-bottom: 25px;
 }
 
 .menu .menu-text {
@@ -16,8 +17,16 @@ a.blog-logo-title {
     color: white;
 }
 
+.blog-content {
+    padding-top: 15px;
+}
+
+.blog-tags {
+    padding-top: 10px;
+}
+
 .blog-tag {
-    font-size: x-small;
+    font-size: small;
     padding-right: 10px;
     text-decoration: underline;
 }
@@ -75,27 +84,39 @@ p.blog-post-more-mark {
     font-size: small;
 }
 
-h1, h2, h3, h4 {
-    margin-top: 5px;
-    margin-bottom: 5px;
+code, pre {
+    border: none;
 }
 
-.blog-content h1 {
-    font-size: 1.25rem;
+h6, h1.blog-link {
     font-weight: bold;
 }
 
-.blog-content h2 {
-    font-size: 1.15rem;
-    font-weight: bold;
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
-.blog-content h3 {
-    font-size: 1.05rem;
-    font-weight: bold;
+h1 {
+    font-size: 1.5em;
 }
 
-.blog-content h4 {
-    font-size: 1.00rem;
-    font-weight: bold;
+h2 {
+    font-size: 1.4em;
+}
+
+h3 {
+    font-size: 1.3em;
+}
+
+h4 {
+    font-size: 1.2em;
+}
+
+h5 {
+    font-size: 1.1em;
+}
+
+h6 {
+    font-size: 1.0em;
 }

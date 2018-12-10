@@ -1,8 +1,10 @@
-body{
-    color: gray;
+body {
+    color: white;
+    background: black url("/images/bg.jpg") no-repeat;
 }
+
 .blog-menu, .blog-menu ul {
-    background: #990000;
+    background: #003b4d;
 }
 
 .menu .menu-text {
@@ -13,18 +15,15 @@ a.blog-logo-title {
     color: white;
 }
 
-a {
-    color: #990000;
+a, .blog-tag, .blog-link, .blog-group-title {
+    color: #f80000;
 }
 
-.blog-tag {
-    color: #990000;
+code.hljs, pre.hljs {
+    background: #1d1d1d;
 }
 
-.blog-link {
-    color: #990000;
-}
-
-.blog-group-title {
-    color: #990000;
+.gt-container .gt-header-textarea, .gt-container .gt-header-textarea:hover {
+    color: white;
+    background: #1d1d1d;
 }
