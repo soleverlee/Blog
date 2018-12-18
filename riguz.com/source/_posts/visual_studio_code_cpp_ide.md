@@ -21,6 +21,7 @@ I've tried lot's of c++ IDEs on MacOS X, but none of them is as powerful as VS S
 
 Recently I tried Visual Studio Code, it's really a good choose for those who want to write some c++ code in a lightweight IDE.
 <!--more-->
+
 # Setup Visual Studio Code for C++ development
 
 First we have to install [Visual Studio Code](https://code.visualstudio.com/), and a few extensions:
