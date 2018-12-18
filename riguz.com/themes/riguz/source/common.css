@@ -37,7 +37,7 @@ a.blog-logo-title {
     font-weight: bold;
 }
 
-ul.blog-links > li > a {
+ul.blog-links > li > a, ul.blog-links > li > ul > li a {
     color: white;
     font-weight: bold;
     font-size: 13px;

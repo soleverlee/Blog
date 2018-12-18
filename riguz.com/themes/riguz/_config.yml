@@ -1,7 +1,13 @@
 nav:
-  Home: http://riguz.com
+  Home: https://riguz.com
   Archives: /archives
-  Wiki: http://wiki.riguz.com
+  Sites:
+    Wiki: https://wiki.riguz.com
+    Photo Gags: https://view.riguz.com
+    Mantis: https://bug.riguz.com
+  Product:
+    Forks: /developing
+    Okapia: /developing
   About: /about/
   Github: https://github.com/soleverlee
 favicon: /images/cat_128.png

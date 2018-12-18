@@ -3,6 +3,10 @@ body {
     background: black url("/images/bg.jpg") no-repeat;
 }
 
+.blog-links li{
+    border-right: 1px solid #3B4951;
+}
+
 .blog-menu, .blog-menu ul {
     background: #003b4d;
 }
