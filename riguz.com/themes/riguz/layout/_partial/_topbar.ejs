@@ -20,9 +20,14 @@
         </a>
     </div>
     <div class="top-bar-right">
-        <ul class="menu dropdown medium-horizontal vertical blog-links">
+        <ul class="menu dropdown medium-horizontal vertical blog-links data-dropdown-menu">
             <% for (name in theme.nav) { %>
-            <li><a href="<%- url_for(theme.nav[name]) %>"><%= name %></a></li>
+            <li>
+                <a href="<%- url_for(theme.nav[name]) %>"><%= name %></a>
+                <ul class="menu">
+                    <li><a href="#">Item 1A</a></li>
+                </ul>
+            </li>
             <% } %>
         </ul>
     </div>

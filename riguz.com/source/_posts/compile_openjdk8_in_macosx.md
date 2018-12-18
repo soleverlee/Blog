@@ -1,5 +1,5 @@
 ---
-title: Compile OpenJDK8 in MacOSX
+title: Compile OpenJDK8 on MacOSX
 date: 2018-04-09
 categories:  
     - Programing

@@ -27,3 +27,7 @@ code.hljs, pre.hljs {
     color: white;
     background: #1d1d1d;
 }
+
+hr {
+    border-bottom: 1px solid #670e00;
+}
