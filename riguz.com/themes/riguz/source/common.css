@@ -1,6 +1,6 @@
 body {
     /*font-family: Verdana, Geneva, sans-serif;*/
-    font-family: "Segoe UI","Helvetica Neue","Helvetica",Arial,sans-serif;
+    font-family: "Segoe UI", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-size: 14px;
 }
 
@@ -85,6 +85,10 @@ p.blog-post-more-mark {
     font-size: small;
 }
 
+.blog-content > p > img {
+    width: 600px;
+}
+
 code, pre {
     border: none;
 }
@@ -120,4 +124,8 @@ h5 {
 
 h6 {
     font-size: 1.0em;
+}
+
+ol.toc, ol.toc-child{
+    list-style-type: none;
 }

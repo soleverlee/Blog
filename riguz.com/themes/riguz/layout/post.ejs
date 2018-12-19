@@ -8,6 +8,7 @@
         <span class="subheader blog-link">/ <%= page.categories.data[i].name %></span>
       </a>
       <% } %>
+      <%- toc(page.content) %>
       <div class="blog-content">
       <%- page.content %>
       </div>
