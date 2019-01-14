@@ -23,7 +23,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="_config.yml" pinned="false" current-in-tab="true">
+      <file leaf-file-name="_config.yml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/themes/riguz/_config.yml">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="204">
@@ -36,7 +36,7 @@
         <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_rightbar.ejs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="493">
-              <caret line="29" column="11" lean-forward="true" selection-start-line="29" selection-start-column="11" selection-end-line="29" selection-end-column="11" />
+              <caret line="29" column="11" selection-start-line="29" selection-start-column="11" selection-end-line="29" selection-end-column="11" />
             </state>
           </provider>
         </entry>
@@ -44,8 +44,8 @@
       <file leaf-file-name="_topbar.ejs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="236">
-              <caret line="26" column="32" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
+            <state relative-caret-position="34">
+              <caret line="2" column="38" selection-start-line="2" selection-start-column="38" selection-end-line="2" selection-end-column="38" />
             </state>
           </provider>
         </entry>
@@ -59,11 +59,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="common.css" pinned="false" current-in-tab="false">
+      <file leaf-file-name="common.css" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/themes/riguz/source/common.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2227">
-              <caret line="131" selection-start-line="131" selection-end-line="131" />
+            <state relative-caret-position="539">
+              <caret line="134" column="1" selection-start-line="134" selection-start-column="1" selection-end-line="134" selection-end-column="1" />
             </state>
           </provider>
         </entry>
@@ -71,8 +71,8 @@
       <file leaf-file-name="light.css" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/themes/riguz/source/light.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="476">
-              <caret line="28" column="7" selection-start-line="28" selection-start-column="7" selection-end-line="28" selection-end-column="7" />
+            <state relative-caret-position="17">
+              <caret line="1" column="21" selection-start-line="1" selection-start-column="21" selection-end-line="1" selection-end-column="21" />
             </state>
           </provider>
         </entry>
@@ -209,11 +209,11 @@
         <option value="$PROJECT_DIR$/themes/riguz/layout/post.ejs" />
         <option value="$PROJECT_DIR$/source/_posts/btree_algorithm.md" />
         <option value="$PROJECT_DIR$/themes/riguz/layout/layout.ejs" />
-        <option value="$PROJECT_DIR$/themes/riguz/source/common.css" />
         <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_rightbar.ejs" />
-        <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs" />
-        <option value="$PROJECT_DIR$/themes/riguz/source/light.css" />
         <option value="$PROJECT_DIR$/themes/riguz/_config.yml" />
+        <option value="$PROJECT_DIR$/themes/riguz/source/light.css" />
+        <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs" />
+        <option value="$PROJECT_DIR$/themes/riguz/source/common.css" />
       </list>
     </option>
   </component>
@@ -232,7 +232,7 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="163" />
+    <option name="x" value="120" />
     <option name="y" value="23" />
     <option name="width" value="1172" />
     <option name="height" value="786" />
@@ -362,7 +362,7 @@
     </configuration>
   </component>
   <component name="ToolWindowManager">
-    <frame x="163" y="23" width="1172" height="786" extended-state="0" />
+    <frame x="120" y="23" width="1172" height="786" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
@@ -747,28 +747,7 @@
     <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_rightbar.ejs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="493">
-          <caret line="29" column="11" lean-forward="true" selection-start-line="29" selection-start-column="11" selection-end-line="29" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
-          <caret line="26" column="32" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/themes/riguz/source/common.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2227">
-          <caret line="131" selection-start-line="131" selection-end-line="131" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/themes/riguz/source/light.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="476">
-          <caret line="28" column="7" selection-start-line="28" selection-start-column="7" selection-end-line="28" selection-end-column="7" />
+          <caret line="29" column="11" selection-start-line="29" selection-start-column="11" selection-end-line="29" selection-end-column="11" />
         </state>
       </provider>
     </entry>
@@ -776,6 +755,27 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="204">
           <caret line="12" column="11" selection-start-line="12" selection-start-column="11" selection-end-line="12" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/themes/riguz/source/light.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="1" column="21" selection-start-line="1" selection-start-column="21" selection-end-line="1" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="38" selection-start-line="2" selection-start-column="38" selection-end-line="2" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/themes/riguz/source/common.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="539">
+          <caret line="134" column="1" selection-start-line="134" selection-start-column="1" selection-end-line="134" selection-end-column="1" />
         </state>
       </provider>
     </entry>
