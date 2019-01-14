@@ -25,3 +25,7 @@ a {
 .blog-group-title {
     color: #990000;
 }
+
+.hljs {
+    background: #f8f8f8;
+}
