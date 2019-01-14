@@ -24,7 +24,7 @@
   data.push({name: "<%= i.name %>", weight: <%= i.length %>, url: "<%- url_for(i.path) %>"});
   <% }); %>
   Highcharts.chart('blog-tags-cloud', {
-    chart: {backgroundColor: 'null'},
+    // chart: {backgroundColor: 'null'},
     series: [{
       type: 'wordcloud',
       data,

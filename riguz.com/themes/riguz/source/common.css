@@ -129,3 +129,17 @@ h6 {
 ol.toc, ol.toc-child{
     list-style-type: none;
 }
+
+.no-js .top-bar {
+    display: none;
+}
+
+@media screen and (min-width: 40em) {
+    .no-js .top-bar {
+        display: block;
+    }
+
+    .no-js .title-bar {
+        display: none;
+    }
+}

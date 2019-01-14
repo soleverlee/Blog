@@ -12,22 +12,58 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file leaf-file-name="btree_algorithm.md" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/_posts/btree_algorithm.md">
+        <entry file="file://$PROJECT_DIR$/source/_drafts/btree_algorithm.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="534">
-                <caret line="63" column="3" selection-start-line="63" selection-start-column="3" selection-end-line="63" selection-end-column="3" />
+              <first_editor relative-caret-position="1156">
+                <caret line="68" column="19" selection-start-line="68" selection-start-column="19" selection-end-line="68" selection-end-column="19" />
               </first_editor>
               <second_editor />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="common.css" pinned="false" current-in-tab="true">
+      <file leaf-file-name="_config.yml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/themes/riguz/_config.yml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="119">
+              <caret line="7" column="17" selection-start-line="7" selection-start-column="17" selection-end-line="7" selection-end-column="17" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="_rightbar.ejs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_rightbar.ejs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="493">
+              <caret line="29" column="11" lean-forward="true" selection-start-line="29" selection-start-column="11" selection-end-line="29" selection-end-column="11" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="_topbar.ejs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="236">
+              <caret line="26" column="32" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="layout.ejs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/themes/riguz/layout/layout.ejs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="493">
+              <caret line="29" column="53" selection-start-line="29" selection-start-column="53" selection-end-line="29" selection-end-column="53" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="common.css" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/themes/riguz/source/common.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="488">
-              <caret line="128" column="20" selection-start-line="128" selection-start-column="20" selection-end-line="128" selection-end-column="20" />
+            <state relative-caret-position="2227">
+              <caret line="131" selection-start-line="131" selection-end-line="131" />
             </state>
           </provider>
         </entry>
@@ -48,8 +84,8 @@
         <entry file="file://$PROJECT_DIR$/source/_posts/random_numbers.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="782">
-                <caret line="46" column="26" selection-start-line="46" selection-start-column="7" selection-end-line="46" selection-end-column="26" />
+              <first_editor relative-caret-position="1173">
+                <caret line="69" column="12" selection-start-line="69" selection-start-column="9" selection-end-line="69" selection-end-column="12" />
               </first_editor>
               <second_editor />
             </state>
@@ -87,6 +123,7 @@
       <find>[3]</find>
       <find>gitment</find>
       <find>\space</find>
+      <find>dot</find>
     </findStrings>
   </component>
   <component name="GradleLocalSettings">
@@ -149,25 +186,25 @@
         <option value="$PROJECT_DIR$/source/_posts/rethink_microservice.md" />
         <option value="$PROJECT_DIR$/themes/riguz/source/custom.css" />
         <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_analysis.ejs" />
-        <option value="$PROJECT_DIR$/themes/riguz/layout/layout.ejs" />
         <option value="$PROJECT_DIR$/source/_posts/random_numbers.md" />
         <option value="$PROJECT_DIR$/_config.yml" />
         <option value="$PROJECT_DIR$/themes/riguz/layout/index.ejs" />
         <option value="$PROJECT_DIR$/themes/riguz/source/light.css" />
         <option value="$PROJECT_DIR$/source/images/3140.svg" />
-        <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_rightbar.ejs" />
         <option value="$PROJECT_DIR$/source/_posts/compile_openjdk8_in_macosx.md" />
         <option value="$PROJECT_DIR$/source/_posts/visual_studio_code_cpp_ide.md" />
         <option value="$PROJECT_DIR$/themes/riguz/source/dark.css" />
         <option value="$PROJECT_DIR$/source/developing.md" />
-        <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs" />
         <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_post.ejs" />
         <option value="$PROJECT_DIR$/source/developing/index.md" />
         <option value="$PROJECT_DIR$/source/_drafts/btree_algorithm.md" />
-        <option value="$PROJECT_DIR$/themes/riguz/_config.yml" />
-        <option value="$PROJECT_DIR$/source/_posts/btree_algorithm.md" />
         <option value="$PROJECT_DIR$/themes/riguz/layout/post.ejs" />
+        <option value="$PROJECT_DIR$/source/_posts/btree_algorithm.md" />
+        <option value="$PROJECT_DIR$/themes/riguz/layout/layout.ejs" />
         <option value="$PROJECT_DIR$/themes/riguz/source/common.css" />
+        <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_rightbar.ejs" />
+        <option value="$PROJECT_DIR$/themes/riguz/_config.yml" />
+        <option value="$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs" />
       </list>
     </option>
   </component>
@@ -186,9 +223,9 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="334" />
+    <option name="x" value="163" />
     <option name="y" value="23" />
-    <option name="width" value="1044" />
+    <option name="width" value="1172" />
     <option name="height" value="786" />
   </component>
   <component name="ProjectView">
@@ -196,7 +233,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -238,13 +275,14 @@
               <item name="riguz.com" type="462c0819:PsiDirectoryNode" />
               <item name="themes" type="462c0819:PsiDirectoryNode" />
               <item name="riguz" type="462c0819:PsiDirectoryNode" />
-              <item name="source" type="462c0819:PsiDirectoryNode" />
+              <item name="layout" type="462c0819:PsiDirectoryNode" />
+              <item name="_partial" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -264,8 +302,8 @@
       <recent name="$PROJECT_DIR$/themes/riguz/source/assets" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/source/_posts" />
       <recent name="$PROJECT_DIR$/source/_drafts" />
+      <recent name="$PROJECT_DIR$/source/_posts" />
       <recent name="$PROJECT_DIR$/themes/riguz/source" />
       <recent name="$PROJECT_DIR$/themes/riguz/layout" />
     </key>
@@ -308,11 +346,11 @@
     </configuration>
   </component>
   <component name="ToolWindowManager">
-    <frame x="334" y="23" width="1044" height="786" extended-state="0" />
+    <frame x="163" y="23" width="1172" height="786" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.23652695" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20265487" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
@@ -590,13 +628,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/layout.ejs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="22" column="19" selection-start-line="22" selection-start-column="12" selection-end-line="22" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/themes/riguz/source/light.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
@@ -643,20 +674,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/source/developing.md" />
-    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_rightbar.ejs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="14" selection-start-line="14" selection-end-line="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="11" column="84" selection-start-line="11" selection-start-column="84" selection-end-line="11" selection-end-column="84" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_post.ejs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="51">
@@ -674,38 +691,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/themes/riguz/_config.yml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="14" column="8" lean-forward="true" selection-start-line="14" selection-start-column="8" selection-end-line="14" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/source/_posts/about_comments.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
           <first_editor relative-caret-position="1326">
             <caret line="78" column="45" selection-start-line="78" selection-end-line="78" selection-end-column="45" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/_posts/random_numbers.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="FIRST">
-          <first_editor relative-caret-position="782">
-            <caret line="46" column="26" selection-start-line="46" selection-start-column="7" selection-end-line="46" selection-end-column="26" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/_posts/btree_algorithm.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="FIRST">
-          <first_editor relative-caret-position="534">
-            <caret line="63" column="3" selection-start-line="63" selection-start-column="3" selection-end-line="63" selection-end-column="3" />
           </first_editor>
           <second_editor />
         </state>
@@ -718,10 +708,58 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/source/_posts/random_numbers.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="FIRST">
+          <first_editor relative-caret-position="1173">
+            <caret line="69" column="12" selection-start-line="69" selection-start-column="9" selection-end-line="69" selection-end-column="12" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/layout.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="493">
+          <caret line="29" column="53" selection-start-line="29" selection-start-column="53" selection-end-line="29" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/themes/riguz/source/common.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="488">
-          <caret line="128" column="20" selection-start-line="128" selection-start-column="20" selection-end-line="128" selection-end-column="20" />
+        <state relative-caret-position="2227">
+          <caret line="131" selection-start-line="131" selection-end-line="131" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/_drafts/btree_algorithm.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="FIRST">
+          <first_editor relative-caret-position="1156">
+            <caret line="68" column="19" selection-start-line="68" selection-start-column="19" selection-end-line="68" selection-end-column="19" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_rightbar.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="493">
+          <caret line="29" column="11" lean-forward="true" selection-start-line="29" selection-start-column="11" selection-end-line="29" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/themes/riguz/_config.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="17" selection-start-line="7" selection-start-column="17" selection-end-line="7" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/themes/riguz/layout/_partial/_topbar.ejs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="236">
+          <caret line="26" column="32" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
         </state>
       </provider>
     </entry>

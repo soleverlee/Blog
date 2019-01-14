@@ -5,7 +5,7 @@
     </div>
 </div>
 
-<nav class="off-canvas position-left blog-menu" id="offCanvasLeft" data-off-canvas>
+<nav class="off-canvas position-left blog-menu no-js top-bar" id="offCanvasLeft" data-off-canvas>
     <ul class="vertical dropdown menu blog-links" data-dropdown-menu>
         <% for (name in theme.nav) { %>
         <li>
@@ -15,7 +15,7 @@
     </ul>
 </nav>
 
-<nav id="widemenu" class="top-bar blog-menu">
+<nav id="widemenu" class="top-bar blog-menu title-bar no-js">
     <div class="top-bar-left">
         <a href="/" class="blog-logo-title">
             <strong><%= config.title %></strong>
@@ -24,7 +24,7 @@
     <div class="top-bar-right">
         <ul class="menu dropdown right-side medium-horizontal vertical blog-links" data-dropdown-menu>
             <% for (name in theme.nav) { %>
-            <li class="menu-item is-dropdown-submenu-parent opens-left">
+            <li class="menu-item">
                 <a href="<%- theme.nav[name].length > 0 && url_for(theme.nav[name]) %>"><%= name %></a>
                 <% if(theme.nav[name] instanceof Object) { %>
                 <ul class="menu">
