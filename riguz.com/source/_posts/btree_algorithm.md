@@ -8,7 +8,12 @@ tags:
 	- B-Tree
 ---
 B-Tree(区别于二叉树)是一种平衡多叉搜索树。它的插入、搜索、删除、
-![Btree of order 5](/images/b-tree-order5.png)
+
+```
+         .7.16.
+        /  |   \
+.1.2.5.6 .9.12. .18.21.
+```
 
 <!--more-->
 # B-Tree的定义
@@ -66,26 +71,48 @@ Knuth Order, k |  (min,max)  | CLRS Degree, t
 ```
 
 ## B-Tree的高度^[http://staff.ustc.edu.cn/~csli/graduate/algorithms/book6/chap19.htm]
-根据B-Tree的定义，如果Btree的高度为${\displaystyle h}$, 则有：
+根据B-Tree的定义（Min Degree t)，如果Btree的高度为${\displaystyle h}$, 考虑最少含有多少个key, 则当：
 
-* Root节点包含2个子节点
-* 其他所有节点至少有${\displaystyle t}$ 个子节点
+* Root节点包含1个key
+* 其他所有节点有且仅有有${\displaystyle t-1}$ 个key
 
-当除root外的其他节点含有的子节点数为${\displaystyle t}$ 时，这个树的节点最少，如图所示：
+这种场景时，所包含的key最少：
 
 ![Btree of height 3](/images/btree_height_3.gif)
 
-* 当${\displaystyle h=0}$ 时，${\displaystyle S_{0}=n=1}$
-* 当${\displaystyle h=1}$ 时，${\displaystyle S_{1}=n=2}$
-* 当${\displaystyle h=2}$ 时，${\displaystyle S_{2}=n=2\cdot t}$
+设${\displaystyle S_{h}}$为Btree第h层的节点数，容易看出:
 
-容易看出，${\displaystyle S_{n+1}=S_{n}\cdot t}$，即可得：
-$$
+* 当${\displaystyle depth=0}$ 时，${\displaystyle S_{0}=1}$
+* 当${\displaystyle depth=1}$ 时，${\displaystyle S_{1}=2}$
+* 当${\displaystyle depth=2}$ 时，${\displaystyle S_{2}=2\cdot t}$
+* 当${\displaystyle depth=h}$ 时，${\displaystyle S_{h}=2\cdot t^{h-1}}$
 
-$$
-
-设${\displaystyle n}$ 为B-Tree的节点数，则有：
+从${\displaystyle h=1}$开始，每一层的key数目即${\displaystyle S(key)_{h}=S_{h}\cdot (t-1)}$，根据等比数列求和公式即可算出总的key数目为：
 
 $$
-n \geq 
+\begin{aligned}	 
+Min(keys) &=1 + \sum_{i=1}^{h}{(t-1)\cdot 2t^{i-1}} \\
+    &=1 + (t-1)\sum_{i=1}^{h}{2t^{i-1}} \\
+    &=1 + 2(t-1)\sum_{i=1}^{h}{t^{i-1}} \\
+    &=1 + 2(t-1){\Big(\frac{1-t^h}{1-t}\Big)} \\
+    &=2t^h-1
+\end{aligned}
 $$
+
+设${\displaystyle n}$ 为B-Tree的所有key数，则有：
+
+$$
+\begin{aligned}	
+n &\geq Min(keys) \\
+  &=2t^h-1
+\end{aligned}
+$$
+
+可以得：
+
+$$
+h \leq log_{t}\frac{1+n}{2}
+$$
+More:
+
+* [Graduate Algorithms CS673-2016F-11 B-Trees](https://www.cs.usfca.edu/~galles/cs673/lecture/lecture11.pdf)
