@@ -126,10 +126,15 @@ h6 {
     font-size: 1.0em;
 }
 
-ol.toc, ol.toc-child{
+ol.toc, ol.toc-child {
     list-style-type: none;
 }
 
-.no-js .top-bar {
-    display: none;
+figure {
+    text-align: center;
+    font-size: small;
+}
+
+figure img {
+    width: 600px;
 }

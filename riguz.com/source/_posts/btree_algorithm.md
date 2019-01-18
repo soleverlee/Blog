@@ -9,11 +9,7 @@ tags:
 ---
 B-Tree(区别于二叉树)是一种平衡多叉搜索树。它的插入、搜索、删除、
 
-```
-         .7.16.
-        /  |   \
-.1.2.5.6 .9.12. .18.21.
-```
+![btree of order 5](/images/btree-order5.png)
 
 <!--more-->
 # B-Tree的定义
@@ -32,7 +28,7 @@ B-Tree(区别于二叉树)是一种平衡多叉搜索树。它的插入、搜索
 * B-Tree of order ${\displaystyle d}$ or ${\displaystyle M}$
 * B-Tree of degree or ${\displaystyle t}$
 
-## Kuath：B-Tree of Order ${\displaystyle d}$
+## Kuath: B-Tree of Order ${\displaystyle d}$
 其中${\displaystyle M=5}$ 表示每一个节点中*至多有5个子节点*；则有如下的特性：
 $$
 \begin{align}
@@ -113,6 +109,35 @@ $$
 $$
 h \leq log_{t}\frac{1+n}{2}
 $$
+
+# Btree操作
+## Btree查找
+
+查找算法类似于2叉树的查找，步骤如下：
+
+* 从根节点开始，依次同节点中${\displaystyle k_{i}}$进行比较，如果大于或者等于${\displaystyle k_{i}}$则停止
+* 如果找到相等的key，则停止搜索
+* 如果没有找到，则到下一级节点中进行查找；如果已经是叶子节点，则查找结束
+
+通常当${\displaystyle M}$较小时，我们在节点中查找的时候只需要进行顺序查找即可；如果较大的情况下，可以进行二分查找提高搜索的效率。
+
+## Btree插入
+### Split
+在进行insert之前，需要考虑的就是，btree规定了一个节点中最大的child的数目，当一个节点中子节点的数目超过允许的最大值的时候，需要将节点拆分为两个。例如：
+
+* Order=8时，每个节点最多允许7个key，这样split之后正好平均
+
+![btree of order 8](/images/btree-split-1.png)
+
+* Order=7时，每个节点最多6个key，这样拆分之后，节点是不平均的：
+
+![btree of order 7](/images/btree-split-2.png)
+
+### Insert
+
+![btree of order 5](/images/btree_order_5_insert.png)
+
+### Preemtive Split
 More:
 
 * [Graduate Algorithms CS673-2016F-11 B-Trees](https://www.cs.usfca.edu/~galles/cs673/lecture/lecture11.pdf)

@@ -80,3 +80,10 @@ theme: riguz
 deploy:
   type: git
   repo: git@github.com:soleverlee/soleverlee.github.io.git
+
+heading_index:
+  enable: true
+  index_styles: "{1} {1} {1} {1} {1} {1}"
+  connector: "."
+  global_prefix: ""
+  global_suffix: ". "
