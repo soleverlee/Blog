@@ -135,9 +135,30 @@ $$
 
 ### Insert
 
+当order为奇数时，插入A~Q的过程如下：
+
 ![btree of order 5](/images/btree_order_5_insert.png)
 
+当order为偶数时，插入A-J的过程如下：
+
+![btree of order 4](/images/btree_order_4_insert.png)
+
+在Insert的过程中，一般的做法是先将元素插入到叶节点，这时候如果发现叶节点满了，需要将其Split，并将其中一个key提升到父节点中。同时，需要看父节点是否满，如果满了也需要进行拆分，直到根节点。
+
 ### Preemtive Split
+
+如上所说，在insert操作的时候，是先插入元素，然后再进行拆分的，这样可能插入之后还需要一直递归到上层节点进行拆分。例如下面的一个场景：
+
+![btree of order 4](/images/btree_order_4_insert_normal.png)
+
+而Preemtive Split正是在insert之前即进行拆分，当发现一个节点快要满了的时候，就先split之后再插入，自顶向下，不需要再回溯到上一层的节点。
+
+![btree of order 4](/images/btree_order_4_insert_preemtive.png)
+
+从上面的例子可以看到，两种方式构造出的Btree在插入I之后其实是不大一样的，而当J插入之后则变成一致了。
+
+
+
 More:
 
 * [Graduate Algorithms CS673-2016F-11 B-Trees](https://www.cs.usfca.edu/~galles/cs673/lecture/lecture11.pdf)

@@ -15,8 +15,8 @@
         <entry file="file://$PROJECT_DIR$/source/_posts/btree_algorithm.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="466">
-                <caret line="138" lean-forward="true" selection-start-line="138" selection-end-line="138" />
+              <first_editor relative-caret-position="646">
+                <caret line="160" lean-forward="true" selection-start-line="160" selection-end-line="160" />
               </first_editor>
               <second_editor />
             </state>
@@ -178,7 +178,7 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="213" />
+    <option name="x" value="112" />
     <option name="y" value="23" />
     <option name="width" value="1172" />
     <option name="height" value="786" />
@@ -205,6 +205,12 @@
               <item name="riguz.com" type="462c0819:PsiDirectoryNode" />
               <item name="source" type="462c0819:PsiDirectoryNode" />
               <item name="developing" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="riguz.com" type="b2602c69:ProjectViewProjectNode" />
+              <item name="riguz.com" type="462c0819:PsiDirectoryNode" />
+              <item name="source" type="462c0819:PsiDirectoryNode" />
+              <item name="images" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="riguz.com" type="b2602c69:ProjectViewProjectNode" />
@@ -301,7 +307,7 @@
     </configuration>
   </component>
   <component name="ToolWindowManager">
-    <frame x="213" y="23" width="1172" height="786" extended-state="0" />
+    <frame x="112" y="23" width="1172" height="786" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
@@ -331,7 +337,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/fd/index.html" />
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="272">
@@ -717,11 +722,14 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/source/images/btree_order_4_insert.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/source/_posts/btree_algorithm.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="466">
-            <caret line="138" lean-forward="true" selection-start-line="138" selection-end-line="138" />
+          <first_editor relative-caret-position="646">
+            <caret line="160" lean-forward="true" selection-start-line="160" selection-end-line="160" />
           </first_editor>
           <second_editor />
         </state>
