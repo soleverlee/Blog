@@ -11,12 +11,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="btree_algorithm.md" pinned="false" current-in-tab="true">
+      <file leaf-file-name="btree_algorithm.md" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/_posts/btree_algorithm.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="646">
-                <caret line="160" lean-forward="true" selection-start-line="160" selection-end-line="160" />
+              <first_editor relative-caret-position="534">
+                <caret line="156" lean-forward="true" selection-start-line="156" selection-end-line="156" />
+              </first_editor>
+              <second_editor />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="mysql_replication.md" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/source/_posts/mysql_replication.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="FIRST">
+              <first_editor relative-caret-position="449">
+                <caret line="146" column="69" selection-start-line="146" selection-start-column="69" selection-end-line="146" selection-end-column="69" />
               </first_editor>
               <second_editor />
             </state>
@@ -38,7 +50,7 @@
       <file leaf-file-name="common.css" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/themes/riguz/source/common.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="505">
+            <state relative-caret-position="2261">
               <caret line="133" column="22" selection-start-line="133" selection-start-column="16" selection-end-line="133" selection-end-column="22" />
             </state>
           </provider>
@@ -109,7 +121,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/source/_posts/about_java_generics.md" />
         <option value="$PROJECT_DIR$/source/_posts/compile_argon2_for_android.md" />
         <option value="$PROJECT_DIR$/source/_posts/about_comments.md" />
         <option value="$PROJECT_DIR$/source/_posts/crack_db_schema.md" />
@@ -160,6 +171,7 @@
         <option value="$PROJECT_DIR$/themes/riguz/layout/post.ejs" />
         <option value="$PROJECT_DIR$/themes/riguz/source/common.css" />
         <option value="$PROJECT_DIR$/source/_posts/btree_algorithm.md" />
+        <option value="$PROJECT_DIR$/source/_posts/mysql_replication.md" />
       </list>
     </option>
   </component>
@@ -178,7 +190,7 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="112" />
+    <option name="x" value="188" />
     <option name="y" value="23" />
     <option name="width" value="1172" />
     <option name="height" value="786" />
@@ -204,13 +216,13 @@
               <item name="riguz.com" type="b2602c69:ProjectViewProjectNode" />
               <item name="riguz.com" type="462c0819:PsiDirectoryNode" />
               <item name="source" type="462c0819:PsiDirectoryNode" />
-              <item name="developing" type="462c0819:PsiDirectoryNode" />
+              <item name="_posts" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="riguz.com" type="b2602c69:ProjectViewProjectNode" />
               <item name="riguz.com" type="462c0819:PsiDirectoryNode" />
               <item name="source" type="462c0819:PsiDirectoryNode" />
-              <item name="images" type="462c0819:PsiDirectoryNode" />
+              <item name="developing" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="riguz.com" type="b2602c69:ProjectViewProjectNode" />
@@ -228,22 +240,14 @@
               <item name="riguz.com" type="462c0819:PsiDirectoryNode" />
               <item name="themes" type="462c0819:PsiDirectoryNode" />
               <item name="riguz" type="462c0819:PsiDirectoryNode" />
-              <item name="layout" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="riguz.com" type="b2602c69:ProjectViewProjectNode" />
-              <item name="riguz.com" type="462c0819:PsiDirectoryNode" />
-              <item name="themes" type="462c0819:PsiDirectoryNode" />
-              <item name="riguz" type="462c0819:PsiDirectoryNode" />
-              <item name="layout" type="462c0819:PsiDirectoryNode" />
-              <item name="_partial" type="462c0819:PsiDirectoryNode" />
+              <item name="source" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -255,18 +259,18 @@
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/source/_posts" />
+      <recent name="$PROJECT_DIR$/source/_drafts" />
+      <recent name="$PROJECT_DIR$/themes/riguz/source" />
+      <recent name="$PROJECT_DIR$/themes/riguz/layout" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/source/_posts" />
       <recent name="$PROJECT_DIR$/source/images" />
       <recent name="$PROJECT_DIR$/source" />
       <recent name="$PROJECT_DIR$/themes/riguz/layout/_partial" />
       <recent name="$PROJECT_DIR$/themes/riguz/source/assets" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/source/_posts" />
-      <recent name="$PROJECT_DIR$/source/_drafts" />
-      <recent name="$PROJECT_DIR$/themes/riguz/source" />
-      <recent name="$PROJECT_DIR$/themes/riguz/layout" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -307,11 +311,11 @@
     </configuration>
   </component>
   <component name="ToolWindowManager">
-    <frame x="112" y="23" width="1172" height="786" extended-state="0" />
+    <frame x="188" y="23" width="1172" height="786" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.23539823" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.23893805" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
@@ -337,13 +341,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/package.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="16" column="25" selection-start-line="16" selection-start-column="19" selection-end-line="16" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/source/_posts/compile_argon2_for_android.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
@@ -717,7 +714,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/themes/riguz/source/common.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="505">
+        <state relative-caret-position="2261">
           <caret line="133" column="22" selection-start-line="133" selection-start-column="16" selection-end-line="133" selection-end-column="22" />
         </state>
       </provider>
@@ -728,8 +725,18 @@
     <entry file="file://$PROJECT_DIR$/source/_posts/btree_algorithm.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="646">
-            <caret line="160" lean-forward="true" selection-start-line="160" selection-end-line="160" />
+          <first_editor relative-caret-position="534">
+            <caret line="156" lean-forward="true" selection-start-line="156" selection-end-line="156" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/_posts/mysql_replication.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="FIRST">
+          <first_editor relative-caret-position="449">
+            <caret line="146" column="69" selection-start-line="146" selection-start-column="69" selection-end-line="146" selection-end-column="69" />
           </first_editor>
           <second_editor />
         </state>
