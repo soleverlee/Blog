@@ -17,6 +17,7 @@ install:
     - npm install
 
 script:
+    - cd riguz.com
     - hexo clean 
     - hexo generate
 
