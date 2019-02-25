@@ -14,6 +14,7 @@ before_install:
     - npm install -g hexo-cli
 
 install:
+    - cd riguz.com
     - npm install
 
 script:
