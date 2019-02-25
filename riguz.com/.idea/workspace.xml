@@ -15,7 +15,7 @@
         <entry file="file://$PROJECT_DIR$/source/_posts/btree_algorithm.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="602">
+              <first_editor relative-caret-position="2703">
                 <caret line="159" column="7" selection-start-line="159" selection-start-column="7" selection-end-line="159" selection-end-column="7" />
               </first_editor>
               <second_editor />
@@ -27,8 +27,8 @@
         <entry file="file://$PROJECT_DIR$/source/_posts/android_icon_setting.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="92">
-                <caret line="48" column="46" lean-forward="true" selection-start-line="48" selection-end-line="48" selection-end-column="46" />
+              <first_editor relative-caret-position="816">
+                <caret line="48" column="46" selection-start-line="48" selection-end-line="48" selection-end-column="46" />
               </first_editor>
               <second_editor />
             </state>
@@ -39,8 +39,8 @@
         <entry file="file://$PROJECT_DIR$/source/_posts/android_land_layout.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="500">
-                <caret line="46" column="71" selection-start-line="46" selection-start-column="71" selection-end-line="46" selection-end-column="71" />
+              <first_editor relative-caret-position="279">
+                <caret line="33" column="18" selection-start-line="33" selection-start-column="18" selection-end-line="33" selection-end-column="18" />
               </first_editor>
               <second_editor />
             </state>
@@ -63,7 +63,7 @@
         <entry file="file://$PROJECT_DIR$/source/_posts/docker_in_virtualbox.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="11">
+              <first_editor relative-caret-position="289">
                 <caret line="17" column="14" selection-start-line="17" selection-start-column="3" selection-end-line="17" selection-end-column="14" />
               </first_editor>
               <second_editor />
@@ -87,7 +87,7 @@
         <entry file="file://$PROJECT_DIR$/source/_posts/deploy_gitlab.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="-607">
+              <first_editor relative-caret-position="17">
                 <caret line="1" column="7" selection-start-line="1" selection-start-column="7" selection-end-line="1" selection-end-column="7" />
               </first_editor>
               <second_editor />
@@ -111,7 +111,7 @@
         <entry file="file://$PROJECT_DIR$/source/_posts/antlr_as_config.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="517">
+              <first_editor relative-caret-position="2295">
                 <caret line="135" selection-start-line="135" selection-end-line="135" />
               </first_editor>
               <second_editor />
@@ -241,7 +241,7 @@
       <path value="$PROJECT_DIR$/package.json" />
     </packageJsonPaths>
   </component>
-  <component name="ProjectFrameBounds">
+  <component name="ProjectFrameBounds" extendedState="1">
     <option name="x" value="460" />
     <option name="y" value="23" />
     <option name="width" value="953" />
@@ -252,7 +252,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -292,7 +292,7 @@
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -356,16 +356,15 @@
     </configuration>
   </component>
   <component name="ToolWindowManager">
-    <frame x="460" y="23" width="953" height="786" extended-state="0" />
+    <frame x="460" y="23" width="953" height="786" extended-state="1" />
     <editor active="true" />
     <layout>
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.26564217" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.27113062" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="right" id="Maven Projects" order="3" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.3297546" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -377,6 +376,7 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3297546" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -700,7 +700,7 @@
     <entry file="file://$PROJECT_DIR$/source/_posts/docker_in_virtualbox.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="11">
+          <first_editor relative-caret-position="289">
             <caret line="17" column="14" selection-start-line="17" selection-start-column="3" selection-end-line="17" selection-end-column="14" />
           </first_editor>
           <second_editor />
@@ -720,7 +720,7 @@
     <entry file="file://$PROJECT_DIR$/source/_posts/deploy_gitlab.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="-607">
+          <first_editor relative-caret-position="17">
             <caret line="1" column="7" selection-start-line="1" selection-start-column="7" selection-end-line="1" selection-end-column="7" />
           </first_editor>
           <second_editor />
@@ -740,7 +740,7 @@
     <entry file="file://$PROJECT_DIR$/source/_posts/antlr_as_config.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="517">
+          <first_editor relative-caret-position="2295">
             <caret line="135" selection-start-line="135" selection-end-line="135" />
           </first_editor>
           <second_editor />
@@ -760,7 +760,7 @@
     <entry file="file://$PROJECT_DIR$/source/_posts/btree_algorithm.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="602">
+          <first_editor relative-caret-position="2703">
             <caret line="159" column="7" selection-start-line="159" selection-start-column="7" selection-end-line="159" selection-end-column="7" />
           </first_editor>
           <second_editor />
@@ -770,8 +770,8 @@
     <entry file="file://$PROJECT_DIR$/source/_posts/android_icon_setting.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="92">
-            <caret line="48" column="46" lean-forward="true" selection-start-line="48" selection-end-line="48" selection-end-column="46" />
+          <first_editor relative-caret-position="816">
+            <caret line="48" column="46" selection-start-line="48" selection-end-line="48" selection-end-column="46" />
           </first_editor>
           <second_editor />
         </state>
@@ -780,8 +780,8 @@
     <entry file="file://$PROJECT_DIR$/source/_posts/android_land_layout.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="500">
-            <caret line="46" column="71" selection-start-line="46" selection-start-column="71" selection-end-line="46" selection-end-column="71" />
+          <first_editor relative-caret-position="279">
+            <caret line="33" column="18" selection-start-line="33" selection-start-column="18" selection-end-line="33" selection-end-column="18" />
           </first_editor>
           <second_editor />
         </state>

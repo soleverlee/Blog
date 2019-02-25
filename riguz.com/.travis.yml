@@ -1,0 +1,27 @@
+language: node_js
+
+node_js:
+    - 8.11.3
+
+branches:
+    only:
+        - master
+cache:
+    directories:
+        - node_modules
+
+before_install:
+    - npm install -g hexo-cli
+
+install:
+    - npm install
+
+script:
+    - hexo clean 
+    - hexo generate
+
+after_success:
+    - print 'Successfully generated!'
+    - cd ./public
+
+
