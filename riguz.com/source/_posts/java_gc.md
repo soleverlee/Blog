@@ -48,14 +48,39 @@ Argument        Description
 -XX:PermSize	Sets the starting size of the Permanent Generation.
 -XX:MaxPermSize	Sets the maximum size of the Permanent Generation
 
-* Serial GC:使用mark-compact算法进行GC，单线程的进行GC，适合单核CPU和在客户端允许的Java程序。
-* Parallel GC(throughput collector):多线程进行GC
-* Concurrent Mark Sweep (CMS) Collector: 在程序运行的时候并发的进行GC，以最大限度减少停止时间
-* G1 Garbage Collector: CMS的替代品
+* **Serial GC**:使用mark-compact算法进行GC，单线程的进行GC，适合单核CPU和在客户端允许的Java程序。
+* **Parallel GC(throughput collector)**:多线程进行GC
+* **Concurrent Mark Sweep (CMS) Collector**: 在程序运行的时候并发的进行GC，以最大限度减少停止时间
+* **G1(Garbage-First) Garbage Collector**: CMS的替代品
 
-* http://enos.itcollege.ee/~jpoial/allalaadimised/reading/Advanced-java.pdf
-* https://codeahoy.com/2017/08/06/basics-of-java-garbage-collection/
-* https://www.novatec-gmbh.de/en/blog/g1-action-better-cms/
-* https://www.oracle.com/webfolder/technetwork/tutorials/obe/java/gc01/index.html
+![Java collectors](https://cdn.app.compendium.com/uploads/user/e7c690e8-6ff9-102a-ac6d-e4aebca50425/f4a5b21d-66fa-4885-92bf-c4e81c06d916/Image/b125abbe194f5608840119eccc9d90e2/collectors.jpg){style="width:600px;height:300px;"}
+
+Garbage Collector Type           Algorithm                MultiThread
+----------------- -------------- ------------------------ ----------------------
+Serial            stop-the-world copying                  No
+ParNew            stop-the-world copying                  Yes
+Parallel Scavenge stop-the-world copying                  Yes
+Serial Old        stop-the-world mark-sweep-compact       No
+CMS               low-pause      concurrent-mark-sweep    Yes
+Parallel Old      stop-the-world mark-sweep-compact       Yes
+G1                                                        Yes        
+
+
+Arguments                Result
+------------------------ --------------------------------------------------------
+-XX:+UseSerialGC         Serial + Serial Old
+-XX:+UseParNewGC         ParNew + Serial Old
+-XX:+UseConcMarkSweepGC  ParNew + CMS + Serial Old^["CMS" is used most of the time to collect the tenured generation. "Serial Old" is used when a concurrent mode failure occurs.]
+-XX:+UseParallelGC       Parallel Scavenge + Serial Old
+-XX:+UseParallelOldGC    Parallel Scavenge + Parallel Old
+–XX:+UseG1GC             G1
+
+References:
+
+* [Advanced Java](http://enos.itcollege.ee/~jpoial/allalaadimised/reading/Advanced-java.pdf)
+* [Basics of Java Garbage Collection](https://codeahoy.com/2017/08/06/basics-of-java-garbage-collection/)
+* [G1 in Action: Is it better than the CMS?](https://www.novatec-gmbh.de/en/blog/g1-action-better-cms/)
+* [Java Garbage Collection Basics](https://www.oracle.com/webfolder/technetwork/tutorials/obe/java/gc01/index.html)
+* [Getting Started with the G1 Garbage Collector](https://www.oracle.com/webfolder/technetwork/tutorials/obe/java/G1GettingStarted/index.html)
 
 
