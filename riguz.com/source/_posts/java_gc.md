@@ -53,6 +53,9 @@ Argument        Description
 * **Concurrent Mark Sweep (CMS) Collector**: 在程序运行的时候并发的进行GC，以最大限度减少停止时间
 * **G1(Garbage-First) Garbage Collector**: CMS的替代品
 
+其中存在并行(Parallel)和并发(Concurrent)的区别，并行是指垃圾收集器多个线程同时工作，但此时用户线程依然是停止等待的；而并发是指在用户线程工作的同时，垃圾收集器同时执行。
+
+
 ![Java collectors](https://cdn.app.compendium.com/uploads/user/e7c690e8-6ff9-102a-ac6d-e4aebca50425/f4a5b21d-66fa-4885-92bf-c4e81c06d916/Image/b125abbe194f5608840119eccc9d90e2/collectors.jpg){style="width:600px;height:300px;"}
 
 Garbage Collector Type           Algorithm                MultiThread
@@ -63,7 +66,7 @@ Parallel Scavenge stop-the-world copying                  Yes
 Serial Old        stop-the-world mark-sweep-compact       No
 CMS               low-pause      concurrent-mark-sweep    Yes
 Parallel Old      stop-the-world mark-sweep-compact       Yes
-G1                                                        Yes        
+G1                               compacting               Yes        
 
 
 Arguments                Result
@@ -74,6 +77,23 @@ Arguments                Result
 -XX:+UseParallelGC       Parallel Scavenge + Serial Old
 -XX:+UseParallelOldGC    Parallel Scavenge + Parallel Old
 –XX:+UseG1GC             G1
+
+# GC过程
+## CMS
+CMS 收集器的步骤：
+
+Phase                    Description
+------------------------ -------------------------------------------------------
+Initial Mark (Stop-Word) 标记老年代中的对象是否可达(reachable)，包括可以从新生代中到达的
+Concurrent Marking   
+Remark       (Stop-Word)
+Concurrent Sweep
+Resetting
+
+G1将Heap划分成一些相同大小的区块，但是没有限制不同代的大小。
+
+![G1 Heap Allocation](https://www.oracle.com/webfolder/technetwork/tutorials/obe/java/G1GettingStarted/images/slide9.png){style="width:400px"}
+
 
 References:
 
