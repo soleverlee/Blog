@@ -3,8 +3,7 @@ title: 破解Db Schema序列号
 date: 2016-07-22
 categories:  
     - Programing
-    - Java
-    - Hack
+    - Security
 tags:
 	- DB Schema
 	- MySQL

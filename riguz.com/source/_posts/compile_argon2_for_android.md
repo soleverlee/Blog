@@ -4,7 +4,6 @@ date: 2018-08-03
 categories:  
     - Programing
     - Security
-    - Android
 tags:
 	- Android
 	- Argon2

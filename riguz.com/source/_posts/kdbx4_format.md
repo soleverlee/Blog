@@ -3,10 +3,12 @@ title: KDBX4 文件格式解析
 date: 2019-03-07
 categories:  
     - Programing
-    - Hack
+    - Security
 tags:
     - KeePass
     - KDBX
+    - Argon2
+    - AES
 ---
 最近因为开始开发我自己的密码管理软件，因此对一些开源的密码管理软件做了一下研究，这其中一个比较著名的就是[KeePass](https://keepass.info/)。KeePass将密码存在一个文本文件中，最新的格式是[KDBX4](https://keepass.info/help/kb/kdbx_4.html)，官方的KeePass是在.Net平台上开发的，也有不少其他平台的移植版本，当然KDBX解析的库也比较多，可惜即便是官方文档也没有详细的描述。几经折腾找到了一个比较好的实现[Keepassxc](https://keepassxc.org/)，这是一个基于c++和QT开发的跨平台版本，兼容Keepass的文件格式，我把代码做了精简就得到[一个KDBX的操作库](https://github.com/soleverlee/keepass-client)，顺便调试了一下KDBX的文件格式，看看它是怎么存密码的。
 <!-- more -->
