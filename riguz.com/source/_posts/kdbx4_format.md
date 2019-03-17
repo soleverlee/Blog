@@ -8,7 +8,7 @@ tags:
     - KeePass
     - KDBX
 ---
-最近因为开始开发我自己的密码管理软件，因此对一些开源的密码管理软件做了一下研究，这其中一个比较著名的就是[KeePass](https://keepass.info/)。KeePass将密码存在一个文本文件中，最新的格式是[KDBX4](https://keepass.info/help/kb/kdbx_4.html)，官方的KeePass是在.Net平台上开发的，也有不少其他平台的移植版本，当然KDBX解析的库也比较多，可惜即便是官方文档也没有详细的描述。几经折腾找到了一个比较好的实现[Keepassxc](https://keepassxc.org/)，这是一个基于c++和QT开发的跨平台版本，兼容Keepass的文件格式，我把代码做了精简就得到一个KDBX的操作库([传送门](https://github.com/soleverlee/keepass-client)，顺便调试了一下KDBX的文件格式，看看它是怎么存密码的。
+最近因为开始开发我自己的密码管理软件，因此对一些开源的密码管理软件做了一下研究，这其中一个比较著名的就是[KeePass](https://keepass.info/)。KeePass将密码存在一个文本文件中，最新的格式是[KDBX4](https://keepass.info/help/kb/kdbx_4.html)，官方的KeePass是在.Net平台上开发的，也有不少其他平台的移植版本，当然KDBX解析的库也比较多，可惜即便是官方文档也没有详细的描述。几经折腾找到了一个比较好的实现[Keepassxc](https://keepassxc.org/)，这是一个基于c++和QT开发的跨平台版本，兼容Keepass的文件格式，我把代码做了精简就得到[一个KDBX的操作库](https://github.com/soleverlee/keepass-client)，顺便调试了一下KDBX的文件格式，看看它是怎么存密码的。
 <!-- more -->
 
 [这里](/images/ka.kdbx)有一个使用keepass创建的简单数据库，master密码是1125482715。
@@ -136,3 +136,76 @@ $$
 Hmac-sha256(03D9A29A67FB4BB500000400021000000031C1F2E6BF714350BE5805216AFC5AFF030400000000000000042000000017E4AA736440B2C6F963184B9BAF07A3C2B7AC652A95D4B375BAF938CD5DBE4B0B8B00000000014205000000245555494410000000EF636DDF8C29444B91F7A9A403E30A0C040100000056040000001300000005010000004908000000020000000000000005010000004D0800000000001000000000000401000000500400000002000000420100000053200000003F09EA13CEFFB8E867A4AF3AB17854F9F5F152591653C737A8962B94356E2C0F000710000000C1F6FD873E14050697C168B3E9DA5DB200040000000D0A0D0A, 1062ee78cf505ac4af4e53f343b04782178a3c6d6b8e64ecb23ca6ce9489ab30660b92cf1f88dbf0333769e9f362ae2d7dff82554d864a4c2d1d3b751b5698f7)
 =376123254b1aef5db7cb13e73807fc74341b8baa7e182a50f4cfdf14d5fdd532
 ```
+
+# 文件内容（Encrypted)
+
+## 秘钥计算
+在文件头后面，跟着的是文件的数据内容了，这部分数据是加密过的。因此首先需要知道是根据什么样的秘钥进行加密的。其实很简单:
+
+$$
+Key = sha256 (MasterSeed + TransformedMasterKey)
+$$
+
+```
+sha256(17E4AA736440B2C6F963184B9BAF07A3C2B7AC652A95D4B375BAF938CD5DBE4B104e9ba7b6b4479eec1a8fe3f9ca285fd10e0f33435fcabd8edf3e16380a98c7)
+=dce60234d641f71f377ecafb5a566ce954d26c03fd3b5b23e9ed092ef42b5290
+```
+
+所以这个文件中，解密是这样的：
+
+```
+Key=dce60234d641f71f377ecafb5a566ce954d26c03fd3b5b23e9ed092ef42b5290
+Iv=9a0106470245744f9121bbafa5dd10df
+
+9a0106470245744f9121bbafa5dd10df => 01040000000300000002400000008B2E
+```
+
+这里需要指出的是，这里应该使用AES-CBC-NoPadding算法，这样加密后的密文和原文是一样的长度，否则会变长。而且解密的时候，是一段一段的解的，16byte一截。
+
+```java
+public static byte[] decrypt(byte[] key, byte[] initVector, byte[] encrypted) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector);
+            SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+
+            return cipher.doFinal(encrypted);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+```
+
+## Inner Header
+
+Inner Header跟Header结构一样，对应了如下的类型：
+```
+0x00: End of header.
+0x01: Inner random stream ID (this supersedes the inner random stream ID stored in the outer header of a KDBX 3.1 file).
+0x02: Inner random stream key (this supersedes the inner random stream key stored in the outer header of a KDBX 3.1 file).
+0x03: Binary (entry attachment). D = F ‖ M, where F is one byte and M is the binary content (i.e. the actual entry attachment data). F stores flags for the binary; supported flags are:
+    0x01: The user has turned on process memory protection for this binary.
+```
+
+## XML Database
+
+Inner Header之后一大段就是XML加密后的内容了，直接解密就可以了。解密出来其实就是个XML。这里就不过多解释了。
+最终结构就是如图所示了：
+
+![Hex of ka.kdbx](/images/keepass_hex_sturcture.png)，
+
+目前还有两个地方没大搞懂的就是，标红的地方，就是加密的部分开头和结尾的，不知道有何用，代码嵌套的挺深的，看了下没找到地方，各个文档中也没说清楚，不过可以肯定的是，这两个地方用到了。有时间再看吧。
+
+
+References:
+
+* [Cryptii](https://cryptii.com/pipes/aes-encryption)
+* [AES Encryption and Decryption Online Tool(Calculator)](https://www.devglan.com/online-tools/aes-encryption-decryption)
+* [Hash](http://extranet.cryptomathic.com/hashcalc/index)
+* [overview for KDBX4](https://github.com/Evidlo/keepassxc-specs/blob/master/kdbx-binary/kdbx4_overview.md)
+* [KeePass v2.x (KDBX v3.x) file format](https://gist.github.com/msmuenchen/9318327)
+* [Keepass file format explained](https://gist.github.com/lgg/e6ccc6e212d18dd2ecd8a8c116fb1e45)
