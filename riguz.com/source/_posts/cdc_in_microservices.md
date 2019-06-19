@@ -4,14 +4,14 @@ title: 浅谈CDC在微服务中的应用
 date: 2019-06-16
 categories:  
     - Programing
-    - Java
+    - MicroService
 tags:
 	- CDC
 ---
 CDC(Change Data Capture)是一种通过监测数据变更（变更包括新增、修改、删除等）而对变更的数据进行进一步处理的一种设计模式，通常应用在数据仓库以及和数据库密切相关的一些应用上，比如数据同步、备份、审计、ETL等。实际上，早在二十多年前，CDC就已经用来将应用系统的数据变更实时发送到数据仓库，进一步转换后传递到数据分析系统^[[Streaming Change Data Capture by Itamar Ankorion, Dan Potter, Kevin Petrie](https://www.oreilly.com/library/view/streaming-change-data/9781492032526/ch01.html)]，这样能够在极小地影响生产的情况下，有效而及时地将数据传递到消费方。而在微服务架构逐渐流行的今天，这种古老的技术是否能够焕发新的生机？
 
 ![CDC Flow in SQL Server](/images/cdc_flow.png)
-
+<!-- more -->
 # CDC实现原理
 在说CDC在微服务中的应用之前，我们有必要先了解一下CDC的基本原理。关键也许就在如何监测数据的变更。拿MySQL来说，我们知道MySQL中有binlog(binary log)可以记录用户对数据库进行的修改事件^[[mysqlbinlog — Utility for Processing Binary Log Files
 ](https://dev.mysql.com/doc/refman/5.6/en/mysqlbinlog.html)]，顺理成章，一个最简单高效的CDC实现就可以利用binlog来完成。当然现在已经有很多[开源的MySQL CDC实现](https://github.com/wushujames/mysql-cdc-projects/wiki)，开箱即用。使用binlog并不是唯一的途径，至少对于MySQL而言，甚至利用数据库触发器也能完成类似的功能，但从效率上以及对数据库影响的层面来看可能就相形见绌了。
