@@ -110,7 +110,16 @@ $$
 ```
 
 # 还原
-那么，对于一个存储在磁盘上的浮点数，我们怎么将它加载到内存中来？
+那么，对于一个存储在磁盘上的浮点数，我们怎么将它加载到内存中来？对于C来说，实际也是采用的IEEE754标准(float, double)，所以实际上浮点数在内存中的表示是一致的，直接转换即可：
+
+```c++
+struct ConstantFloat {
+		mutable u4 bytes;
+		float &getValue() const {
+			return *reinterpret_cast<float *>(&bytes);
+		}
+	};
+```
 
 
 
