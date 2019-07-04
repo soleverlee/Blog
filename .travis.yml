@@ -12,10 +12,10 @@ cache:
 
 before_install:
     - npm install -g hexo-cli
-    - pwd
-    - cd $TRAVIS_BUILD_DIR
+    - echo `pwd`
 
 install:
+    - echo `pwd`
     - cd riguz.com
     - npm install
 
