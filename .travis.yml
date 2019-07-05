@@ -18,7 +18,7 @@ before_install:
 install:
     - cd riguz.com
     - npm install
-before_scrpit:
+before_script:
     - git config user.name "Riguz Lee"
     - git config user.email "solee.linux@gmail.com"
     - sed -i "s/deploy_token/${GITHUB_TOKEN}/g" ./_config.yml
