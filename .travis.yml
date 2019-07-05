@@ -12,10 +12,10 @@ cache:
 
 before_install:
     - npm install -g hexo-cli
-    - echo `pwd`
+    - wget https://github.com/jgm/pandoc/releases/download/2.7.3/pandoc-2.7.3-1-amd64.deb
+    - sudo dkpg -i ./pandoc-2.7.3-1-amd64.deb
 
 install:
-    - echo `pwd`
     - cd riguz.com
     - npm install
 
