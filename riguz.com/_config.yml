@@ -79,7 +79,8 @@ theme: riguz
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: git@github.com:soleverlee/soleverlee.github.io.git
+  repo: https://deploy_token@github.com:soleverlee/soleverlee.github.io.git
+  branch: master
 
 heading_index:
   enable: true
