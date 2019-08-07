@@ -12,6 +12,7 @@ CDC(Change Data Capture)是一种通过监测数据变更（变更包括新增�
 
 ![CDC Flow in SQL Server](/images/cdc_flow.png)
 <!-- more -->
+
 # CDC实现原理
 在说CDC在微服务中的应用之前，我们有必要先了解一下CDC的基本原理。关键也许就在如何监测数据的变更。拿MySQL来说，我们知道MySQL中有binlog(binary log)可以记录用户对数据库进行的修改事件^[[mysqlbinlog — Utility for Processing Binary Log Files
 ](https://dev.mysql.com/doc/refman/5.6/en/mysqlbinlog.html)]，顺理成章，一个最简单高效的CDC实现就可以利用binlog来完成。当然现在已经有很多[开源的MySQL CDC实现](https://github.com/wushujames/mysql-cdc-projects/wiki)，开箱即用。使用binlog并不是唯一的途径，至少对于MySQL而言，甚至利用数据库触发器也能完成类似的功能，但从效率上以及对数据库影响的层面来看可能就相形见绌了。
