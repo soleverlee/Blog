@@ -1,22 +1,21 @@
 <nav id="widemenu" class="top-bar blog-menu title-bar">
     <div class="top-bar-left">
         <ul class="dropdown menu grid-x" data-dropdown-menu>
-            <li class="cell auto"><a class="blog-link" href="/"><%= config.title %></a></li>
+            <li class="cell auto"><a class="menu-link" href="/"><%= config.title %></a></li>
             <li class="cell shrink">
-                <a class="blog-link" href="#">博客分类</a>
+                <a class="menu-link" href="#">博客分类</a>
                 <ul class="menu">
                     <% site.categories.each(i => { %>
                     <li>
                         <a class="blog-link" href="<%= url_for(i.path) %>">
-                            <img src="/assets/blt_red_arrow.png" /> <%= i.name %>
+                            <%= i.name %>
                         </a>
                     </li>
                     <% }) %>
-                    <li><a href="#">Item 1A</a></li>
                 </ul>
             </li>
             <li class="cell shrink">
-                <a class="blog-link" href="#">站点</a>
+                <a class="menu-link" href="#">站点</a>
                 <ul class="menu">
                     <% for (name in theme.nav) { %>
                     <li>
