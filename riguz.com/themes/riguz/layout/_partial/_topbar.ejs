@@ -1,45 +1,32 @@
-<div class="title-bar" data-responsive-toggle="widemenu" data-hide-for="medium">
-    <div class="title-bar-left">
-        <button class="menu-icon no-js" type="button" data-open="offCanvasLeft"></button>
-        <span class="title-bar-title"><%= config.title %></span>
-    </div>
-</div>
-
-<nav class="off-canvas position-left blog-menu no-js top-bar" id="offCanvasLeft" data-off-canvas>
-    <ul class="vertical dropdown menu blog-links" data-dropdown-menu>
-        <% for (name in theme.nav) { %>
-        <li>
-            <a href="<%- theme.nav[name].length > 0 && url_for(theme.nav[name]) %>"><%= name %></a>
-        </li>
-        <% } %>
-    </ul>
-</nav>
-
 <nav id="widemenu" class="top-bar blog-menu title-bar">
     <div class="top-bar-left">
-        <a href="/" class="blog-logo-title">
-            <strong><%= config.title %></strong>
-        </a>
-    </div>
-    <div class="top-bar-right">
-        <ul class="menu dropdown right-side medium-horizontal vertical blog-links" data-dropdown-menu>
-            <% for (name in theme.nav) { %>
-            <li class="menu-item">
-                <a href="<%- theme.nav[name].length > 0 && url_for(theme.nav[name]) %>"><%= name %></a>
-                <% if(theme.nav[name] instanceof Object) { %>
+        <ul class="dropdown menu grid-x" data-dropdown-menu>
+            <li class="cell auto"><a class="blog-link" href="/"><%= config.title %></a></li>
+            <li class="cell shrink">
+                <a class="blog-link" href="#">博客分类</a>
                 <ul class="menu">
-                    <% for (subname in theme.nav[name]) { %>
+                    <% site.categories.each(i => { %>
                     <li>
-                        <a href="<%- url_for(theme.nav[name][subname]) %>"><%= subname %></a>
+                        <a class="blog-link" href="<%= url_for(i.path) %>">
+                            <img src="/assets/blt_red_arrow.png" /> <%= i.name %>
+                        </a>
+                    </li>
+                    <% }) %>
+                    <li><a href="#">Item 1A</a></li>
+                </ul>
+            </li>
+            <li class="cell shrink">
+                <a class="blog-link" href="#">站点</a>
+                <ul class="menu">
+                    <% for (name in theme.nav) { %>
+                    <li>
+                        <a class="blog-link" href="<%- theme.nav[name].length > 0 && url_for(theme.nav[name]) %>">
+                            <%= name %>
+                        </a>
                     </li>
                     <% } %>
                 </ul>
-                <% } %>
             </li>
-            <% } %>
         </ul>
     </div>
 </nav>
-
-<div class="large primary blog-topbar-container text-right">
-</div>

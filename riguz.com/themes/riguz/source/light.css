@@ -1,5 +1,5 @@
 .blog-menu, .blog-menu ul {
-    background: black;
+    background: #cc0202;
 }
 
 .menu .menu-text {
@@ -19,7 +19,7 @@ a {
 }
 
 .blog-link {
-    color: #990000;
+    color: white;
 }
 
 .blog-group-title {
