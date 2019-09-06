@@ -6,6 +6,18 @@
     background: none;
 }
 
+ul.sub-menu {
+    background: white;
+}
+
+ul.sub-menu li {
+    border-bottom: 1px solid #eee;
+}
+
+ul.sub-menu li a {
+    font-weight: bold;
+}
+
 .menu .menu-text {
     color: white;
 }
