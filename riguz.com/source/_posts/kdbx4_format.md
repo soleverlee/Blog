@@ -81,7 +81,7 @@ PublicCustomData = 12
 虽然不同的用户设置的密码都不一样，但通常我们在进行加密的时候，不会直接拿这个作为Key，而是会通过KDF ^[key derivation function] 将原始密码进行转换。keepass也不例外，我们这个文件设置的是使用Argon2来进行KDF，之前的版本采取的是AES-KDF。Keepass中转换的步骤如下:
 
 #. 将原始密码进行SHA-256转换，即 $$ sha256（1125482715）= d31d31dd2d99b5d35ce232896d0b3f1fe41daf6ba47b5c24d52e8890a0307da6 $$
-#. 再进行一次SHA-256 $$ sha256(bfa11b4e4376cf1b17088a3de375f1df6a9c4cb3eb36f3ce2416b10481eb619f) = \\ bfa11b4e4376cf1b17088a3de375f1df6a9c4cb3eb36f3ce2416b10481eb619f $$
+#. 再进行一次SHA-256 $$ sha256(d31d31dd2d99b5d35ce232896d0b3f1fe41daf6ba47b5c24d52e8890a0307da6) = \\ bfa11b4e4376cf1b17088a3de375f1df6a9c4cb3eb36f3ce2416b10481eb619f $$
 #. 将上次得到的哈希值，同header中配置的Transform seed进行KDF，得到最终的transformedMasterKey, 这里我们用的是argon2。$$ argon2d(2, 1024, pwd, salt) = \\
 104e9ba7b6b4479eec1a8fe3f9ca285fd10e0f33435fcabd8edf3e16380a98c7 $$这一步计算参见下面的代码：
 
