@@ -69,6 +69,26 @@ try {
 
 ```
 
+# 线程的生命周期
+每一个线程有一个生命周期，包含多个状态：
+
+* New: 线程创建还未开始执行，线程创建完之后即为此状态
+* Runnable: 在JVM中正在执行的状态。当线程start之后，即变为runnable状态
+* Blocked: 线程等待获取锁而被阻塞
+* Waiting: 线程等待其他线程
+* Timed Waiting: 有超时的等待
+* Terminated: 线程已被退出
+
+![Life cycle of a thread](https://www.baeldung.com/wp-content/uploads/2018/02/Life_cycle_of_a_Thread_in_Java.jpg)
+
+# Sleep / Yield
+
+当调用线程的`sleep`方法将导致线程暂时停止执行，值得注意的是并不会释放锁。而当线程的`yield`方法被调用时，意味着通知CPU当前线程可以“暂缓”执行的，实际很少使用。
+
+>It is rarely appropriate to use this method. It may be useful
+	      for debugging or testing purposes, where it may help to reproduce
+	      bugs due to race conditions. 
+
 参考：
 
 * [Chapter 17. Threads and Locks](https://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html)
@@ -77,3 +97,5 @@ try {
 * [Do spurious wakeups in Java actually happen?](https://stackoverflow.com/questions/1050592/do-spurious-wakeups-in-java-actually-happen)
 * [Why does pthread_cond_wait have spurious wakeups?](https://stackoverflow.com/questions/8594591/why-does-pthread-cond-wait-have-spurious-wakeups)
 * [Dealing with InterruptedException](https://www.ibm.com/developerworks/java/library/j-jtp05236/index.html)
+* [Enum Thread.State](https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.State.html)
+* [Life Cycle of a Thread in Java](https://www.baeldung.com/java-thread-lifecycle)
