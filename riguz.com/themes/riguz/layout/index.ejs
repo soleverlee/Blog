@@ -1,7 +1,6 @@
 <article class="grid-container">
     <div class="grid-x grid-margin-x" id="content">
-        <%- partial('_partial/_leftbar') %>
-        <div class="medium-6 small-10 small-offset-1 cell">
+        <div class="medium-10 small-10 small-offset-1 cell">
             <% page.posts.each(function (post) { %>
             <%- partial('_partial/_post', {post}) %>
             <% }) %>

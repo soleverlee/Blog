@@ -1,7 +1,6 @@
 <article class="grid-container">
   <div class="grid-x grid-margin-x" id="content">
-    <%- partial('_partial/_leftbar') %>
-    <div class="medium-8 small-12 cell">
+    <div class="medium-10 small-12 cell">
       <h1 class="blog-link"><%= page.title %></h1>
       <span class="blog-subtitle"><%- date(page.date, "YYYY-MM-DD") %></span>
       <% for(var i = 0; i < page.categories.length; i++) { %>
