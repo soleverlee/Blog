@@ -1,0 +1,60 @@
+<article class="grid-container">
+  <div class="grid-x grid-margin-x" id="content">
+    <div class="medium-10 small-12 cell">
+      <h1 class="blog-link"><%= page.title %></h1>
+      <span class="blog-subtitle"><%- date(page.date, "YYYY-MM-DD") %></span>
+      <% for(var i = 0; i < page.categories.length; i++) { %>
+      <a href="<%- url_for(page.categories.data[i].path) %>">
+        <span class="subheader blog-link">/ <%= page.categories.data[i].name %></span>
+      </a>
+      <% } %>
+      <%- toc(page.content, {list_number: false}) %>
+      <div class="blog-content">
+      <%- page.content %>
+      </div>
+      <div class="blog-tags">
+        <% for(var i = 0; i < page.tags.length; i++) { %>
+        <a href="<%- url_for(page.tags.data[i].path) %>">
+          <span class="blog-tag"><i class="fa fa-tag"></i><%= page.tags.data[i].name %></span>
+        </a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="grid-x grid-margin-x blog-page-nav-container">
+    <div class="medium-offset-2 medium-4 small-6 cell text-left">
+      <% if(page.prev) {%>
+      <span class="blog-page-nav">上一篇:<a href="<%- url_for(page.prev.path) %>"><%= page.prev.title %></a></span>
+      <% } else {%>
+      <span class="blog-page-nav">已经是第一篇</span>
+      <% }%>
+    </div>
+    <div class="medium-4 small-6 cell text-right">
+      <% if(page.next) {%>
+      <span class="blog-page-nav">下一篇:<a href="<%- url_for(page.next.path) %>"><%= page.next.title %></a></span>
+      <% } else {%>
+      <span class="blog-page-nav">已经是最后一篇</span>
+      <% }%>
+    </div>
+  </div>
+  <% if(theme.gitalk.enabled) {%>
+  <div class="grid-x grid-margin-x blog-page-comment">
+    <div class="medium-8 medium-offset-2 small-12 cellt">
+      <div id="blog-page-comment-container"></div>
+      <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+      <script>
+        var gitalk = new Gitalk({
+          clientID: '<%= theme.gitalk.clientId %>',
+          clientSecret: '<%= theme.gitalk.clientSecret %>',
+          repo: '<%= theme.gitalk.repo %>',
+          owner: '<%= theme.gitalk.owner %>',
+          admin: ['<%= theme.gitalk.owner %>'],
+          id: '<%= page.path %>',
+          distractionFreeMode: <%= theme.gitalk.distractionFreeMode %>
+        })
+        gitalk.render('blog-page-comment-container')
+      </script>
+    </div>
+  </div>
+<% }%>
+</article>

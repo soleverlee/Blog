@@ -1,0 +1,10 @@
+<article class="grid-container">
+    <div class="grid-x grid-margin-x" id="content">
+        <div class="medium-10 small-10 small-offset-1 cell">
+            <% page.posts.each(function (post) { %>
+            <%- partial('_partial/_post', {post}) %>
+            <% }) %>
+            <%- partial('_partial/_paginator') %>
+        </div>
+    </div>
+</article>
