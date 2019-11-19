@@ -3,7 +3,7 @@ title: 关于随机数
 date: 2018-12-03
 categories:  
     - Programing
-    - Miscellaneous
+    - C++
 tags:
 	- Random Number
 ---

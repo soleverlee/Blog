@@ -3,7 +3,7 @@ title: IEEE 754浮点数转换
 date: 2019-06-27
 categories:  
     - Programing
-    - Java
+    - C++
 tags:
     - IEEE 754
 ---

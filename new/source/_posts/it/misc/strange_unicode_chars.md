@@ -3,7 +3,7 @@ title: 有趣的 Unicode 字符
 date: 2018-03-09
 categories:  
     - Programing
-    - Miscellaneous
+    - Misc
 tags:
 	- Unicode
 ---

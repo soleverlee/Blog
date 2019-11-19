@@ -3,7 +3,7 @@ title: 使用Spring Cloud Contract进行契约测试
 date: 2017-08-10
 categories:  
     - Programing
-    - Java
+    - MicroService
 tags:
 	- Spring Cloud
 	- Contract Test

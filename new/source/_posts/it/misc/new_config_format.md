@@ -3,7 +3,7 @@ title: 新的配置文件格式
 date: 2018-02-24
 categories:  
     - Programing
-    - Java
+    - Misc
 tags:
 	- Yaml
 	- INI
