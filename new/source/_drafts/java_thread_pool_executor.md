@@ -27,6 +27,23 @@ max_threads = mempages / (8 * THREAD_SIZE / PAGE_SIZE);
 
 ## JVM限制
 
+JVM本身貌似没有对线程数进行限制，但同样不能无限制的创建线程否则会出现`java.lang.OutOfMemoryError: unable to create new native thread`。在JVM中有以下的一些参数可能会影响能创建的线程数：
+
+* -Xms 设置堆的最小值
+* -Xmx 设置堆的最大值
+* -Xss 设置每个线程的stack大小
+
+因为一个机器上的内存是一定的，所以如果`-Xss`设置的越大，单个线程所占用的栈空间越大，那么能创建的线程数就越少。一个比较有趣的事实是，能创建的最大线程数是跟`-Xmx`的值负相关的，即你设置的堆越大，反而能创建的最大线程数越少！这是别人的测试结果：
+
+```
+2 mb --> 5744 threads
+4 mb --> 5743 threads
+...
+768 mb --> 3388 threads
+1024 mb --> 2583 threads
+```
+原因就是堆空间越大，那么机器上剩下的内存就越少，即可以用来分配给线程栈上的内存就越少，所以会出现这样的结果。
+
 # ThreadPoolExecutor
 
 ThreadPoolExecutor 是一个利用线程池技术实现的多任务处理器。
@@ -45,7 +62,11 @@ public ThreadPoolExecutor(int corePoolSize,
 
 
 
+
 References:
+
 * [Maximum number of threads per process in Linux?](https://stackoverflow.com/questions/344203/maximum-number-of-threads-per-process-in-linux)
 * [Max Number of Threads Per Windows Process](https://eknowledger.wordpress.com/2012/05/01/max-number-of-threads-per-windows-process/)
 * [Java: What is the Limit to the Number of Threads You Can Create?](https://dzone.com/articles/java-what-limit-number-threads)
+* [Less is More](http://baddotrobot.com/blog/2009/02/26/less-is-more/)
+* [How many threads can a Java VM support?](https://stackoverflow.com/questions/763579/how-many-threads-can-a-java-vm-support)
