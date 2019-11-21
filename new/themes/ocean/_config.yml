@@ -1,12 +1,12 @@
 # Menu
 menu:
-  Home: /
-  Archives: /archives
-  Wiki: https://wiki.riguz.com
-  Photo Gags: https://view.riguz.com
-  Projects: https://bug.riguz.com
-  About: /about/
-  Github: https://github.com/soleverlee
+  主页: /
+  归档: /archives
+  维基: https://wiki.riguz.com
+  相册: https://view.riguz.com
+  项目: https://bug.riguz.com
+  关于: /about/
+  代码: https://github.com/soleverlee
 rss: /atom.xml
 
 

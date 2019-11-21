@@ -67,6 +67,5 @@ References:
 
 * [Maximum number of threads per process in Linux?](https://stackoverflow.com/questions/344203/maximum-number-of-threads-per-process-in-linux)
 * [Max Number of Threads Per Windows Process](https://eknowledger.wordpress.com/2012/05/01/max-number-of-threads-per-windows-process/)
-* [Java: What is the Limit to the Number of Threads You Can Create?](https://dzone.com/articles/java-what-limit-number-threads)
-* [Less is More](http://baddotrobot.com/blog/2009/02/26/less-is-more/)
-* [How many threads can a Java VM support?](https://stackoverflow.com/questions/763579/how-many-threads-can-a-java-vm-support)
+           * [Less is More](http://baddotrobot.com/blog/2009/02/26/less-is-more/)
+       
