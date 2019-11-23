@@ -1,6 +1,6 @@
 ---
 title: 理解Java并发(1)：基本机制
-date: 2019-10-31
+date: 2019-10-28
 categories:  
     - Programing
     - Java
@@ -89,6 +89,18 @@ try {
 	      for debugging or testing purposes, where it may help to reproduce
 	      bugs due to race conditions. 
 
+# Context switching
+
+在多线程中，CPU会为每个线程分配时间片区执行，即执行当前线程的一部分操作之后，操作系统需要从当前线程切换到其他线程中去。通常在下列的情况下会出现context switching:
+
+* 多任务处理（即多个线程正常执行）
+* 中断， 
+
+
+那么在这个切换的过程中，会发生一些什么事情呢？
+
+
+
 参考：
 
 * [Chapter 17. Threads and Locks](https://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html)
@@ -99,3 +111,5 @@ try {
 * [Dealing with InterruptedException](https://www.ibm.com/developerworks/java/library/j-jtp05236/index.html)
 * [Enum Thread.State](https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.State.html)
 * [Life Cycle of a Thread in Java](https://www.baeldung.com/java-thread-lifecycle)
+* [Context switch](https://en.wikipedia.org/wiki/Context_switch)
+* [How long does it take to make a context switch?](https://blog.tsunanet.net/2010/11/how-long-does-it-take-to-make-context.html)
