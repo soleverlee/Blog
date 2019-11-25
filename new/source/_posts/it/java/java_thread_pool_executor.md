@@ -58,9 +58,8 @@ JVM本身貌似没有对线程数进行限制，但同样不能无限制的创�
 
 ## ThreadPoolExecutor
 
-// TODO: This is not finished yet.
+ThreadPoolExecutor 是一个利用线程池技术实现的多任务处理器，它的申明如下：
 
-ThreadPoolExecutor 是一个利用线程池技术实现的多任务处理器。
 ```java
 public ThreadPoolExecutor(int corePoolSize,
                             int maximumPoolSize,
@@ -71,7 +70,46 @@ public ThreadPoolExecutor(int corePoolSize,
             Executors.defaultThreadFactory(), defaultHandler);
 }
 ```    
+乍一看有很多个参数，那么该如何去配置呢？
 
+### CorePoolSize / MaximumPoolSize
+
+线程池会根据这两个参数去管理池中的线程。当一个新的任务提交的时候，会遵循如下的规则：
+
+* 如果池中线程数小于corePoolSize，哪怕有空闲的线程也会创建一个新的线程来
+* 当吃中线程数超过corePoolSize但是小于MaximumPoolSize的时候，只有当workQueue满的时候才会创建新的线程
+
+所以当corePoolSize和MaximumPoolSize一样的时候，实际上就是一个固定大小的线程池，相当于使用`Executors.newFixedThreadPool`:
+
+```java
+public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                                  0L, TimeUnit.MILLISECONDS,
+                                  new LinkedBlockingQueue<Runnable>());
+}
+```
+
+池中的线程默认只要当提交了新任务的时候才会创建，如果希望提前创建线程可以使用`prestartCoreThread`或者`prestartAllCoreThreads`。
+
+### Keep-alive 时间
+
+当池中的线程数多余corePoolSize的时候，超出部分的线程会在空闲一段时间之后被终止掉，这个时间就是keepAliveTime。如果设置为0那么一旦超出部分运行结束之后就会被终止掉，反之如果设置为`Long.MAX_VALUE`那么空闲线程就会一直存活。
+
+默认情况下，只有超出corePoolSize的线程才会受到这个存活时间的影响，如果希望对于核心线程也能超时终止，那么可以使用`allowCoreThreadTimeOut`来控制。
+
+### workQueue
+工作队列用来持有提交的任务。规则如下：
+
+* 如果当前池中的线程少于corePoolSize，则创建新的线程
+* 如果大于corePoolSize，则倾向于将任务加入到workQueue中
+* 如果无法将任务加入到队列中，则会创建新的线程，直到池中的线程数达到maximumPoolSize
+* 如果超过maximumPoolSize，那么将会拒绝提交的任务
+
+对于队列的选择也可以使用不同的策略：
+
+* 使用`SynchronousQueue`可以直接将任务从队列转手到线程池，这个参数要配合将maximumPoolSize设置为无限大来配合使用。因为这个朝这个队列中插入一条数据将会阻塞一直到它被消费，也就是说读写操作要配套，实际上就是进行了一个数据交换，根本没有在队列中实际存储任务。如果maximumPoolSize太小可能会导致任务被拒绝。
+* 使用无界的队列例如`LinkedBlockingQueue`，那么一旦线程超过corePoolSize的时候新线程都会被加入到队列中，也就是说maximumPoolSize根本不会生效了。
+* 使用有界队列例如`ArrayBlockingQueue`，超过队列数的新任务将创建新的线程。那么这时候队列大小和线程数上限需要权衡配合。
 
 References:
 
