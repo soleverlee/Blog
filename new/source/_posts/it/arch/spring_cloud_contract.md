@@ -3,10 +3,11 @@ title: 使用Spring Cloud Contract进行契约测试
 date: 2017-08-10
 categories:  
     - Programing
-    - MicroService
+    - Distributed
 tags:
 	- Spring Cloud
-	- Contract Test
+    - Contract Test
+    - MicroService
 ---
 
 研究了一下契约测试，这个概念听着很高端，其实解决的是一个很古老的问题：系统间的接口定义。以前我们做系统同其他系统对接的时候需要定义接口，需要去设计，去确认；尤其是当下微服务比较盛行的时候，我们自己的系统之间也增加了接口，伴随着敏捷开发的流程，很多时候接口在一开始根本都不会去设计，想到哪改到哪.....于是就出现了所谓的契约测试的东西。

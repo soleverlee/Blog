@@ -3,11 +3,12 @@ title: 再谈Micro Services Architecture
 date: 2017-06-24
 categories:  
     - Programing
-    - MicroService
+    - Distributed
 tags:
 	- Docker
 	- Api Gateway
 	- BFF
+	- MicroService
 ---
 
 再来谈一点我对微服务的理解。首先是微服务的一个服务划分问题。

@@ -3,9 +3,10 @@ title: 关于Event Sourcing架构
 date: 2017-06-23
 categories:  
     - Programing
-    - MicroService
+    - Distributed
 tags:
-	- Event Sourcing
+    - Event Sourcing
+    - MicroService
 	- CQRS
 ---
 

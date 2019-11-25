@@ -4,9 +4,10 @@ title: 浅谈CDC在微服务中的应用
 date: 2019-06-16
 categories:  
     - Programing
-    - MicroService
+    - Distributed
 tags:
 	- CDC
+    - MicroService
 ---
 CDC(Change Data Capture)是一种通过监测数据变更（变更包括新增、修改、删除等）而对变更的数据进行进一步处理的一种设计模式，通常应用在数据仓库以及和数据库密切相关的一些应用上，比如数据同步、备份、审计、ETL等。实际上，早在二十多年前，CDC就已经用来将应用系统的数据变更实时发送到数据仓库，进一步转换后传递到数据分析系统^[[Streaming Change Data Capture by Itamar Ankorion, Dan Potter, Kevin Petrie](https://www.oreilly.com/library/view/streaming-change-data/9781492032526/ch01.html)]，这样能够在极小地影响生产的情况下，有效而及时地将数据传递到消费方。而在微服务架构逐渐流行的今天，这种古老的技术是否能够焕发新的生机？
 

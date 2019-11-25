@@ -3,10 +3,11 @@ title: 一个数据导入的有趣问题
 date: 2019-01-14
 categories:  
     - Programing
-    - MicroService
+    - Distributed
 tags:
 	- ETL
-	- Migration
+    - Migration
+    - MicroService
 ---
 
 相比于传统的单体应用，在基于微服务架构的系统中进行数据导入的操作显得更加复杂一点。通常而言，微服务的架构中包含了多个服务，服务的技术架构也可能大相径庭，同时考虑到拓展的需要，每个服务都有可能会拓展成多个instance。最近遇到一个有趣的问题，进行了一些思考。

@@ -58,6 +58,8 @@ JVM本身貌似没有对线程数进行限制，但同样不能无限制的创�
 
 ## ThreadPoolExecutor
 
+// TODO: This is not finished yet.
+
 ThreadPoolExecutor 是一个利用线程池技术实现的多任务处理器。
 ```java
 public ThreadPoolExecutor(int corePoolSize,
