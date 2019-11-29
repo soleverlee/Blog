@@ -16,9 +16,13 @@ brand: /images/logo.png
 
 # Ocean Video
 # Because I put videos in multiple formats on the same path, I just labeled the path here.
-ocean:
+background:
   overlay: true
-  path: /images/ocean/
+  overlay_path: /images/bg/overlay-hero.png
+  cover: /images/bg/Night-Traffic.jpg
+  mp4: /images/bg/Night-Traffic.mp4
+  ogv: /images/bg/Night-Traffic.ogv
+  webm: /images/bg/Night-Traffic.webm
   brand: /images/logo.png
 
 # Content
