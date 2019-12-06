@@ -38,13 +38,32 @@ let mut i = 32;
   |     ^^^^^^ cannot assign twice to immutable variable
   ```
 
+那么，对于简单类型直接赋值会有问题，如果是复杂类型，如何呢？比如我们用一个不可变的字符串，然后去调用它的函数改变值，会发生生么情况呢？
+
+```
+--> test.rs:5:5
+  |
+4 |     let s = String::from("hello");
+  |         - help: consider changing this to be mutable: `mut s`
+5 |     s.push_str(" world!!!");
+  |     ^ cannot borrow as mutable
+
+```
+结果表明，rust依然保持对象是不可变的。看了一下这个方法的定义，有些蹊跷：
+```rust
+pub fn push_str(&mut self, string: &str) {
+    self.vec.extend_from_slice(string.as_bytes())
+}
+```
+具体怎么做到的，我们后面再来研究。
+
 # 基本类型
 rust跟大多数编译型语言一样是静态类型(statically typed)的语言，即所有的变量的类型在程序编译的时候就是已知的。在rust语言中，有着如下的基本类型：
 
 ## 标量类型(Scalar types)
 
 类型          长度
------------- --------- ----------------------------------------
+------------ -------- ----------------------------------------
 bool         1        true/ false
 char         4        并不等同于Unicode
 i8/u8        8

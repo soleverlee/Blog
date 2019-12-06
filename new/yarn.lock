@@ -846,11 +846,28 @@ hexo-generator-category@^1.0.0:
   dependencies:
     hexo-pagination "1.0.0"
 
-hexo-generator-index@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/hexo-generator-index/-/hexo-generator-index-1.0.0.tgz#8c9f157dcfa0af4f8417f77a4eb5b3831f69a719"
+hexo-generator-feed@^2.1.1:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/hexo-generator-feed/-/hexo-generator-feed-2.2.0.tgz#4b8b752a27d00525363e3449f18d063a92c13f0d"
+  integrity sha512-/jFMSyofFmp75P67sN9QesEW/wAFstmNfM+zXOOh+D5ZJe0RqXokczEetloqjCU1CX1EzKI3tRr/EoBZ6igQzg==
   dependencies:
-    hexo-pagination "1.0.0"
+    hexo-util "^1.3.0"
+    nunjucks "^3.0.0"
+
+hexo-generator-index-pin-top@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/hexo-generator-index-pin-top/-/hexo-generator-index-pin-top-0.2.2.tgz#34b5b9ef90e1bca8fbe957d3b3c183ca33ade937"
+  integrity sha512-1mVXHoUL5a3Q3yvIqoRVFhbJPlVAnRfc9ibToWpIlxU7ILTJwxhT6NFiS/jf/yZ0Suq1HvTI68yViMQMQVoDvg==
+  dependencies:
+    hexo-pagination "0.0.2"
+    object-assign "^4.0.1"
+
+hexo-generator-searchdb@^1.1.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/hexo-generator-searchdb/-/hexo-generator-searchdb-1.2.0.tgz#ebf1ec38be78d447d4ae7b7f358d312473a7a90b"
+  integrity sha512-/3R5cH7McZlNgkesGzdCJXAnabf8lJvWCojcRM3jTs/P+bpiKqiKanZjINSjMHoXW+05S2ccI1bJnWDS6Z3zgA==
+  dependencies:
+    nunjucks "^3.2.0"
 
 hexo-generator-tag@^1.0.0:
   version "1.0.0"
@@ -870,6 +887,13 @@ hexo-log@^1.0.0:
   dependencies:
     chalk "^2.4.1"
     hexo-bunyan "^2.0.0"
+
+hexo-pagination@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/hexo-pagination/-/hexo-pagination-0.0.2.tgz#8cf470c7db0de5b18a3926a76deb194015df7f2b"
+  integrity sha1-jPRwx9sN5bGKOSanbesZQBXffys=
+  dependencies:
+    utils-merge "^1.0.0"
 
 hexo-pagination@1.0.0:
   version "1.0.0"
@@ -904,6 +928,17 @@ hexo-server@^1.0.0:
     morgan "^1.9.1"
     open "^6.3.0"
     serve-static "^1.14.1"
+
+hexo-util@^1.3.0:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/hexo-util/-/hexo-util-1.6.1.tgz#7857b65b0c55aba77b3f57a3ddb327ccdf72f762"
+  integrity sha512-O1zE4rr8LLzyY64QSynwPElz8oZpPdhVFVKzTa3JUm9KnV53bSPn/UfzYXPnwA2IUNv/BRTxA8OSUKfP4g5p/A==
+  dependencies:
+    bluebird "^3.5.2"
+    camel-case "^3.0.0"
+    cross-spawn "^7.0.0"
+    highlight.js "^9.13.1"
+    striptags "^3.1.1"
 
 hexo-util@^1.4.0:
   version "1.5.0"
@@ -1516,7 +1551,7 @@ number-is-nan@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/number-is-nan/-/number-is-nan-1.0.1.tgz#097b602b53422a522c1afb8790318336941a011d"
 
-nunjucks@^3.1.3:
+nunjucks@^3.0.0, nunjucks@^3.1.3, nunjucks@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/nunjucks/-/nunjucks-3.2.0.tgz#53e95f43c9555e822e8950008a201b1002d49933"
   dependencies:
@@ -1526,7 +1561,7 @@ nunjucks@^3.1.3:
   optionalDependencies:
     chokidar "^2.0.0"
 
-object-assign@^4.1.0:
+object-assign@^4.0.1, object-assign@^4.1.0:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"
 
@@ -2133,9 +2168,10 @@ util-deprecate@^1.0.1, util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
 
-utils-merge@1.0.1:
+utils-merge@1.0.1, utils-merge@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
+  integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
 vary@~1.1.2:
   version "1.1.2"
