@@ -1,6 +1,6 @@
 
 ---
-title: ThreadPoolExecutor解析
+title: 理解Java并发(2)：ThreadPoolExecutor解析
 date: 2019-10-31
 categories:  
     - Programing

@@ -1,5 +1,5 @@
 ---
-title: Java内存模型
+title: 理解Java并发(3)：Java内存模型
 date: 2019-11-01
 categories:  
     - Programing
@@ -18,7 +18,11 @@ Thread1   | Thread2
 1: r2 = A | 3: r1 = B
 2: B = 1  | 4: A = 2
 ```
+其中r1和r2是两个本地变量，而A和B是两个共享的变量。那么，可能出现以下的结果：
 
+* (r1 = 1, r2 = 0)
+* (r1 = 0, r2 = 2)
+* (r1 = )
 
 * [JSR 133 (Java Memory Model) FAQ](http://www.cs.umd.edu/~pugh/java/memoryModel/jsr-133-faq.html)
 * [The Java Memory Model](http://www.cs.umd.edu/users/pugh/java/memoryModel/)

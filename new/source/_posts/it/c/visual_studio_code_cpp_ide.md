@@ -43,6 +43,23 @@ To debug or run the project, just click the button on the bottom status bar, it'
 
 to run other commands, you could just press F1 and guess, for example, to format the code, just search "format" and then you got a choice.
 
+
+# Update: How to setup eclipse CDT in MacOX
+
+Recently I tried to use eclipse-cdt with cmake build system, there are a few tips:
+
+* Need to install `cmake` and `ninjia`
+* Need to start eclipse from command line, this is a [bug](https://www.wfbsoftware.de/2019/01/12/eclipse-cdt-c-cmake-on-mac/)
+
+In order to debug, basiclly eclipse only supports gdb, which is has been replaced with lldb in MacOS, so a few setps needed to make it working:
+
+* install gdb via mac ports, `sudo port install gdb`
+* after installed, it's located in `/opt/local/bin/ggdb`
+* create an alias for gdb in your bash profile(eg. `~/.zshrc`), `alias gdb=ggdb`
+* codesign for gdb, following [How to setup gdb and Eclipse to debug C++ files on macOS Mojave](https://www.thomasvitale.com/how-to-setup-gdb-and-eclipse-to-debug-c-files-on-macos-sierra/)
+* create gdb init file: `echo "set startup-with-shell off" > ~/gdbinit`
+* need to start eclipse from terminal, otherwise it will not recongnize gdb
+
 Reference:
 
 * [Developing C++ with Visual Studio Code](https://dev.to/acharluk/developing-c-with-visual-studio-code-4pb9)
