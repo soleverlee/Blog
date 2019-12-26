@@ -20,6 +20,8 @@ CONSTANT_Float 	                         CONSTANT_InvokeDynamic
 ```
 大部分我们顾名思义，都可以知道是大概是干啥的，比如字符串啊，数字啊，方法名称之类的；但是可以注意到最后面一个是称之为`CONSTANT_InvokeDynamic`的常量，这个就有点陌生了。那么，这是一个什么样的常量？什么情况下会出现这个呢？
 
+<!-- more -->
+
 # `invokedynamic`指令
 在JVM规范中有说，`CONSTANT_InvokeDynamic`常量是用来给`invokedynamic`指令指定一系列的参数的，那么有必要先了解一下`invokedynamic`这个指令了。这是Java 7引入的一个新指令，也是自Java 1.0以来第一次引入新的指令。
 
