@@ -294,3 +294,5 @@ duck.quack();     // or any method. no compiler checking.
 * [你不知道Lambda的秘密和陷阱](https://my.oschina.net/lt0314/blog/3146028)
 * [JSR 292 Cookbook](http://wiki.jvmlangsummit.com/images/9/93/2011_Forax.pdf)
 * [理解 invokedynamic](https://www.jianshu.com/p/d74e92f93752)
+
+邮件阅读体验不佳，如需更好体验可以移步 [在线版本](https://riguz.com/it/java/java_invokedynamic/)
