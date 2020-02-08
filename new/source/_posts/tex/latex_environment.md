@@ -70,6 +70,17 @@ This is TeX, Version 3.14159265 (TeX Live 2019) (preloaded format=tex)
 
 <img src="/images/Textmate-latex-preview.png" style="width:800px">
 
+值得注意的是，如果使用XeLaTeX要支持中文需要设置一下字体：
+
+```tex
+\documentclass{article}
+\usepackage{fontspec}
+\setmainfont{Hiragino Sans GB}
+\begin{document}
+ Hello，中国！
+\end{document}
+```
+
 参考：
 
 * [TeX](https://en.wikipedia.org/wiki/TeX#cite_note-13)
