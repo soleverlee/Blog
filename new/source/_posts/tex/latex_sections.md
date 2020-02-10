@@ -64,6 +64,7 @@ LaTeX中可以分成如下的几个部分：
 ```
 
 # 生成目录
+## 目录
 想要生成目录页特别简单，一个命令就可以搞定：
 
 ```latex
@@ -73,6 +74,54 @@ LaTeX中可以分成如下的几个部分：
 
 <img src="/images/Latex-contents.png" style="width:400px">
 
+## 自定义级别
+
+如果在生成目录的时候，只希望生成到特定的级别，可以这样设置：
+
+```latex
+\setcounter{tocdepth}{2}
+\tableofcontents
+```
+
+这样生成的目录就只会到`subsection`级别。当然这样设置的话会对所有的内容生效，如果只是希望对某个章节生效怎么办呢？
+
+```latex
+\addtocontents{toc}{\setcounter{tocdepth}{1}}
+\section{背景}
+
+% ...
+\addtocontents{toc}{\setcounter{tocdepth}{3}}
+\section{新的防治方法}
+```
+可以像上面这样，在需要设置的章节之前设置，然后再其他地方恢复默认级别。
+
+## 行距
+如果希望调整行距，可以使用
+
+```latex
+\doublespacing
+\tableofcontents
+\newpage
+\singlespacing
+```
+
+单倍行距：
+
+<img src="/images/Latex-singlespacing.png" style="width:400px">
+
+双倍行距：
+
+<img src="/images/Latex-doublespacing.png" style="width:400px">
+
+## 图表目录
+另外，如果想对图表生成目录，可以采用：
+
+```latex
+\begin{appendix}
+	\listoffigures
+	\listoftables
+\end{appendix}	
+```
 
 参考：
 

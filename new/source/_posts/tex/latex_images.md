@@ -107,9 +107,9 @@ begin{figure}[h]
 
 两张图片不在一行，没有找到怎么把他们放到一起的方法，也不知道是否支持。
 
-## 其他方法
+## 使用`subcaption`包
 
-另有使用[caption](http://www.ctan.org/pkg/caption)和[subcaption](http://www.ctan.org/pkg/subcaption)包结合的方式。
+另有使用[caption](http://www.ctan.org/pkg/caption)和[subcaption](http://www.ctan.org/pkg/subcaption)包结合的方式。`subcaption`包更加新一些，可能更适合选用。
 
 ```latex
 \usepackage{caption}
