@@ -42,7 +42,7 @@ tags:
 \end{document}
 ```
 
-# 坐标系
+## 坐标系和缩放
 默认情况下TikZ使用的是笛卡尔坐标系，即是这样：
 
 <img src="/images/Latex-tikz-coordinates.png" style="width:400px">
@@ -61,8 +61,14 @@ tags:
 
 <img src="/images/Latex-tikz-scale.png" style="width:400px">
 
+在TikZ中，默认的单位是厘米(cm)。如果希望改变这个值，可以这样设置：
 
+```latex
+\begin{tikzpicture}[x=2cm,y=1.5cm]
 
+% 或者
+\begin{tikzpicture}[x={(2cm,0cm)},y={(0cm,1.5cm)}]
+```
 
 # 图形绘制
 
@@ -86,6 +92,109 @@ tags:
 \draw[help lines] (0,0) grid (3,3);
 ```
 <img src="/images/Latex-tikz-lines.png" style="width:400px">
+
+### 箭头
+如果希望绘制箭头也十分方便：
+
+```latex
+\draw [->] (0,0) -- (2,0);        %→
+\draw [<-] (0, -0.5) -- (2,-0.5); %←
+\draw [|->] (0,-1) -- (2,-1);     %带尾巴的箭头
+\draw [<->] (0, 0) -- (1, 1);     %双向箭头
+```
+
+### 线的粗细
+
+线的粗细可以用如下来表示：
+
+```latex
+\draw [ultra thin] (0, 1) -- (2, 1)
+```
+
+总共可用的粗细如下：
+
+<img src="/images/Latex-line-width.png" style="width:400px">
+
+或者直接指定线的粗细，默认的单位是点:
+
+```latex
+\draw [line width=12] (0,0) -- (2,0);
+\draw [line width=0.2cm] (4,.75) -- (5,.25);
+```
+
+除此之外另一个选项是`[help lines]`，用来绘制灰色的参考线。
+
+```latex
+\draw [help lines] (0, 5) -- (0, 0) -- (5, 0);
+\draw [line width=2pt] (0, 0) -- (5, 5);
+\draw [very thin] (0, 3) -- (4, 0);
+\draw [thin] (0, 2) -- (5, 2);
+```
+
+### 样式及颜色
+
+样式可以分为：
+
+* 虚线 `\draw [dashed] `
+* 实线 `\draw [dotted] `
+
+颜色有很多直接可以用的颜色表示，类似css一样：
+
+> red, green, blue, cyan, magenta, yellow, black, gray, darkgray, lightgray,brown, lime, olive, orange, pink, purple, teal, violetand white
+
+一个较为完整的例子:
+
+```latex
+\begin{tikzpicture}
+	\draw [help lines] (0, 5) -- (0, 0) -- (5, 0) node [right=3]{Nice sample!};
+	\draw [dashed, red, line width=2pt] (0, 0) -- (5, 5);
+	\draw [blue, very thin] (0, 3) -- (4, 0);
+	\draw [dotted, thin] (0, 2) -- (5, 2);
+\end{tikzpicture}
+```
+
+## 几何图形
+### 矩形
+
+```latex
+\draw [blue] (0,0) rectangle (1.5, 1);
+```
+
+### 网格
+
+```latex
+\draw [blue] (0,0) grid (1.5, 1);
+```
+
+### 圆
+
+```latex
+\draw [red, ultra thick] (3, 0.5) circle [radius=0.5];
+```
+
+### 弧线
+
+```latex
+\draw [gray, ultra thick] (6,0) arc [radius=1, start angle=45, end angle= 120];
+```
+
+这个弧线的表示方法比较有意思，代表从(6, 0)出发，半径为1，初始角度为45°，当变成120°的时候停止。另一种方法：
+
+```latex
+\draw[very thick] (0,0) to [out=90,in=195] (2,1.5);
+```
+
+表示从(0,0)开始， 到(2, 1.5)这个点，起始角度为90°，到达的角度为195°。
+
+感觉很难控制这个....
+
+### 圆角折线
+
+加多一个`rounded corners`就可以把折线变成圆角的了：
+
+```latex
+\draw [<->, rounded corners, thick, purple] (0,2) -- (0,0) -- (3,0);
+```
 
 * [Draw pictures in LaTeX - With tikz/pgf](https://www.latex-tutorial.com/tutorials/tikz/)
 * [A very minimal introduction to TikZ∗](http://cremeronline.com/LaTeX/minimaltikz.pdf)
