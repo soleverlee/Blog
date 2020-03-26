@@ -276,3 +276,6 @@ Service Catalog Install      : Complete (0:07:53)
 然后就可以访问` https://master.example.com:8443/`了：
 
 ![Openshift home](/images/Openshift-welcome.png)
+
+Reference:
+* [OpenShift 3.9 多节点集群（Ansible）安装](https://blog.csdn.net/sun_qiangwei/article/details/80443943)
