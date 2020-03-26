@@ -110,6 +110,9 @@ $$
 * 链表中的节点数达到TREEIFY_THRESHOLD（8）
 * 容量至少达到MIN_TREEIFY_CAPACITY（64），否则只是单纯扩容到到原来的两倍
 
+现实中哈希冲突的场景并不多，不过如果非要测试这种场景也很容易。比如`Aa`和字符串`BB`就拥有相同的哈希值，把他们随机组合到一起，还是一样。于是我们构建了很多个哈希值相同的key值，来演示哈希冲突的场景：
+
+
 ![Treeify](/images/HashMap-treeify.png)
 
 ## 尾插入
@@ -117,6 +120,14 @@ $$
 从上面的图可以注意到：哈希冲突的节点在链表中是插入到链表尾部的
 
 在Java8之前是插入到前面的，但是Java8改成插入到尾部了，这样做的原因（据说）是因为扩容时会改变链表的顺序，在多线程条件下会导致形成闭环（从而可能引起死循环）。
+
+# fail-fast机制
+在HashMap中存在一个变量记录修改的次数`modCount`,当这个次数和期待的不一致的时候就会抛出`ConcurrentModificationException`。这种机制被称之为"Fail-Fast”，意味着出现错误的时候尽早结束。通常在`java.util`下面的迭代器都是这类的，如果在迭代的中途数据被其他线程修改了，那么就会（尽可能的，当然并不能保证）触发这个检测。
+
+而`java.util.concurrent`包下的迭代器是"Fail-Safe"的，例如ConcurrentHashMap、CopyOnWriteArrayList等。
+
+# 性能分析
+HashMap对于`get`和`put`操作的复杂度是常数级 $\displaystyle{O(1)}$ ，在最坏的情况下，因为使用了红黑树进行查找，复杂度为 $\displaystyle{O(log(n))}$ 。
 
 * [Can't understand Poisson part of Hash tables from Sun documentation](https://stackoverflow.com/questions/20448477/cant-understand-poisson-part-of-hash-tables-from-sun-documentation)
 * [What is the significance of load factor in HashMap?](https://stackoverflow.com/questions/10901752/what-is-the-significance-of-load-factor-in-hashmap)
