@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    在Android 上使用 OpenCV |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/mobile/use_opencv_on_android" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      在Android 上使用 OpenCV
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/mobile/use_opencv_on_android/" class="article-date">
+  <time datetime="2017-11-13T00:00:00.000Z" itemprop="datePublished">2017-11-13</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Android/">Android</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>如题，本文将记录如何在安卓上调用OpenCV。 <a id="more"></a></p>
+<h1 id="导入opencv动态库">导入OpenCV动态库</h1>
+<p>首先当然是下载OpenCV for Android了，然后使用Android Studio创建一个工程并勾选C++ support。</p>
+<p>然后，把OpenCV-android-sdk里面的native目录拷贝到工程中，例如app/opencv这个目录，需要修改以下文件：</p>
+<ul>
+<li>app/build.gradle</li>
+</ul>
+<pre class="groovy"><code>android {
+....
+sourceSets {
+        main {
+            jniLibs.srcDirs = [&#39;opencv/libs&#39;]
+        }
+    }
+}</code></pre>
+<p>这样做的目的是为了打包的时候能自动将opencv/libs/{arch}/libopencv_java3.so这个文件打包到我们的apk中。</p>
+<ul>
+<li>app/CMakeList.txt</li>
+</ul>
+<pre><code>set(opencv &quot;${CMAKE_SOURCE_DIR}/opencv&quot;)
+include_directories(${opencv}/jni/include)
+add_library(libopencv_java3 SHARED IMPORTED )
+set_target_properties(libopencv_java3 PROPERTIES
+                      IMPORTED_LOCATION &quot;${opencv}/libs/${ANDROID_ABI}/libopencv_java3.so&quot;)
+
+target_link_libraries( # Specifies the target library.
+                       native-lib
+                       libopencv_java3
+                       ${log-lib} )</code></pre>
+<p>这里把opencv作为动态库链接到工程中，并添加了包含目录，否则在编译cpp的时候会找不到opencv的头文件。</p>
+<h1 id="导入opencv-jaba-module">导入OpenCV Jaba Module</h1>
+<p>把opencv sdk下面的java目录作为一个module导入到工程中，并设置app依赖此module，这样就可以在工程中使用opencv提供的java接口了。我们来做一个相机：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">public</span> <span class="kw">class</span> MainActivity <span class="kw">extends</span> AppCompatActivity <span class="kw">implements</span> CameraBridgeViewBase.<span class="fu">CvCameraViewListener2</span></span></code></pre></div>
+<p>这里首先实现CvCameraViewListener2接口，来实现相机的处理。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a>    <span class="kw">private</span> CameraBridgeViewBase cameraView;</span>
+<span id="cb4-2"><a href="#cb4-2"></a></span>
+<span id="cb4-3"><a href="#cb4-3"></a>    <span class="kw">private</span> BaseLoaderCallback loaderCallback = <span class="kw">new</span> <span class="fu">BaseLoaderCallback</span>(<span class="kw">this</span>) {</span>
+<span id="cb4-4"><a href="#cb4-4"></a>        <span class="at">@Override</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a>        <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onManagerConnected</span>(<span class="dt">int</span> status) {</span>
+<span id="cb4-6"><a href="#cb4-6"></a>            <span class="kw">switch</span> (status) {</span>
+<span id="cb4-7"><a href="#cb4-7"></a>                <span class="kw">case</span> LoaderCallbackInterface.<span class="fu">SUCCESS</span>:</span>
+<span id="cb4-8"><a href="#cb4-8"></a>                    cameraView.<span class="fu">enableView</span>();</span>
+<span id="cb4-9"><a href="#cb4-9"></a>                    <span class="kw">break</span>;</span>
+<span id="cb4-10"><a href="#cb4-10"></a>                <span class="kw">default</span>:</span>
+<span id="cb4-11"><a href="#cb4-11"></a>                    <span class="kw">super</span>.<span class="fu">onManagerConnected</span>(status);</span>
+<span id="cb4-12"><a href="#cb4-12"></a>                    <span class="kw">break</span>;</span>
+<span id="cb4-13"><a href="#cb4-13"></a>            }</span>
+<span id="cb4-14"><a href="#cb4-14"></a>        }</span>
+<span id="cb4-15"><a href="#cb4-15"></a>    };</span>
+<span id="cb4-16"><a href="#cb4-16"></a></span>
+<span id="cb4-17"><a href="#cb4-17"></a>    <span class="at">@Override</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">onCreate</span>(Bundle savedInstanceState) {</span>
+<span id="cb4-19"><a href="#cb4-19"></a>        <span class="kw">super</span>.<span class="fu">onCreate</span>(savedInstanceState);</span>
+<span id="cb4-20"><a href="#cb4-20"></a>        <span class="kw">this</span>.<span class="fu">requestPermissions</span>();</span>
+<span id="cb4-21"><a href="#cb4-21"></a></span>
+<span id="cb4-22"><a href="#cb4-22"></a>        <span class="kw">this</span>.<span class="fu">getWindow</span>().<span class="fu">addFlags</span>(WindowManager.<span class="fu">LayoutParams</span>.<span class="fu">FLAG_KEEP_SCREEN_ON</span>);</span>
+<span id="cb4-23"><a href="#cb4-23"></a>        <span class="fu">setContentView</span>(R.<span class="fu">layout</span>.<span class="fu">activity_main</span>);</span>
+<span id="cb4-24"><a href="#cb4-24"></a>        <span class="kw">this</span>.<span class="fu">cameraView</span> = (CameraBridgeViewBase) <span class="kw">this</span>.<span class="fu">findViewById</span>(R.<span class="fu">id</span>.<span class="fu">cameraView</span>);</span>
+<span id="cb4-25"><a href="#cb4-25"></a>        <span class="kw">this</span>.<span class="fu">cameraView</span>.<span class="fu">setVisibility</span>(SurfaceView.<span class="fu">VISIBLE</span>);</span>
+<span id="cb4-26"><a href="#cb4-26"></a>        <span class="kw">this</span>.<span class="fu">cameraView</span>.<span class="fu">setCvCameraViewListener</span>(<span class="kw">this</span>);</span>
+<span id="cb4-27"><a href="#cb4-27"></a>    }</span></code></pre></div>
+<p>在create的时候，我们申请权限，然后设置相机view的监听为自身。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a>    <span class="at">@Override</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onCameraViewStarted</span>(<span class="dt">int</span> width, <span class="dt">int</span> height) {</span>
+<span id="cb5-3"><a href="#cb5-3"></a>    }</span>
+<span id="cb5-4"><a href="#cb5-4"></a></span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="at">@Override</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onCameraViewStopped</span>() {</span>
+<span id="cb5-7"><a href="#cb5-7"></a>    }</span></code></pre></div>
+<p>相机启动停止我们不需要做别的操作。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a>    <span class="at">@Override</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>    <span class="kw">protected</span> <span class="dt">void</span> <span class="fu">onResume</span>() {</span>
+<span id="cb6-3"><a href="#cb6-3"></a>        <span class="kw">super</span>.<span class="fu">onResume</span>();</span>
+<span id="cb6-4"><a href="#cb6-4"></a>        <span class="kw">if</span> (!OpenCVLoader.<span class="fu">initDebug</span>())</span>
+<span id="cb6-5"><a href="#cb6-5"></a>            OpenCVLoader.<span class="fu">initAsync</span>(OpenCVLoader.<span class="fu">OPENCV_VERSION_3_0_0</span>, <span class="kw">this</span>, <span class="kw">this</span>.<span class="fu">loaderCallback</span>);</span>
+<span id="cb6-6"><a href="#cb6-6"></a>        <span class="kw">else</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a>            <span class="kw">this</span>.<span class="fu">loaderCallback</span>.<span class="fu">onManagerConnected</span>(LoaderCallbackInterface.<span class="fu">SUCCESS</span>);</span>
+<span id="cb6-8"><a href="#cb6-8"></a>    }</span></code></pre></div>
+<p>相机继续的时候，我们重新加载OpenCV库。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1"></a>    <span class="at">@Override</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onPause</span>() {</span>
+<span id="cb7-3"><a href="#cb7-3"></a>        <span class="kw">super</span>.<span class="fu">onPause</span>();</span>
+<span id="cb7-4"><a href="#cb7-4"></a>        <span class="kw">if</span> (<span class="kw">this</span>.<span class="fu">cameraView</span> != <span class="kw">null</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>            <span class="kw">this</span>.<span class="fu">cameraView</span>.<span class="fu">disableView</span>();</span>
+<span id="cb7-6"><a href="#cb7-6"></a>    }</span>
+<span id="cb7-7"><a href="#cb7-7"></a></span>
+<span id="cb7-8"><a href="#cb7-8"></a>    <span class="at">@Override</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onDestroy</span>() {</span>
+<span id="cb7-10"><a href="#cb7-10"></a>        <span class="kw">super</span>.<span class="fu">onDestroy</span>();</span>
+<span id="cb7-11"><a href="#cb7-11"></a>        <span class="kw">if</span> (<span class="kw">this</span>.<span class="fu">cameraView</span> != <span class="kw">null</span>)</span>
+<span id="cb7-12"><a href="#cb7-12"></a>            <span class="kw">this</span>.<span class="fu">cameraView</span>.<span class="fu">disableView</span>();</span>
+<span id="cb7-13"><a href="#cb7-13"></a>    }</span></code></pre></div>
+<p>暂停和销毁的时候，我们把相机禁用掉。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1"></a>    <span class="at">@Override</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>    <span class="kw">public</span> Mat <span class="fu">onCameraFrame</span>(CameraBridgeViewBase.<span class="fu">CvCameraViewFrame</span> inputFrame) {</span>
+<span id="cb8-3"><a href="#cb8-3"></a>        Mat frame = inputFrame.<span class="fu">rgba</span>();</span>
+<span id="cb8-4"><a href="#cb8-4"></a>        Core.<span class="fu">rotate</span>(frame, frame, Core.<span class="fu">ROTATE_90_CLOCKWISE</span>);</span>
+<span id="cb8-5"><a href="#cb8-5"></a>        <span class="kw">return</span> frame;</span>
+<span id="cb8-6"><a href="#cb8-6"></a>    }</span></code></pre></div>
+<p>这是关键的一步，处理相机的一帧。我们队图像进行了旋转，否则图像的坐标和我们的预期的是不一致的。注意在OpenCV3.2的时候，引入了便捷的rotate函数，如果用之前的方法，可能需要flip和reverse来实现了。</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">requestPermissions</span>() {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>        <span class="dt">int</span> permissionCheck = ContextCompat.<span class="fu">checkSelfPermission</span>(<span class="kw">this</span>, <span class="bu">Manifest</span>.<span class="fu">permission</span>.<span class="fu">CAMERA</span>);</span>
+<span id="cb9-3"><a href="#cb9-3"></a>        <span class="kw">if</span> (permissionCheck == PackageManager.<span class="fu">PERMISSION_GRANTED</span>)</span>
+<span id="cb9-4"><a href="#cb9-4"></a>            <span class="kw">return</span>;</span>
+<span id="cb9-5"><a href="#cb9-5"></a></span>
+<span id="cb9-6"><a href="#cb9-6"></a>        ActivityCompat.<span class="fu">requestPermissions</span>(<span class="kw">this</span>,</span>
+<span id="cb9-7"><a href="#cb9-7"></a>                <span class="kw">new</span> <span class="bu">String</span>[]{<span class="bu">Manifest</span>.<span class="fu">permission</span>.<span class="fu">CAMERA</span>},</span>
+<span id="cb9-8"><a href="#cb9-8"></a>                <span class="dv">0</span>);</span>
+<span id="cb9-9"><a href="#cb9-9"></a></span>
+<span id="cb9-10"><a href="#cb9-10"></a>    }</span></code></pre></div>
+<p>最后是权限的动态申请。当然了，在AndroidManifest.xml中也需要进行设置，我们直接贴代码了：</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">&lt;?xml</span> version=&quot;1.0&quot; encoding=&quot;utf-8&quot;<span class="kw">?&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="kw">&lt;manifest</span><span class="ot"> xmlns:android=</span><span class="st">&quot;http://schemas.android.com/apk/res/android&quot;</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="ot">    package=</span><span class="st">&quot;com.riguz.okapia&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a></span>
+<span id="cb10-5"><a href="#cb10-5"></a>    <span class="kw">&lt;uses-permission</span><span class="ot"> android:name=</span><span class="st">&quot;android.permission.WRITE_EXTERNAL_STORAGE&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a>    <span class="kw">&lt;uses-permission</span><span class="ot"> android:name=</span><span class="st">&quot;android.permission.READ_EXTERNAL_STORAGE&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a>    <span class="kw">&lt;uses-permission</span><span class="ot"> android:name=</span><span class="st">&quot;android.permission.CAMERA&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a></span>
+<span id="cb10-9"><a href="#cb10-9"></a>    <span class="kw">&lt;uses-feature</span><span class="ot"> android:name=</span><span class="st">&quot;android.hardware.camera&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-10"><a href="#cb10-10"></a>    <span class="kw">&lt;uses-feature</span><span class="ot"> android:name=</span><span class="st">&quot;android.hardware.camera.autofocus&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-11"><a href="#cb10-11"></a>    <span class="kw">&lt;uses-feature</span><span class="ot"> android:name=</span><span class="st">&quot;android.hardware.camera.front&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-12"><a href="#cb10-12"></a>    <span class="kw">&lt;uses-feature</span><span class="ot"> android:name=</span><span class="st">&quot;android.hardware.camera.front.autofocus&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-13"><a href="#cb10-13"></a></span>
+<span id="cb10-14"><a href="#cb10-14"></a>    <span class="kw">&lt;application</span></span>
+<span id="cb10-15"><a href="#cb10-15"></a><span class="ot">        android:allowBackup=</span><span class="st">&quot;true&quot;</span></span>
+<span id="cb10-16"><a href="#cb10-16"></a><span class="ot">        android:icon=</span><span class="st">&quot;@mipmap/ic_launcher&quot;</span></span>
+<span id="cb10-17"><a href="#cb10-17"></a><span class="ot">        android:label=</span><span class="st">&quot;@string/app_name&quot;</span></span>
+<span id="cb10-18"><a href="#cb10-18"></a><span class="ot">        android:roundIcon=</span><span class="st">&quot;@mipmap/ic_launcher_round&quot;</span></span>
+<span id="cb10-19"><a href="#cb10-19"></a><span class="ot">        android:supportsRtl=</span><span class="st">&quot;true&quot;</span></span>
+<span id="cb10-20"><a href="#cb10-20"></a><span class="ot">        android:theme=</span><span class="st">&quot;@style/AppTheme&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb10-21"><a href="#cb10-21"></a>        <span class="kw">&lt;activity</span><span class="ot"> android:name=</span><span class="st">&quot;.MainActivity&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb10-22"><a href="#cb10-22"></a>            <span class="kw">&lt;intent-filter&gt;</span></span>
+<span id="cb10-23"><a href="#cb10-23"></a>                <span class="kw">&lt;action</span><span class="ot"> android:name=</span><span class="st">&quot;android.intent.action.MAIN&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-24"><a href="#cb10-24"></a></span>
+<span id="cb10-25"><a href="#cb10-25"></a>                <span class="kw">&lt;category</span><span class="ot"> android:name=</span><span class="st">&quot;android.intent.category.LAUNCHER&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb10-26"><a href="#cb10-26"></a>            <span class="kw">&lt;/intent-filter&gt;</span></span>
+<span id="cb10-27"><a href="#cb10-27"></a>        <span class="kw">&lt;/activity&gt;</span></span>
+<span id="cb10-28"><a href="#cb10-28"></a>    <span class="kw">&lt;/application&gt;</span></span>
+<span id="cb10-29"><a href="#cb10-29"></a></span>
+<span id="cb10-30"><a href="#cb10-30"></a><span class="kw">&lt;/manifest&gt;</span></span></code></pre></div>
+<p>参考：<a href="http://blog.codeonion.com/2016/04/09/show-camera-on-android-app-using-opencv-for-android/" target="_blank" rel="noopener">Use OpenCV to show camera on android App with correct orientation</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/mobile/use_opencv_on_android/" data-id="ck8ppfg4l007mcjqi2w2x5mh4"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JNI/" rel="tag">JNI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/mobile/compile_live555_for_android/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Compile live555 for Android
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/arch/distributed_id_generation/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">分布式系统 ID 生成</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

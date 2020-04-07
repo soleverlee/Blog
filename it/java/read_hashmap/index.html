@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    阅读笔记：HashMap |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/read_hashmap" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      阅读笔记：HashMap
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/read_hashmap/" class="article-date">
+  <time datetime="2020-03-18T00:00:00.000Z" itemprop="datePublished">2020-03-18</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>HashMap可以算是最常用的数据结构了，而它的实现没想到还挺有学问在里面。</p>
+<a id="more"></a>
+<h1 id="基本实现">基本实现</h1>
+<h2 id="哈希映射">哈希映射</h2>
+<p>在HashMap中使用数组来存储元素，根据元素的hash值一一映射到一个节点上。其中使用的哈希方法为：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="dt">static</span> <span class="dt">final</span> <span class="dt">int</span> <span class="fu">hash</span>(<span class="bu">Object</span> key) {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="dt">int</span> h;</span>
+<span id="cb1-3"><a href="#cb1-3"></a>    <span class="co">// 将哈希值无符号右移16位是因为取index使用了length作为掩码，这样当哈希值在掩码外的部分相同的时候就会发生冲突</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>    <span class="co">// 这样将高位混杂到低位上，可以尽可能将这种影响消除</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>    <span class="kw">return</span> (key == <span class="kw">null</span>) ? <span class="dv">0</span> : (h = key.<span class="fu">hashCode</span>()) ^ (h &gt;&gt;&gt; <span class="dv">16</span>);</span>
+<span id="cb1-6"><a href="#cb1-6"></a>}</span></code></pre></div>
+<p>举例来说对于容量为4的HashMap，插入"a"、"b"、"c"、"d"后在数组中的分布就是：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb2-1"><a href="#cb2-1"></a><span class="st">&quot;a&quot;</span><span class="op">.</span>hashCode<span class="op">()</span> <span class="op">=</span> <span class="dv">97</span> <span class="op">=</span> <span class="dv">00000000000000000000000001100001</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>hash<span class="op">(</span><span class="st">&quot;a&quot;</span><span class="op">)</span> <span class="op">=</span> <span class="dv">00000000000000000000000001100001</span> <span class="op">^</span> <span class="dv">00000000000000000000000000000000</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>          <span class="op">=</span> <span class="dv">00000000000000000000000001100001</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>index <span class="op">=</span> hash<span class="op">(</span><span class="st">&quot;a&quot;</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">(</span><span class="dv">4</span> <span class="op">-</span> <span class="dv">1</span><span class="op">)</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>      <span class="op">=</span> <span class="dv">00000000000000000000000001100001</span> <span class="op">&amp;</span> <span class="dv">00000000000000000000000000000011</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>      <span class="op">=</span> <span class="dv">00000000000000000000000000000001</span></span></code></pre></div>
+<p>如此则数组中对应的序号为1，2，3，0。</p>
+<figure>
+<img src="/images/HashMap-resize.png" alt="" /><figcaption>HashMap resize</figcaption>
+</figure>
+<h2 id="load-factor负载因子和threshod阈值">Load Factor(负载因子)和Threshod（阈值）</h2>
+<p>因为HashMap的底层实际上是使用数组进行存储，那么始终存在着一个动态内存分配的问题：数组的大小是固定的，但是HashMap实际存储多少数据是未知的（可以一直向HashMap中进行插入），那么当数组塞满了（实际上还有一个问题是发生哈希冲突）之后如何处理？</p>
+<p>解决这个问题最简单的做法就是，一旦数组满了之后，就对数组进行扩容。扩容也很简单，重新申请一个大一点的数组，再把原来数组里面的数据复制过去即可。这里涉及到另外一个问题就是，扩容的时候选择一个怎么样的容量进行扩容呢？这个操作是有代价的，如果频繁的扩容就涉及到频繁的数组复制操作，性能上会受到影响；如果一次扩容选择一个很大的空间，但实际之后这些空间又没有使用到，那么久造成了资源浪费。怎么解决这一个问题呢？</p>
+<p>在HashMap的构造中有两个关键的参数：</p>
+<ul>
+<li><code>initialCapacity</code>:初始化容量，即可以装多少条数据</li>
+<li><code>loadFactor</code>：负载因子，用来描述HashMap中可以变得多“满”（到达什么程度开始扩容）</li>
+</ul>
+<p>实际上，HashMap并不会根据你提供的<code>initial capacity</code>来初始化一个数组，而是找到一个值 <span class="math inline">\(t\)</span> 并满足 <span class="math inline">\(t &gt;= i \&amp;\&amp; t==2^{n}\)</span>（比如3对应得到4， 15对应得到16），并在第一次插入的时候进行初始化。</p>
+<p>为什么数组在初始化的时候一定是2的倍数？这是因为方便扩容的时候直接将数组大小变成原来的二倍，同时也简化了一些其他的操作，比如如何定位到一个值所在的索引:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a><span class="dt">int</span> index = (length - <span class="dv">1</span>) &amp; hash</span>
+<span id="cb3-2"><a href="#cb3-2"></a></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="co">/*</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="co">final Node&lt;K,V&gt; getNode(int hash, Object key) {</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="co">    Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; first, e; int n; K k;</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="co">    if ((tab = table) != null &amp;&amp; (n = tab.length) &gt; 0 &amp;&amp;</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="co">        (first = tab[(n - 1) &amp; hash]) != null) {</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="co">    ...</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="co">*/</span></span></code></pre></div>
+<p>正常的做法是，<code>abs(hash) % SIZE</code>像这样取余操作。但是如果除数是2的n次幂，则可以简化为位运算操作。</p>
+<p>而至于为什么默认的负载因子是0.75，有人根据二项式分布算出最佳的load factor是 <span class="math inline">\(log(2)=0.693\)</span> ，然后拍脑袋给出的0.75（乘以容量还可以得个整数...)。</p>
+<h1 id="树化红黑树">树化（红黑树）</h1>
+<h2 id="treeify_threshold树化阈值">TREEIFY_THRESHOLD（树化阈值）</h2>
+<p>所以使用0.75作为负载因子，那么出现的情况是如果当前容量达到这个值的时候就会resize到原来的两倍。对于一个容量为4的Map来说，理想情况下元素均匀分布，是这样：</p>
+<pre><code>最好情况                                 极端情况
+bucket | elements                      bucket | elements     
+-------+---------                      -------+---------    
+     0 | Z                                  0 |   
+     1 | X                                  1 | Z -&gt; X -&gt; Y 
+     2 |                                    2 |  
+     3 | Y                                  3 | 
+</code></pre>
+<p>理想状况下（假设基于随机hash算法节点在桶中均匀分布，且节点的个数占桶的50%，那么单个节点出现在桶中的概率为0.5），节点在hash桶中的出现的频率遵循<a href="https://zh.wikipedia.org/wiki/%E6%B3%8A%E6%9D%BE%E5%88%86%E4%BD%88" target="_blank" rel="noopener">泊松分布</a>（ <span class="math inline">\(λ = 0.5\)</span> )</p>
+<p><span class="math display">\[
+P(X=k)=\frac{e^{-\lambda}\lambda^k}{k!}=\frac{e^{-0.5}0.5^k}{k!}
+\]</span></p>
+<p>意味着在load factor=0.75的情况下，hash桶中出现 <span class="math inline">\(k\)</span> 个节点（冲突）的概率大致为：</p>
+<pre><code>* 0:    0.60653066
+* 1:    0.30326533
+* 2:    0.07581633
+* 3:    0.01263606
+* 4:    0.00157952
+* 5:    0.00015795
+* 6:    0.00001316
+* 7:    0.00000094
+* 8:    0.00000006
+* more: less than 1 in ten million</code></pre>
+<p>可见哈希冲突导致一个桶中出现8个节点情况已经几乎小之又小的事情了，这是<code>TREEIFY_THRESHOLD = 8</code>的原因，当大于8的时候转换为红黑树。</p>
+<h2 id="treeify树化">Treeify（树化）</h2>
+<p>通常情况下，当哈希冲突产生的时候，会被当成链表存储。这个改变是通过<a href="http://openjdk.java.net/jeps/180" target="_blank" rel="noopener">JEP 180: Handle Frequent HashMap Collisions with Balanced Trees</a>引入的。在下面的情况下，会转换为红黑树：</p>
+<ul>
+<li>链表中的节点数达到TREEIFY_THRESHOLD（8）</li>
+<li>容量至少达到MIN_TREEIFY_CAPACITY（64），否则只是单纯扩容到到原来的两倍</li>
+</ul>
+<p>现实中哈希冲突的场景并不多，不过如果非要测试这种场景也很容易。比如<code>Aa</code>和字符串<code>BB</code>就拥有相同的哈希值，把他们随机组合到一起，还是一样。于是我们构建了很多个哈希值相同的key值，来演示哈希冲突的场景：</p>
+<figure>
+<img src="/images/HashMap-treeify.png" alt="" /><figcaption>Treeify</figcaption>
+</figure>
+<h2 id="尾插入">尾插入</h2>
+<p>从上面的图可以注意到：哈希冲突的节点在链表中是插入到链表尾部的</p>
+<p>在Java8之前是插入到前面的，但是Java8改成插入到尾部了，这样做的原因（据说）是因为扩容时会改变链表的顺序，在多线程条件下会导致形成闭环（从而可能引起死循环）。</p>
+<h1 id="fail-fast机制">fail-fast机制</h1>
+<p>在HashMap中存在一个变量记录修改的次数<code>modCount</code>,当这个次数和期待的不一致的时候就会抛出<code>ConcurrentModificationException</code>。这种机制被称之为"Fail-Fast”，意味着出现错误的时候尽早结束。通常在<code>java.util</code>下面的迭代器都是这类的，如果在迭代的中途数据被其他线程修改了，那么就会（尽可能的，当然并不能保证）触发这个检测。</p>
+<p>而<code>java.util.concurrent</code>包下的迭代器是"Fail-Safe"的，例如ConcurrentHashMap、CopyOnWriteArrayList等。</p>
+<h1 id="性能分析">性能分析</h1>
+<p>HashMap对于<code>get</code>和<code>put</code>操作的复杂度是常数级 <span class="math inline">\(\displaystyle{O(1)}\)</span> ，在最坏的情况下，因为使用了红黑树进行查找，复杂度为 <span class="math inline">\(\displaystyle{O(log(n))}\)</span> 。</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/20448477/cant-understand-poisson-part-of-hash-tables-from-sun-documentation" target="_blank" rel="noopener">Can't understand Poisson part of Hash tables from Sun documentation</a></li>
+<li><a href="https://stackoverflow.com/questions/10901752/what-is-the-significance-of-load-factor-in-hashmap" target="_blank" rel="noopener">What is the significance of load factor in HashMap?</a></li>
+<li><a href="http://rabbit.eng.miami.edu/class/een318/poisson.pdf" target="_blank" rel="noopener">Testing a Hash Function using Probability</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/read_hashmap/" data-id="ck8ppfg3y006dcjqidsei6ln8"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JDK1-8/" rel="tag">JDK1.8</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/read_concurrent_hashmap/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            阅读笔记：ConcurrentHashMap
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/cache/redis_lru/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Redis Memory limit and eviction policy configuration</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

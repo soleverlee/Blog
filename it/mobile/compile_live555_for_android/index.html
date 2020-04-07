@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Compile live555 for Android |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/mobile/compile_live555_for_android" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Compile live555 for Android
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/mobile/compile_live555_for_android/" class="article-date">
+  <time datetime="2017-11-20T00:00:00.000Z" itemprop="datePublished">2017-11-20</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Android/">Android</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>编译 live555的库在 android 上使用。 <a id="more"></a> 首先下载liveMedia库。解压完成可以先在linux环境下编译一遍试试，例如：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="ex">./genMakefiles</span> macosx</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">make</span></span></code></pre></div>
+<p>然后，可以利用ndk-build将它交叉编译成动态库。这时候，需要新建一个Android.mk和Application.mk文件： * Application.mk</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb2-1"><a href="#cb2-1"></a><span class="dt">APP_BUILD_SCRIPT </span><span class="ch">:=</span><span class="st"> Android.mk</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="dt">APP_STL </span><span class="ch">:=</span><span class="st"> gnustl_shared</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="dt">APP_ABI </span><span class="ch">:=</span><span class="st"> armeabi-v7a</span></span></code></pre></div>
+<ul>
+<li>Android.mk</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode makefile"><code class="sourceCode makefile"><span id="cb3-1"><a href="#cb3-1"></a><span class="dt">LOCAL_PATH </span><span class="ch">:=</span><span class="st"> </span><span class="ch">$(</span><span class="kw">call</span><span class="st"> my-dir</span><span class="ch">)</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">CLEAR_VARS</span><span class="ch">)</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="dt">LOCAL_MODULE </span><span class="ch">:=</span><span class="st"> liblive555</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="dt">LOCAL_CPPFLAGS </span><span class="ch">+=</span><span class="st"> -fexceptions -DXLOCALE_NOT_USED=1 -DNULL=0 -DNO_SSTREAM=1 -UIP_ADD_SOURCE_MEMBERSHIP -DSOCKLEN_T=socklen_t</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="dt">LOCAL_C_INCLUDES </span><span class="ch">:=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">LOCAL_PATH</span><span class="ch">)</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">LOCAL_PATH</span><span class="ch">)</span><span class="st">/BasicUsageEnvironment/include </span><span class="ch">\</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">LOCAL_PATH</span><span class="ch">)</span><span class="st">/UsageEnvironment/include </span><span class="ch">\</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">LOCAL_PATH</span><span class="ch">)</span><span class="st">/groupsock/include </span><span class="ch">\</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a><span class="st">    </span><span class="ch">$(</span><span class="dt">LOCAL_PATH</span><span class="ch">)</span><span class="st">/liveMedia/include </span><span class="ch">\</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a></span>
+<span id="cb3-15"><a href="#cb3-15"></a><span class="dt">LOCAL_SRC_FILES </span><span class="ch">:=</span><span class="st"> </span><span class="ch">\</span></span>
+<span id="cb3-16"><a href="#cb3-16"></a><span class="st">    BasicUsageEnvironment/BasicHashTable.cpp         </span><span class="ch">\</span></span>
+<span id="cb3-17"><a href="#cb3-17"></a><span class="st">        ...(这里把其他cpp、c文件都列到这里）</span></span>
+<span id="cb3-18"><a href="#cb3-18"></a></span>
+<span id="cb3-19"><a href="#cb3-19"></a><span class="kw">include</span> <span class="ch">$(</span><span class="dt">BUILD_SHARED_LIBRARY</span><span class="ch">)</span></span></code></pre></div>
+<p>然后执行ndk-build进行编译：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="ex">ndk-build</span> NDK_PROJECT_PATH=. NDK_APPLICATION_MK=Application.mk</span></code></pre></div>
+<p>编译完成就可以得到libgnustl_shared.so liblive555.so了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/mobile/compile_live555_for_android/" data-id="ck8ppfg4f007ccjqi5l13d5rf"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/live555/" rel="tag">live555</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/about_java_generics/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            关于 Java泛型
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/mobile/use_opencv_on_android/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">在Android 上使用 OpenCV</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

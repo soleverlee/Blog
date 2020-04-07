@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    理解Java并发(1)：基本机制 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/java_cocurrent_basics" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      理解Java并发(1)：基本机制
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/java_cocurrent_basics/" class="article-date">
+  <time datetime="2019-10-28T00:00:00.000Z" itemprop="datePublished">2019-10-28</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>线程是操作系统中进行运算调度的最小单位，它是一个单一顺序的控制流，不论是对于单核还是多核的CPU，都能比较有效的提高程序的吞吐率。在Java中，创建一个线程的唯一方法是创建一个<code>Thread</code>类的实例，并调用<code>start()</code>方法以启动该线程。然而当多个线程同时执行时，如何保证线程之间是按照我们期待的方式在运行呢？Java提供了多种机制来保证多个线程之间的交互。 <a id="more"></a></p>
+<h1 id="同步synchronization与监视器monitor机制">同步(Synchronization)与监视器(Monitor)机制</h1>
+<p>显而易见最基本最常见的和多线程有关的就是同步<code>synchronized</code>关键字了，它底层是使用Monitor实现的。那么究竟什么是<code>Monitor</code>呢？根据JavaSE Specification的描述，在Java中，每一个对象都有一个与之关联的monitor，允许线程可以去<code>lock</code>或者<code>unlock</code>这个monitor。实际上：</p>
+<ul>
+<li><code>monitor</code>是独立于Java语言之上的一个概念（没想到还有另外一个名字<code>管程</code>），保证在运行线程之前获取互斥锁</li>
+<li>在Java中，任何对象(<code>java.lang.Object</code>)都可以允许作为一个monitor，所以会有<code>wait</code>、<code>notify</code>之类的方法</li>
+</ul>
+<p><code>synchronized</code>可以作用于代码块或者方法上。如果作用在代码块上，它会尝试去lock这个对象的monitor，如果不成功将会等待直到lock成功。而当执行完毕后，无论是否出现异常，都将会释放这个锁。</p>
+<p>如果作用在方法上，唯一的区别在于，如果是实例方法，那么将使用这个实例作为monitor，也就是<code>this</code>；如果是静态方法，那么使用的是所在类的<code>Class</code>对象。</p>
+<h1 id="waitnotify">Wait/Notify</h1>
+<p>每一个Object都包含一个等待线程的集合(Wait set)。当对象创建的时候，这个队列是空的，当调用<code>Object.wait()</code>、<code>Object.nofity()</code>以及<code>Object.nofityAll()</code>方法的时候，会自动添加或者移除队列中的线程。或者当线程的中断状态发生改变的时候，也会引起变化。</p>
+<h2 id="wait">Wait</h2>
+<p>调用<code>wait</code>方法将使当前线程休眠直到另一个线程通过<code>notify</code>或者<code>notifyAll</code>来唤醒。当前线程必须持有该对象的锁，调用<code>wait</code>后即释放锁。当线程被唤醒时，需要重新取得锁并继续执行。然而，线程被唤醒有可能是因为“虚假唤醒”（spurious wakeups）导致，所以通常都需要将<code>wait</code>检测的逻辑包括在一个loop中：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">synchronized</span> (obj) {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="kw">while</span> (&lt;condition does not hold&gt;)</span>
+<span id="cb1-3"><a href="#cb1-3"></a>        obj.<span class="fu">wait</span>();</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    <span class="co">// Perform action appropriate to condition</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>}</span></code></pre></div>
+<p>所谓虚假唤醒就是说，本来不该唤醒的时候唤醒了。究其原因是在操作系统层面就性能和正确性做出了权衡，放弃了正确性而选择让程序自己去处理。</p>
+<blockquote>
+<p>Spurious wakeups may sound strange, but on some multiprocessor systems, making condition wakeup completely predictable might substantially slow all condition variable operations.</p>
+</blockquote>
+<h2 id="notify">Notify</h2>
+<p>调用<code>notify</code>将唤醒一个正在等待持有该对象锁的线程，如果有多个对象在等待的话，将会随机唤醒其中的一个。</p>
+<p>被唤醒的线程必须等到当前线程释放锁之后，才能开始执行；也就是说<code>notify</code>执行完之后，并不会立即释放锁，而是需要等到同步块执行完。</p>
+<p>如果调用<code>notifyAll</code>的话，所有等待的线程将被唤醒，但同一时间有且仅有一个线程能取到锁并继续执行。</p>
+<h2 id="interruption">Interruption</h2>
+<p>当调用<code>Thread.interrupt</code>时，线程的中断状态呗设置为true。如果该线程在某个对象的waitSet中，则将会被从等待队列中移除，并在取得锁之后抛出<code>InterruptedException</code>。实际上，如果线程正在执行的是一些底层的blocking函数例如<code>Thread.sleep()</code>, <code>Thread.join()</code>, 或者 <code>Object.wait()</code>的时候，那么线程将抛出<code>InterruptedException</code>，并且<code>interrupted</code>状态会被清除；否则只会将<code>interrupted</code>状态设置为<code>true</code>。</p>
+<p>如果一个处于等待队列中的线程同时收到中断和通知，那么可能的行为是：</p>
+<ul>
+<li>先收到通知，正常唤醒。这时候，<code>Thread.interrupted</code>将为<code>true</code>，</li>
+<li>抛出<code>InterruptedException</code>并退出</li>
+</ul>
+<p>同样，如果有多个线程处于对象m的等待队列中，然后另一个线程执行<code>m.notify</code>，那么可能：</p>
+<ul>
+<li>至少有一个线程正常退出wait</li>
+<li>所有处于等待队列中的线程抛出<code>InterruptedException</code>而退出</li>
+</ul>
+<p>需要注意的是，当一个线程中断了另一个线程的时候，被中断的线程并不是需要立即停止执行，程序可以选择在停止之前做一些清理工作之类的。通常如果捕获了<code>InterruptedException</code>只需要重新抛出即可，有些时候不能重新抛出的时候，需要将当前线程标记为<code>interrupted</code>使得上层堆栈的程序可以选择处理，</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">try</span> {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>    <span class="kw">while</span> (<span class="kw">true</span>) {</span>
+<span id="cb2-3"><a href="#cb2-3"></a>        Task task = queue.<span class="fu">take</span>(<span class="dv">10</span>, <span class="bu">TimeUnit</span>.<span class="fu">SECONDS</span>);</span>
+<span id="cb2-4"><a href="#cb2-4"></a>        task.<span class="fu">execute</span>();</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    }</span>
+<span id="cb2-6"><a href="#cb2-6"></a>}<span class="kw">catch</span> (<span class="bu">InterruptedException</span> e) { </span>
+<span id="cb2-7"><a href="#cb2-7"></a>    <span class="bu">Thread</span>.<span class="fu">currentThread</span>().<span class="fu">interrupt</span>();</span>
+<span id="cb2-8"><a href="#cb2-8"></a>}</span></code></pre></div>
+<h1 id="线程的生命周期">线程的生命周期</h1>
+<p>每一个线程有一个生命周期，包含多个状态：</p>
+<ul>
+<li>New: 线程创建还未开始执行，线程创建完之后即为此状态</li>
+<li>Runnable: 在JVM中正在执行的状态。当线程start之后，即变为runnable状态</li>
+<li>Blocked: 线程等待获取锁而被阻塞</li>
+<li>Waiting: 线程等待其他线程</li>
+<li>Timed Waiting: 有超时的等待</li>
+<li>Terminated: 线程已被退出</li>
+</ul>
+<figure>
+<img src="https://www.baeldung.com/wp-content/uploads/2018/02/Life_cycle_of_a_Thread_in_Java.jpg" alt="" /><figcaption>Life cycle of a thread</figcaption>
+</figure>
+<h1 id="sleep-yield">Sleep / Yield</h1>
+<p>当调用线程的<code>sleep</code>方法将导致线程暂时停止执行，值得注意的是并不会释放锁。而当线程的<code>yield</code>方法被调用时，意味着通知CPU当前线程可以“暂缓”执行的，实际很少使用。</p>
+<blockquote>
+<p>It is rarely appropriate to use this method. It may be useful for debugging or testing purposes, where it may help to reproduce bugs due to race conditions.</p>
+</blockquote>
+<h1 id="context-switching">Context switching</h1>
+<p>在多线程中，CPU会为每个线程分配时间片区执行，即执行当前线程的一部分操作之后，操作系统需要从当前线程切换到其他线程中去。通常在下列的情况下会出现context switching:</p>
+<ul>
+<li>多任务处理（即多个线程正常执行）</li>
+<li>中断，</li>
+</ul>
+<p>那么在这个切换的过程中，会发生一些什么事情呢？</p>
+<p>参考：</p>
+<ul>
+<li><a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html" target="_blank" rel="noopener">Chapter 17. Threads and Locks</a></li>
+<li><a href="https://stackoverflow.com/questions/3362303/whats-a-monitor-in-java" target="_blank" rel="noopener">What's a monitor in Java?</a></li>
+<li><a href="https://zh.wikipedia.org/wiki/%E7%9B%A3%E8%A6%96%E5%99%A8_(%E7%A8%8B%E5%BA%8F%E5%90%8C%E6%AD%A5%E5%8C%96)" target="_blank" rel="noopener">管程</a></li>
+<li><a href="https://stackoverflow.com/questions/1050592/do-spurious-wakeups-in-java-actually-happen" target="_blank" rel="noopener">Do spurious wakeups in Java actually happen?</a></li>
+<li><a href="https://stackoverflow.com/questions/8594591/why-does-pthread-cond-wait-have-spurious-wakeups" target="_blank" rel="noopener">Why does pthread_cond_wait have spurious wakeups?</a></li>
+<li><a href="https://www.ibm.com/developerworks/java/library/j-jtp05236/index.html" target="_blank" rel="noopener">Dealing with InterruptedException</a></li>
+<li><a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.State.html" target="_blank" rel="noopener">Enum Thread.State</a></li>
+<li><a href="https://www.baeldung.com/java-thread-lifecycle" target="_blank" rel="noopener">Life Cycle of a Thread in Java</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Context_switch" target="_blank" rel="noopener">Context switch</a></li>
+<li><a href="https://blog.tsunanet.net/2010/11/how-long-does-it-take-to-make-context.html" target="_blank" rel="noopener">How long does it take to make a context switch?</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/java_cocurrent_basics/" data-id="ck8ppfg3r005tcjqi135n5x9q"
+         class="article-share-link">Share</a>
+      
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/java_thread_pool_executor/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            理解Java并发(2)：ThreadPoolExecutor解析
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/rust/rust_lang_1_basic/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Rust(1) 基本语法</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

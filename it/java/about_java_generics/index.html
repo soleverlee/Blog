@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    关于 Java泛型 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/about_java_generics" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      关于 Java泛型
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/about_java_generics/" class="article-date">
+  <time datetime="2017-12-21T00:00:00.000Z" itemprop="datePublished">2017-12-21</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>泛型是Java1.5之后一个比较有用的特性，有点类似于C++的模板。最简单的一个例子：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">class</span> <span class="bu">Wrapper</span>&lt;T&gt; {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="dt">final</span> T data;</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a>    <span class="bu">Wrapper</span>(T data) {</span>
+<span id="cb1-5"><a href="#cb1-5"></a>        <span class="kw">this</span>.<span class="fu">data</span> = data;</span>
+<span id="cb1-6"><a href="#cb1-6"></a>    }</span>
+<span id="cb1-7"><a href="#cb1-7"></a>}</span></code></pre></div>
+<p>有一些可能不是特别常用的Generics，我们来简单看一下。 <a id="more"></a></p>
+<h1 id="bounded-generics">Bounded Generics</h1>
+<h2 id="multiple-bound">Multiple bound</h2>
+<p>如果一个类继承了多个接口，是这样的写法：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">interface</span> I {}</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">interface</span> M {}</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">abstract</span> <span class="kw">class</span> C {}</span>
+<span id="cb2-4"><a href="#cb2-4"></a></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="kw">class</span> Foo <span class="kw">extends</span> C <span class="kw">implements</span> I,M {}</span></code></pre></div>
+<p>假如一个方法的泛型参数包含多个Bound，则要这样写了：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a>&lt;T <span class="kw">extends</span> I &amp; M&gt; <span class="dt">void</span> <span class="fu">bar</span>(T arg){}</span>
+<span id="cb3-2"><a href="#cb3-2"></a>&lt;T <span class="kw">extends</span> C&gt; <span class="dt">void</span> <span class="fu">ooo</span>(T arg){}</span>
+<span id="cb3-3"><a href="#cb3-3"></a>&lt;T <span class="kw">extends</span> C &amp; I &amp; M&gt; <span class="dt">void</span> <span class="fu">xxx</span>(T arg){}</span></code></pre></div>
+<h2 id="unbounded-wildcards">Unbounded wildcards</h2>
+<p>使用 ? 修饰符可以用作类型转换，List&lt;?&gt; 意味着是一个未知类型的List，可能是<code>List&lt;A&gt;</code> 也可能是<code>List&lt;B&gt;</code></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">private</span> <span class="dt">final</span> <span class="bu">List</span>&lt;<span class="bu">String</span>&gt; strList = <span class="bu">Arrays</span>.<span class="fu">asList</span>(<span class="st">&quot;Hello&quot;</span>, <span class="st">&quot;World!&quot;</span>);</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="kw">private</span> <span class="dt">final</span> <span class="bu">List</span>&lt;<span class="bu">Integer</span>&gt; intList = <span class="bu">Arrays</span>.<span class="fu">asList</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>);</span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="kw">private</span> <span class="dt">final</span> <span class="bu">List</span>&lt;<span class="bu">Float</span>&gt; floatList = <span class="bu">Arrays</span>.<span class="fu">asList</span>(<span class="fl">1.1f</span>, <span class="fl">2.1f</span>, <span class="fl">3.1f</span>);</span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="kw">private</span> <span class="dt">final</span> <span class="bu">List</span>&lt;<span class="bu">Number</span>&gt; numberList = <span class="bu">Arrays</span>.<span class="fu">asList</span>(<span class="dv">1</span>, <span class="fl">1.0f</span>, <span class="dv">3000L</span>);</span>
+<span id="cb4-5"><a href="#cb4-5"></a></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="kw">public</span> <span class="dt">void</span> <span class="fu">cast</span>() {</span>
+<span id="cb4-7"><a href="#cb4-7"></a>    <span class="bu">List</span>&lt;?&gt; unknownList = <span class="kw">null</span>;</span>
+<span id="cb4-8"><a href="#cb4-8"></a>    unknownList = strList;</span>
+<span id="cb4-9"><a href="#cb4-9"></a>    unknownList = intList;</span>
+<span id="cb4-10"><a href="#cb4-10"></a>    unknownList = floatList;</span>
+<span id="cb4-11"><a href="#cb4-11"></a>    unknownList = numberList;</span>
+<span id="cb4-12"><a href="#cb4-12"></a></span>
+<span id="cb4-13"><a href="#cb4-13"></a>    <span class="kw">for</span> (<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; unknownList.<span class="fu">size</span>(); i++) {</span>
+<span id="cb4-14"><a href="#cb4-14"></a>        <span class="co">// Number item = unknownList.get(i); wrong! </span></span>
+<span id="cb4-15"><a href="#cb4-15"></a>        <span class="bu">Object</span> item = unknownList.<span class="fu">get</span>(i);</span>
+<span id="cb4-16"><a href="#cb4-16"></a>        <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(item + <span class="st">&quot;(&quot;</span> + item.<span class="fu">getClass</span>() + <span class="st">&quot;)&quot;</span>);</span>
+<span id="cb4-17"><a href="#cb4-17"></a>    }</span>
+<span id="cb4-18"><a href="#cb4-18"></a>}</span>
+<span id="cb4-19"><a href="#cb4-19"></a><span class="co">/* output</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a><span class="co">1(class java.lang.Integer)</span></span>
+<span id="cb4-21"><a href="#cb4-21"></a><span class="co">1.0(class java.lang.Float)</span></span>
+<span id="cb4-22"><a href="#cb4-22"></a><span class="co">3000(class java.lang.Long)</span></span>
+<span id="cb4-23"><a href="#cb4-23"></a><span class="co">*/</span></span></code></pre></div>
+<h2 id="upper-bounded-wildcards">Upper bounded wildcards</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">double</span> <span class="fu">sumOfList</span>(<span class="bu">List</span>&lt;? <span class="kw">extends</span> <span class="bu">Number</span>&gt; list) {</span>
+<span id="cb5-2"><a href="#cb5-2"></a>    <span class="dt">double</span> s = <span class="fl">0.</span><span class="dv">0</span>;</span>
+<span id="cb5-3"><a href="#cb5-3"></a>    <span class="kw">for</span> (<span class="bu">Number</span> n : list)</span>
+<span id="cb5-4"><a href="#cb5-4"></a>        s += n.<span class="fu">doubleValue</span>();</span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="kw">return</span> s;</span>
+<span id="cb5-6"><a href="#cb5-6"></a>}</span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="co">//...</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a><span class="fu">sumOfList</span>(<span class="bu">Arrays</span>.<span class="fu">asList</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>));</span>
+<span id="cb5-9"><a href="#cb5-9"></a><span class="fu">sumOfList</span>(<span class="bu">Arrays</span>.<span class="fu">asList</span>(<span class="fl">1.0f</span>, <span class="fl">2.0f</span>, <span class="fl">3.0f</span>));</span></code></pre></div>
+<h2 id="lower-bounded-wildcards">Lower bounded wildcards</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">addNumbers</span>(<span class="bu">List</span>&lt;? <span class="kw">super</span> <span class="bu">Number</span>&gt; list) {</span>
+<span id="cb6-2"><a href="#cb6-2"></a>    <span class="kw">for</span> (<span class="dt">int</span> i = <span class="dv">1</span>; i &lt;= <span class="dv">10</span>; i++) {</span>
+<span id="cb6-3"><a href="#cb6-3"></a>        list.<span class="fu">add</span>(i);</span>
+<span id="cb6-4"><a href="#cb6-4"></a>        list.<span class="fu">add</span>(<span class="fl">1.0f</span>);</span>
+<span id="cb6-5"><a href="#cb6-5"></a>    }</span>
+<span id="cb6-6"><a href="#cb6-6"></a>}</span>
+<span id="cb6-7"><a href="#cb6-7"></a><span class="fu">addNumbers</span>(<span class="kw">new</span> <span class="bu">ArrayList</span>&lt;<span class="bu">Number</span>&gt;());</span></code></pre></div>
+<h1 id="type-erase">Type erase</h1>
+<h2 id="type-erase-process">Type erase process</h2>
+<p>Java的泛型是编译时有效的，在运行时，所有泛型参数会被编译器擦除。擦除的规则如下：</p>
+<ul>
+<li>如果参数是有Bound的，则会替换成这个Bound</li>
+<li>如果是Unbounded，则会替换成Object</li>
+</ul>
+<p>如下所示：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">public</span> <span class="kw">class</span> <span class="bu">Node</span>&lt;T&gt; {                         <span class="co">// public class Node {</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>    <span class="kw">private</span> T data;                            <span class="co">//     private Object data;</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>    <span class="kw">private</span> <span class="bu">Node</span>&lt;T&gt; next;                      <span class="co">//     private Node next;</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>    <span class="kw">public</span> <span class="bu">Node</span>(T data, <span class="bu">Node</span>&lt;T&gt; next) {        <span class="co">//     public Node(Object data, Node next) {</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a>        <span class="kw">this</span> data = data;                      <span class="co">//         this data = data;</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>        <span class="kw">this</span> next = next;                      <span class="co">//         this next = next;</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>    }                                          <span class="co">//     }</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a>                                               <span class="co">// </span></span>
+<span id="cb7-9"><a href="#cb7-9"></a>    <span class="kw">public</span> T <span class="fu">getData</span>() { <span class="kw">return</span> data; }        <span class="co">//       public Object getData() { return data; }</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a>}                                              <span class="co">// }</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a></span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="kw">public</span> <span class="kw">class</span> <span class="bu">Node</span>&lt;T <span class="kw">extends</span> <span class="bu">Comparable</span>&lt;T&gt;&gt; {   <span class="co">// public class Node {</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a>    <span class="kw">private</span> T data;                            <span class="co">//     private Comparable data;</span></span>
+<span id="cb7-14"><a href="#cb7-14"></a>    <span class="kw">private</span> <span class="bu">Node</span>&lt;T&gt; next;                      <span class="co">//     private Node next;</span></span>
+<span id="cb7-15"><a href="#cb7-15"></a>    <span class="kw">public</span> <span class="bu">Node</span>(T data, <span class="bu">Node</span>&lt;T&gt; next) {        <span class="co">//     public Node(Comparable data, Node next) {</span></span>
+<span id="cb7-16"><a href="#cb7-16"></a>        <span class="kw">this</span>.<span class="fu">data</span> = data;                      <span class="co">//         this.data = data;</span></span>
+<span id="cb7-17"><a href="#cb7-17"></a>        <span class="kw">this</span>.<span class="fu">next</span> = next;                      <span class="co">//         this.next = next;</span></span>
+<span id="cb7-18"><a href="#cb7-18"></a>    }                                          <span class="co">//     }</span></span>
+<span id="cb7-19"><a href="#cb7-19"></a>                                               <span class="co">// </span></span>
+<span id="cb7-20"><a href="#cb7-20"></a>    <span class="kw">public</span> T <span class="fu">getData</span>() { <span class="kw">return</span> data; }        <span class="co">//     public Comparable getData() { return data; }</span></span>
+<span id="cb7-21"><a href="#cb7-21"></a>}                                              <span class="co">// }</span></span></code></pre></div>
+<h2 id="bridge-method">Bridge method</h2>
+<p>按照上面的擦除也会带来问题。考虑下面的例子，如果有一个子类：</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">public</span> <span class="kw">class</span> MyNode <span class="kw">extends</span> <span class="bu">Node</span>&lt;<span class="bu">Integer</span>&gt; {       <span class="co">// public class MyNode extends Node {</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>    <span class="kw">public</span> <span class="fu">MyNode</span>(<span class="bu">Integer</span> data) { <span class="kw">super</span>(data); }  <span class="co">//     public MyNode(Integer data) { super(data); }</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a>                                                  <span class="co">// </span></span>
+<span id="cb8-4"><a href="#cb8-4"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">setData</span>(<span class="bu">Integer</span> data) {           <span class="co">//     public void setData(Integer data) {</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>        <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;MyNode.setData&quot;</span>);     <span class="co">//         System.out.println(&quot;MyNode.setData&quot;);</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a>        <span class="kw">super</span>.<span class="fu">setData</span>(data);                      <span class="co">//         super.setData(data);</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a>    }                                             <span class="co">//     }</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a>}                                                 <span class="co">// }</span></span></code></pre></div>
+<p>然后，我们考虑如下的代码：</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1"></a>MyNode mn = <span class="kw">new</span> <span class="fu">MyNode</span>(<span class="dv">5</span>);                     <span class="co">// MyNode mn = new MyNode(5);</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="bu">Node</span> n = mn;                                   <span class="co">// Node n = (MyNode)mn;</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>n.<span class="fu">setData</span>(<span class="st">&quot;Hello&quot;</span>);                            <span class="co">// n.setData(&quot;Hello&quot;);</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="bu">Integer</span> x = mn.<span class="fu">data</span>;                           <span class="co">// Integer x = (String)mn.data;</span></span></code></pre></div>
+<p>这里调用setData则会参数类型不能匹配。为了解决这个问题，Java编译器会生成一个Bridge method:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">public</span> <span class="dt">void</span> <span class="fu">setData</span>(<span class="bu">Object</span> data) {</span>
+<span id="cb10-2"><a href="#cb10-2"></a>    <span class="fu">setData</span>((<span class="bu">Integer</span>) data);</span>
+<span id="cb10-3"><a href="#cb10-3"></a>}</span></code></pre></div>
+<h1 id="qa">Q&amp;A</h1>
+<h2 id="list-vs-listobject">List&lt;?&gt; vs List&lt;Object&gt;</h2>
+<blockquote>
+<p>It's important to note that List<Object> and List&lt;?&gt; are not the same. You can insert an Object, or any subtype of &gt;Object, into a List<Object>. But you can only insert null into a List&lt;?&gt;.</p>
+</blockquote>
+<h2 id="extends-vs-super">extends vs super</h2>
+<p>实际上泛型仅仅是为了做一个编译时的检查，从逻辑上确保程序是类型安全的。假设我们有这样的类定义： Object-&gt;Parent-&gt;T-&gt;Child 我们有这样几种写法：</p>
+<ul>
+<li><code>List&lt;?&gt;</code> 代表一种未知类型的List，可能是<code>List&lt;Object&gt;</code>，也可能是<code>List&lt;Child&gt;</code>，都可以</li>
+<li><code>List&lt;? extends T&gt;</code> 代表T或者T的子类的List，可以是<code>List&lt;T&gt;</code>，也可以是<code>List&lt;Child&gt;</code></li>
+<li><code>List&lt;? super T&gt;</code> 代表T或者T的父类的List，可以是<code>List&lt;T&gt;，List&lt;Parent&gt;，List&lt;Object&gt;</code></li>
+</ul>
+<p>我们有一个事实就是，Child是一定可以转化T或者Parent的，但是一个T不一定能转化成Child，因为可能会是别的子类。 比如我们现在做两个列表的拷贝，</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">public</span> <span class="dt">static</span> &lt;T&gt; <span class="dt">void</span> <span class="fu">copy</span>(<span class="bu">List</span> dest, <span class="bu">List</span> src)</span></code></pre></div>
+<p>想实现从一个列表拷贝到另一个列表，比如</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1"></a><span class="bu">List</span>&lt;Parent&gt; parents;</span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="bu">List</span>&lt;T&gt; ts;</span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="bu">List</span>&lt;Child&gt; childs;</span></code></pre></div>
+<p>基于上面说的类的继承的事实，ts/childs显然是可以转化成parents的，但是ts无法确保能转化成childs。因此我们的拷贝方法要这样定义：</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">public</span> <span class="kw">class</span> <span class="bu">Collections</span> { </span>
+<span id="cb13-2"><a href="#cb13-2"></a>  <span class="kw">public</span> <span class="dt">static</span> &lt;T&gt; <span class="dt">void</span> copy  </span>
+<span id="cb13-3"><a href="#cb13-3"></a>  ( <span class="bu">List</span>&lt;? <span class="kw">super</span> T&gt; dest, <span class="bu">List</span>&lt;? <span class="kw">extends</span> T&gt; src) {  <span class="co">// uses bounded wildcards </span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>      <span class="kw">for</span> (<span class="dt">int</span> i=<span class="dv">0</span>; i&lt;src.<span class="fu">size</span>(); i++) </span>
+<span id="cb13-5"><a href="#cb13-5"></a>        dest.<span class="fu">set</span>(i,src.<span class="fu">get</span>(i)); </span>
+<span id="cb13-6"><a href="#cb13-6"></a>  } </span>
+<span id="cb13-7"><a href="#cb13-7"></a>}</span></code></pre></div>
+<p>因为在desc.set()方法中，需要的是一个能够转化为T的对象的，src中&lt;? extends T&gt; 保证了src中的元素一定是一个T。</p>
+<p>See also:</p>
+<ul>
+<li><a href="https://docs.oracle.com/javase/tutorial/java/generics/index.html" target="_blank" rel="noopener">Lesson: Generics (Updated)</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/about_java_generics/" data-id="ck8ppfg3m005ecjqi12i6btzu"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/generics/" rel="tag">generics</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/why_not_lombok/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Why I don&#39;t use lombok
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/mobile/compile_live555_for_android/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Compile live555 for Android</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

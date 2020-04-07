@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    使用 Antlr 解析配置文件 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/antlr_as_config" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用 Antlr 解析配置文件
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/antlr_as_config/" class="article-date">
+  <time datetime="2018-05-09T00:00:00.000Z" itemprop="datePublished">2018-05-09</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>在纠结了一阵子 yml,ini,xml甚至 lua 等等 配置文件的格式后，还是决定使用antlr实现了一种我自定义的格式的解析。 <a id="more"></a> 这个格式是这个样子的:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb1-1"><a href="#cb1-1"></a><span class="op">//</span> Here is some comment</span>
+<span id="cb1-2"><a href="#cb1-2"></a>shared <span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>    string _baseUrl <span class="op">=</span> <span class="st">&quot;http://localhost:8080&quot;</span><span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>    string domain   <span class="op">=</span> <span class="st">&quot;riguz.com&quot;</span><span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>    bool ssl        <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>    int version     <span class="op">=</span> <span class="dv">19</span><span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>    int subVersion  <span class="op">=</span> <span class="dv">25</span><span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>    float number  <span class="op">=</span> <span class="dv">19.25</span><span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a>    string urls         <span class="op">=</span> <span class="op">[</span><span class="st">&quot;http://localhost:8080&quot;</span><span class="op">,</span> <span class="st">&quot;http://riguz.com:8080&quot;</span><span class="op">];</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>    string domains      <span class="op">=</span> <span class="op">[</span><span class="st">&quot;riguz.com&quot;</span><span class="op">,</span> <span class="st">&quot;dr.riguz.com&quot;</span><span class="op">];</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a>    bool sslArray       <span class="op">=</span> <span class="op">[</span><span class="kw">true</span><span class="op">,</span> <span class="kw">false</span><span class="op">];</span></span>
+<span id="cb1-13"><a href="#cb1-13"></a>    int versionArray    <span class="op">=</span> <span class="op">[</span><span class="dv">19</span><span class="op">,</span> <span class="dv">25</span><span class="op">];</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a>    float numberArray   <span class="op">=</span> <span class="op">[</span><span class="dv">18.01</span><span class="op">,</span> <span class="dv">19.25</span><span class="op">,</span> <span class="dv">20.23</span><span class="op">];</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a><span class="op">};</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a></span>
+<span id="cb1-17"><a href="#cb1-17"></a>scope dev_db <span class="op">{</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a>    string url <span class="op">=</span> $<span class="op">{</span>domain<span class="op">}</span> <span class="op">..</span> <span class="st">&quot;:3306/mysql&quot;</span><span class="op">;</span></span>
+<span id="cb1-19"><a href="#cb1-19"></a>    string user <span class="op">=</span> <span class="st">&quot;lihaifeng&quot;</span><span class="op">;</span></span>
+<span id="cb1-20"><a href="#cb1-20"></a>    int connections <span class="op">=</span> <span class="dv">10</span><span class="op">;</span></span>
+<span id="cb1-21"><a href="#cb1-21"></a>    string password <span class="op">=</span> <span class="st">&quot;iikjouioqueyjkajkqq==&quot;</span><span class="op">;</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>    string domains <span class="op">=</span> $<span class="op">{</span>domains<span class="op">};</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a><span class="op">};</span></span></code></pre></div>
+<p>其实是一个k-v形式的文本文件，支持的基本类型有：字符串、布尔值、整数、小数、数组。定义的方法类似于Java或者C语言， <code>string _baseUrl = "http://localhost:8080"</code> 前面会限定数据类型。如果要定义数组，则用 <code>bool sslArray       = [true, false];</code> 这种形式。</p>
+<p>然后使用scope区分不同的配置块。因为可能有些相同的配置会重名，这样我们利用不同的scope去区分就好了。考虑到有些配置中需要共同的变量的使用，所以定义了一个shared的scope，这个是写死的scope，其他scope中只能引用shared scope中的变量。</p>
+<p>字符串连接使用<code>..</code>操作符。这样可以组装字符串。详细的实现可以在<a href="https://github.com/soleverlee/forks/tree/master/config/src/main" target="_blank" rel="noopener">forks的子项目config</a>中找到。</p>
+<p>另外还实现了一个类似Play! Framework的路由定义文件的解析，长这个样子的:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb2-1"><a href="#cb2-1"></a>controllers admin<span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>package com<span class="op">.</span>riguz<span class="op">.</span>forks<span class="op">.</span>demo<span class="op">.</span>controller</span>
+<span id="cb2-3"><a href="#cb2-3"></a>UserController</span>
+<span id="cb2-4"><a href="#cb2-4"></a>FileController</span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="op">}</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a></span>
+<span id="cb2-7"><a href="#cb2-7"></a>controllers <span class="op">{</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>package com<span class="op">.</span>riguz<span class="op">.</span>forks<span class="op">.</span>demo<span class="op">.</span>admin</span>
+<span id="cb2-9"><a href="#cb2-9"></a>UserController<span class="op">-&gt;</span>AdminUserController</span>
+<span id="cb2-10"><a href="#cb2-10"></a>PostController</span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="op">}</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a></span>
+<span id="cb2-13"><a href="#cb2-13"></a>filters <span class="op">{</span></span>
+<span id="cb2-14"><a href="#cb2-14"></a>package com<span class="op">.</span>riguz<span class="op">.</span>forks<span class="op">.</span>demo<span class="op">.</span>filters</span>
+<span id="cb2-15"><a href="#cb2-15"></a>AuthorizationFilter</span>
+<span id="cb2-16"><a href="#cb2-16"></a>NocsrfFilter</span>
+<span id="cb2-17"><a href="#cb2-17"></a><span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18"></a></span>
+<span id="cb2-19"><a href="#cb2-19"></a>routes admin <span class="op">{</span></span>
+<span id="cb2-20"><a href="#cb2-20"></a><span class="op">+</span>AuthorizationFilter</span>
+<span id="cb2-21"><a href="#cb2-21"></a>get  <span class="op">/</span>users                 UserController<span class="op">.</span>getUsers<span class="op">()</span></span>
+<span id="cb2-22"><a href="#cb2-22"></a>get  <span class="op">/</span>users<span class="op">/:</span>id             UserController<span class="op">.</span>getUser<span class="op">(</span>id<span class="op">:</span> Long<span class="op">)</span></span>
+<span id="cb2-23"><a href="#cb2-23"></a>post <span class="op">/</span>users                 UserController<span class="op">.</span>createUser<span class="op">()</span></span>
+<span id="cb2-24"><a href="#cb2-24"></a>get  <span class="op">/</span>users<span class="op">/:</span>id<span class="op">/</span><span class="fu">files</span><span class="op">/*</span>name FileUserController<span class="op">.</span>getFile<span class="op">(</span>id<span class="op">:</span> Long<span class="op">,</span> name<span class="op">:</span> String<span class="op">)</span></span>
+<span id="cb2-25"><a href="#cb2-25"></a><span class="op">}</span></span>
+<span id="cb2-26"><a href="#cb2-26"></a>routes guest <span class="op">{</span></span>
+<span id="cb2-27"><a href="#cb2-27"></a><span class="op">+</span>NocsrfFilter</span>
+<span id="cb2-28"><a href="#cb2-28"></a>get <span class="op">/</span>posts      PostUserController<span class="op">.</span>getPosts<span class="op">()</span></span>
+<span id="cb2-29"><a href="#cb2-29"></a>get <span class="op">/</span>posts<span class="op">/:</span>id  PostUserController<span class="op">.</span>getPost<span class="op">(</span>id<span class="op">:</span> String<span class="op">)</span></span>
+<span id="cb2-30"><a href="#cb2-30"></a><span class="op">}</span></span>
+<span id="cb2-31"><a href="#cb2-31"></a></span>
+<span id="cb2-32"><a href="#cb2-32"></a>routes guest <span class="op">{</span></span>
+<span id="cb2-33"><a href="#cb2-33"></a><span class="op">+</span>NocsrfFilter</span>
+<span id="cb2-34"><a href="#cb2-34"></a>get <span class="op">/</span>posts      PostUserController<span class="op">.</span>getPosts<span class="op">()</span></span>
+<span id="cb2-35"><a href="#cb2-35"></a>get <span class="op">/</span>posts<span class="op">/:</span>id  PostUserController<span class="op">.</span>getPost<span class="op">(</span>id<span class="op">:</span> String<span class="op">)</span></span>
+<span id="cb2-36"><a href="#cb2-36"></a><span class="op">}</span></span></code></pre></div>
+<p>这个文件的解析也在上面的git中可以找到实现。通过Antlr可以很方便的把类似这样的文件解析出来，你甚至可以实现自己的领域语言。在实现过程中，遇到过一些问题，来说下问题吧。</p>
+<p>首先是Antlr提供了Listener和Visitor两种方式，起初使用Listener来实现但是感觉比较麻烦，而使用Visitor则可以直接通过返回值来取得AST解析结果。我们解析一个文件的时候，是自顶向下的，一个个的去解析的，比如我们的配置文件的antlr语法定义如下：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb3-1"><a href="#cb3-1"></a>script</span>
+<span id="cb3-2"><a href="#cb3-2"></a>    <span class="op">:</span> shared? scope<span class="op">*</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a>      <span class="cn">EOF</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a>    <span class="op">;</span></span></code></pre></div>
+<p>其中shared又是这样的</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb4-1"><a href="#cb4-1"></a>shared</span>
+<span id="cb4-2"><a href="#cb4-2"></a>    <span class="op">:</span> <span class="cn">SHARED</span> LBRACE <span class="op">(</span>property <span class="cn">SEMI</span><span class="op">)*</span> <span class="cn">RBRACE</span> <span class="cn">SEMI</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>    <span class="op">;</span></span></code></pre></div>
+<p>也就是说 <code>shared { k=v...} ;</code>这样的形式，然后又开始到了property:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb5-1"><a href="#cb5-1"></a>property</span>
+<span id="cb5-2"><a href="#cb5-2"></a>    <span class="op">:</span> <span class="fu">type</span> <span class="cn">NAME</span> <span class="cn">ASSIGN</span> expression        <span class="op">#</span>basicProperty</span>
+<span id="cb5-3"><a href="#cb5-3"></a>    <span class="op">|</span> <span class="fu">type</span> <span class="cn">NAME</span> <span class="cn">ASSIGN</span> <span class="cn">LBRACK</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>        expression? <span class="op">(</span><span class="cn">COMMA</span> expression<span class="op">)*</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>      <span class="cn">RBRACK</span>                             <span class="op">#</span>arrayProperty</span>
+<span id="cb5-6"><a href="#cb5-6"></a>    <span class="op">;</span></span></code></pre></div>
+<p>这样层层往下来看。然后解析的时候也是一样，我们首先有一个顶层的解析器：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">public</span> <span class="kw">class</span> ScriptVisitor <span class="kw">extends</span> CfParserBaseVisitor&lt;<span class="bu">Map</span>&lt;<span class="bu">String</span>, ScriptVisitor.<span class="fu">Scope</span>&gt;&gt; {</span>
+<span id="cb6-2"><a href="#cb6-2"></a>    <span class="kw">private</span> <span class="dt">static</span> <span class="dt">final</span> <span class="bu">Logger</span> logger = LoggerFactory.<span class="fu">getLogger</span>(ScriptVisitor.<span class="fu">class</span>);</span>
+<span id="cb6-3"><a href="#cb6-3"></a></span>
+<span id="cb6-4"><a href="#cb6-4"></a>    <span class="at">@Override</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a>    <span class="kw">public</span> <span class="bu">Map</span>&lt;<span class="bu">String</span>, Scope&gt; <span class="fu">visitScript</span>(CfParser.<span class="fu">ScriptContext</span> ctx) {</span>
+<span id="cb6-6"><a href="#cb6-6"></a>        ...</span>
+<span id="cb6-7"><a href="#cb6-7"></a>    }</span></code></pre></div>
+<p>这个Visitor负责解析语法文件中定义的script块，然后解析里面的scope：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1"></a>ScopeVisitor scopeVisitor = <span class="kw">new</span> <span class="fu">ScopeVisitor</span>(context);</span>
+<span id="cb7-2"><a href="#cb7-2"></a>        ctx.<span class="fu">scope</span>().<span class="fu">forEach</span>(scopeContext -&gt; {</span>
+<span id="cb7-3"><a href="#cb7-3"></a>            logger.<span class="fu">debug</span>(<span class="st">&quot;Visit scope:{}&quot;</span>, scopeContext.<span class="fu">getText</span>());</span>
+<span id="cb7-4"><a href="#cb7-4"></a>            Scope scope = scopeContext.<span class="fu">accept</span>(scopeVisitor);</span>
+<span id="cb7-5"><a href="#cb7-5"></a>            scopes.<span class="fu">put</span>(scope.<span class="fu">name</span>, scope);</span>
+<span id="cb7-6"><a href="#cb7-6"></a>        });</span></code></pre></div>
+<p>这样又实现一个ScopeVisitor去解析scope就好了。详细的实现就不多贴代码了。</p>
+<p>另外一个问题是，对于错误的处理，我们在哪一步做？比如<code>bool s = "123";</code>这是错误的，我们其实可以在定义grammar的时候就避免这种错误来，但写起来会麻烦一些。目前的实现是在Visitor中去对逻辑进行判断的，前面只做语法检查就可以了。</p>
+<p>参考:</p>
+<ul>
+<li>http://jakubdziworski.github.io/java/2016/04/01/antlr_visitor_vs_listener.html</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/antlr_as_config/" data-id="ck8ppfg3n005hcjqigvdv8cr5"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Antlr/" rel="tag">Antlr</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/mobile/compile_argon2_for_android/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Compile Argon2 for Android
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/benchmark_using_jmh/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">使用JMH进行Benchmark测试</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

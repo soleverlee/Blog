@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Redis Memory limit and eviction policy configuration |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/cache/redis_lru" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Redis Memory limit and eviction policy configuration
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/cache/redis_lru/" class="article-date">
+  <time datetime="2020-03-10T00:00:00.000Z" itemprop="datePublished">2020-03-10</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Cache/">Cache</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>By default, the redis running inside docker has no limitation about memory however generally the container has. Thus if no further configuation of eviction or memory limit is set in redis, you may possibly get some error like Out-of-memory if you keep adding new keys to redis.</p>
+<a id="more"></a>
+<h1 id="testing-with-docker">Testing with docker</h1>
+<h2 id="create-a-simple-application">Create a simple application</h2>
+<p>To reproduce the problem, let's create a simple application by using SpringBoot. We'll have a post api for generating a random item and insert it into redis:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="at">@PostMapping</span>(<span class="st">&quot;/generate&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">public</span> Item <span class="fu">generate</span>() {</span>
+<span id="cb1-3"><a href="#cb1-3"></a>  Item item = Item.<span class="fu">random</span>();</span>
+<span id="cb1-4"><a href="#cb1-4"></a>  redisTemplate.<span class="fu">opsForValue</span>().<span class="fu">set</span>(item.<span class="fu">getId</span>(), item);</span>
+<span id="cb1-5"><a href="#cb1-5"></a>  <span class="kw">return</span> item;</span>
+<span id="cb1-6"><a href="#cb1-6"></a>}</span></code></pre></div>
+<h2 id="keep-inserting-data-via-jmeter">Keep inserting data via jmeter</h2>
+<p>In order to keep inserting data into redis using the post api, we can use Apache jmeter to do this job.</p>
+<figure>
+<img src="/images/Jmeter-report.png" alt="" /><figcaption>Jmeter</figcaption>
+</figure>
+<p>A few components should be added into the test plan:</p>
+<ul>
+<li>Thread group: to execute a lot of requests parallelly, eg. 20 threads, and using infinite loop</li>
+<li>Http Request sampler: to send post api</li>
+<li>Assertion results: to verify the request, eg. verify the response code should be 200</li>
+<li>Report: eg. Aggregate report to virtualize the result</li>
+</ul>
+<h2 id="round1-redis-with-128m-memory">Round1: Redis with 128m memory</h2>
+<p>Let's set the memory limit of redis container to 128m, by using this commands:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="ex">docker</span> run --name redis-128 \</span>
+<span id="cb2-2"><a href="#cb2-2"></a>           -d \</span>
+<span id="cb2-3"><a href="#cb2-3"></a>           -p 6381:6379 \</span>
+<span id="cb2-4"><a href="#cb2-4"></a>           --memory=<span class="st">&quot;128m&quot;</span> \</span>
+<span id="cb2-5"><a href="#cb2-5"></a>           -v /Users/hfli/Downloads/redis-test-data/redis-128:/data \</span>
+<span id="cb2-6"><a href="#cb2-6"></a>           redis redis-server</span></code></pre></div>
+<p>Note that the option <code>--memory="128m"</code> sets the memory limitation for redis container, and also we perisit the data into a local volumum so that it will never lose after container restart.</p>
+<p>To find the memory usage status of docker container, we can use the <code>docker stats</code> command:</p>
+<pre><code># docker stats
+CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT   MEM %               NET I/O             BLOCK I/O           PIDS
+a38d4615af6b        redis-128           0.12%               126.8MiB / 128MiB   99.06%              182MB / 18.6MB      3.08GB / 264MB      6</code></pre>
+<p>After successfully started redis, now we are able to use jmeter to test it. Keep running the job, and soon we'll get error in the application:</p>
+<pre class="log"><code>Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is org.springframework.data.redis.RedisSystemException: 
+Error in execution; nested exception is io.lettuce.core.RedisCommandExecutionException: 
+MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands that may modify the data set are disabled, because this instance is configured to report errors during writes if RDB snapshotting fails (stop-writes-on-bgsave-error option). 
+Please check the Redis logs for details about the RDB error.] with root cause</code></pre>
+<p>And we can also get some info about redis by using <code>info</code>（or use <code>info memory</code> to only get the info related to memory ) and <code>dbsize</code> command in redis-cli:</p>
+<pre><code># redis-cli
+127.0.0.1:6379&gt; info
+...
+# Memory
+used_memory:238777840
+used_memory_human:227.72M
+used_memory_rss:134189056
+used_memory_rss_human:127.97M
+used_memory_peak:238777840
+used_memory_peak_human:227.72M
+used_memory_peak_perc:100.00%
+used_memory_overhead:42998602
+used_memory_startup:791264
+used_memory_dataset:195779238
+used_memory_dataset_perc:82.26%</code></pre>
+<p>So it has used actually more that 128M!</p>
+<pre><code>127.0.0.1:6379&gt; dbsize
+(integer) 843802</code></pre>
+<p>Now the redis server is able to start, but it will crash if you try to run <code>keys *</code> command.</p>
+<h2 id="round2-redis-with-128m-memory-and-maxmemory">Round2: Redis with 128m memory and maxmemory</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># redis.conf</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="ex">maxmemory</span> 100mb</span></code></pre></div>
+<p>Add the above maxmemory setting in redis.conf and then start redis by this:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1"></a><span class="ex">docker</span> run -v /Users/hfli/Downloads/redis-test-data/redis-128.conf:/usr/local/etc/redis/redis.conf \</span>
+<span id="cb8-2"><a href="#cb8-2"></a>           --name redis-128-max \</span>
+<span id="cb8-3"><a href="#cb8-3"></a>           -d \</span>
+<span id="cb8-4"><a href="#cb8-4"></a>           -p 6381:6379 \</span>
+<span id="cb8-5"><a href="#cb8-5"></a>           --memory=<span class="st">&quot;128m&quot;</span> \</span>
+<span id="cb8-6"><a href="#cb8-6"></a>           -v /Users/hfli/Downloads/redis-test-data/redis-128-max:/data \</span>
+<span id="cb8-7"><a href="#cb8-7"></a>           redis redis-server /usr/local/etc/redis/redis.conf</span></code></pre></div>
+<p>This time we'll still get error when inserted lots of items, but the error message is a little bit different then:</p>
+<pre><code>nested exception is org.springframework.data.redis.RedisSystemException: 
+Error in execution; nested exception is io.lettuce.core.RedisCommandExecutionException:
+ OOM command not allowed when used memory &gt; &#39;maxmemory&#39;.] with root cause</code></pre>
+<p>That's because the default behavior of redis is that it will return error when memory limit is reached.</p>
+<h2 id="round3-redis-with-128m-memory-and-maxmemory-and-lru">Round3: Redis with 128m memory and maxmemory and lru</h2>
+<p>Try to add one more line to set the lru policy for redis:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># redis.conf</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="ex">maxmemory</span> 100mb</span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="ex">maxmemory-policy</span> allkeys-lru</span></code></pre></div>
+<p>Then even if we keep inserting new data into redis, we'll never get some error, because redis will automatically evict the existing items to save memory, that means the <code>dbsize</code> of redis would not be always increcing anymore.</p>
+<h1 id="eviction-policy">Eviction policy</h1>
+<p>According to the offical document of redis, LRU and LFU(Least Frequently Used) are supported by redis(~4.0). In order to use them first we need to set the memory limit so that redis will use a specified amout of memory for the data set. As shown in the above sections, we can set it in config file or set it thorugh redis-cli at runtime:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1"></a><span class="ex">config</span> set maxmemory 100mb</span></code></pre></div>
+<p>If it's successfully configured we should be able to find it via <code>info</code> command:</p>
+<pre><code>127.0.0.1:6379&gt; info memory
+# Memory
+...
+maxmemory:104857600
+maxmemory_human:100.00M</code></pre>
+<p>By default is the value <code>0</code> which means no limit at all, and for those running at a 32-bit system there is an implicit memory limit of 3GB.</p>
+<p>The evicition policies are listed as bellow:</p>
+<ul>
+<li><strong>noeviction</strong>: Return errors</li>
+<li><strong>allkeys-lru</strong>: Remove less recently used(LRU) keys first</li>
+<li><strong>volatile-lru</strong>: Only remove LRU keys that has expire set</li>
+<li><strong>allkeys-random</strong>: Randomly remove keys</li>
+<li><strong>volatile-random</strong>: Randomly remove keys that has expire set</li>
+<li><strong>volatile-ttl</strong>: Evict keys with expire set and keys has shorter time to live(TTL) will be removed firstly</li>
+<li><strong>volatile-lfu</strong>: Remove less frequently used(LFU) keys first</li>
+<li><strong>allkeys-lfu</strong>: Remove LFU keys that has expire set</li>
+</ul>
+<p>For volatile-lru, volatile-lfu, volatile-random and volatile-ttl policies, it's possible that no keys are available to be removed, then redis will behave like noeviction(ie. throw error).</p>
+<h2 id="how-to-choose-policy">How to choose policy</h2>
+<p>Generally LFU will be better than LRU, try to think that some items recently accessed but is actually almost never accessed in the future, if you use LRU then there is a risk that items get higher chance to be requested in the future will be evicted, while LFU does not have such a problem.</p>
+<p>In short, follow these rules to choose the evict policy:</p>
+<ul>
+<li><strong>allkeys-lru</strong>: If you expect that some elements will be accessed far more often than the rest, choose it. And if you're not sure, this is also the suggested option for you.</li>
+<li><strong>allkeys-random</strong>: If you'd prefer that all elements have the same chance to be accessed, use it.</li>
+<li><strong>volatile-ttl</strong>: If you wish to evict keys according to ttl</li>
+<li><strong>volatile-lru/volatile-random</strong>: If you use the same redis for both persistent keys and caching, <em>BUT</em> usually in this case it's suggested to run two seperate instance of redis.</li>
+</ul>
+<h2 id="controll-lru-precision">Controll LRU precision</h2>
+<p>The redis LRU algorithm is an approxmimated LRU algorithm, the reason behind is that use true LRU algorithm will cost more memory, while the approximation is virtually equivalent (good enough) for the application using redis.</p>
+<p>And you're able to tune the precision of LRU by:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1"></a><span class="ex">maxmemory-samples</span> 5</span></code></pre></div>
+<p>The larger value you use, the more approximated you will get, but also with more CPU usage.</p>
+<pre><code>maxmemory_human:0B
+maxmemory_policy:noeviction</code></pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/cache/redis_lru/" data-id="ck8ppfg34004mcjqi2v5x8fa3"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/" rel="tag">Redis</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/read_hashmap/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            阅读笔记：HashMap
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/devops/install_local_openshift/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">搭建Openshift本地环境</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

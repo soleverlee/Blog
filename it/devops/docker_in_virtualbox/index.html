@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    在虚拟机中使用Docker |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/devops/docker_in_virtualbox" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      在虚拟机中使用Docker
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/devops/docker_in_virtualbox/" class="article-date">
+  <time datetime="2017-06-17T00:00:00.000Z" itemprop="datePublished">2017-06-17</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/MicroService/">MicroService</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>几年前在公司复杂维护机房的时候，就开始关注Docker这种基于容器的虚拟化技术了，当时并没有选择Docker，因为几年前docker刚起步还不是很成熟，不敢采用这样的技术（当然关键是自己不了解也能力不够）。当时采取的是KVM和Virtual Box，问题也很明显，因为一台物理机（Dell T320 32GRAM)开个四五台Virtual Box虚拟机就有点吃不消了，想做到专机专用，也是很困难的事情。当时的主要目的是想把Oracle、WebSphere等吃内存的东西隔离出来。 <a id="more"></a> 现在有机会接触到Docker了，有必要认真的学习下了。貌似在Mac上Docker实际上是运行在虚拟的Linux中的，因此决定使用虚拟机来运行Docker，以下是我的配置：</p>
+<ul>
+<li>Mac Book Pro, OSX</li>
+<li>Virtual Box, Ubuntu-server 16.04.2 X64 LTS, 4G Ram, 30G HDD，网卡桥接</li>
+</ul>
+<p>好了，首先是安装Docker，参考<a href="https://docs.docker.com/engine/installation/linux/ubuntu/#install-docker" target="_blank" rel="noopener">官方文档</a></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">sudo</span> apt-get install \</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    apt-transport-https \</span>
+<span id="cb1-3"><a href="#cb1-3"></a>    ca-certificates \</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    curl \</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    software-properties-common</span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="ex">curl</span> -fsSL https://download.docker.com/linux/ubuntu/gpg <span class="kw">|</span> <span class="fu">sudo</span> apt-key add -</span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="fu">sudo</span> add-apt-repository \</span>
+<span id="cb1-8"><a href="#cb1-8"></a>   <span class="st">&quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu \</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="st">   </span><span class="va">$(</span><span class="ex">lsb_release</span> -cs<span class="va">)</span><span class="st"> \</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="st">   stable&quot;</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb1-12"><a href="#cb1-12"></a><span class="fu">sudo</span> apt-get install docker-ce</span></code></pre></div>
+<p>好了，这样就安装成功了。来下载一些<a href="https://hub.docker.com/" target="_blank" rel="noopener">docker镜像</a>吧，我们在后面可能慢慢会用到（先这样设想吧）：</p>
+<ul>
+<li>oracle/openjdk:8 选用Oracle的JDK8镜像来部署SpringBoot应用</li>
+<li>gitlab/gitlab-ce 用来搭建私有的GIT仓库</li>
+<li>sonatype/nexus3 用来搭建私有的Docker镜像库</li>
+<li>gocd/gocd-server 用来搭建gocd作CICD</li>
+<li>node 用来运行NodeJS的前端</li>
+<li>percona 用来提供MySQL服务</li>
+<li>mongo 用来提供MongoDB服务</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="ex">docker</span> pull oracle/openjdk</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="ex">docker</span> pull gitlab/gitlab-ce</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="ex">docker</span> pull sonatype/nexus3</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="ex">docker</span> pull gocd/gocd-server</span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="ex">docker</span> pull node</span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="ex">docker</span> pull percona</span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="ex">docker</span> pull mongo</span></code></pre></div>
+<p>你会发现太慢了，是不是?幸好可以有加速的方式，可以试用<a href="https://www.daocloud.io/mirror#accelerator-doc" target="_blank" rel="noopener">DaoCloud</a>的加速器。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">sudo</span> vim /etc/docker/daemon.json</span></code></pre></div>
+<p>输入以下内容:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>    <span class="dt">&quot;registry-mirrors&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>        <span class="st">&quot;http://1729****.m.daocloud.io&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a>    <span class="dt">&quot;insecure-registries&quot;</span><span class="fu">:</span> <span class="ot">[]</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="fu">}</span></span></code></pre></div>
+<p>重启Docker：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">sudo</span> /etc/init.d/docker restart</span></code></pre></div>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/devops/docker_in_virtualbox/" data-id="ck8ppfg3g0053cjqi6lskcl83"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/devops/deploy_gitlab/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            搭建Gitlab私服
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/misc/crawling_qzone_images/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">抓取QQ空间皮肤图片</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

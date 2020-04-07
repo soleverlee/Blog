@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    关于随机数 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/c/random_numbers" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      关于随机数
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/c/random_numbers/" class="article-date">
+  <time datetime="2018-12-03T00:00:00.000Z" itemprop="datePublished">2018-12-03</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/C/">C++</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>随机数顾名思义就是你无法确定的一个数（但是你可以设定一个范围），就好比彩票摇号一样，所有可能的组合是知道的，但是到底会摇出个什么数字出来，谁都不知道。否则我早就买彩票去了😂 那随机数是怎么生成出来的？ <a id="more"></a></p>
+<h1 id="随机数的定义">随机数的定义</h1>
+<p>引用维基百科，</p>
+<blockquote>
+<p>根据密码学原理，随机数的随机性检验可以分为三个标准：</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>统计学伪随机性。统计学伪随机性指的是在给定的随机比特流样本中，1的数量大致等于0的数量，同理，“10”“01”“00”“11”四者数量大致相等。类似的标准被称为统计学随机性。满足这类要求的数字在人类“一眼看上去”是随机的。</li>
+<li>密码学安全伪随机性。其定义为，给定随机样本的一部分和随机算法，不能有效的演算出随机样本的剩余部分。</li>
+<li>真随机性。其定义为随机样本不可重现。实际上衹要给定边界条件，真随机数并不存在，可是如果产生一个真随机数样本的边界条件十分复杂且难以捕捉（比如计算机当地的本底辐射<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>波动值），可以认为用这个方法演算出来了真随机数。但实际上，这也只是非常接近真随机数的伪随机数，一般认为，无论是本地辐射、物理噪音、抛硬币……等都是可被观察了解的，任何基于经典力学产生的随机数，都只是伪随机数。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>相应的，随机数也分为三类：</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>伪随机数：满足第一个条件的随机数。</li>
+<li>密码学安全的伪随机数：同时满足前两个条件的随机数。可以通过密码学安全伪随机数生成器计算得出。</li>
+<li>真随机数：同时满足三个条件的随机数。</li>
+</ul>
+</blockquote>
+<h1 id="linux系统中的随机数设备">Linux系统中的随机数设备</h1>
+<p>Linux以及一些类Unix系统中有随机数的特殊文件，一般如下：</p>
+<ul>
+<li>/dev/random :提供基于当前系统熵池<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>的真随机数</li>
+<li>/dev/urandom:是非阻塞的随机数生成器</li>
+</ul>
+<p>两者都是CSPRNG<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>，可以使用以下命令来输出：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">od</span> -An -N1 -i /dev/random</span></code></pre></div>
+<h1 id="一些伪随机数生成算法">一些伪随机数生成算法</h1>
+<h2 id="平方取中法">平方取中法</h2>
+<p>这个算法比较简单，由冯·诺伊曼在1946年提出。 算法步骤如下：</p>
+<ul>
+<li>选择一个 <span class="math inline">\({\displaystyle m}\)</span> 位数 <span class="math inline">\({\displaystyle N_{i}}\)</span> 作为种子</li>
+<li>计算 <span class="math inline">\({\displaystyle N_{i}^{2}}\)</span></li>
+<li>若 <span class="math inline">\({\displaystyle N_{i}^{2}}\)</span>不足 <span class="math inline">\({\displaystyle 2m}\)</span>个位，在前补0。在这个数选中间 <span class="math inline">\({\displaystyle m}\)</span>个位的数，即 <span class="math inline">\({\displaystyle 10^{\lfloor {\frac {m}{2}}\rfloor +1}} {\displaystyle 10^{\lfloor {\frac {m}{2}}\rfloor +1}}\)</span>至 <span class="math inline">\({\displaystyle 10^{\lfloor {\frac {m}{2}}\rfloor +m}} {\displaystyle 10^{\lfloor {\frac {m}{2}}\rfloor +m}}\)</span>的数，将结果作为 <span class="math inline">\({\displaystyle N_{i+1}}\)</span></li>
+</ul>
+<h2 id="线性同余法">线性同余法</h2>
+<p>这个算法根据递归公式计算:</p>
+<p><span class="math display">\[
+X_{n+1}=\left(aX_{n}+c\right)~~{\bmod {~}}~m
+\]</span></p>
+<p>Java中的Random类就是使用就是这种算法。但这个不是密码学安全的随机数算法，如果要生成密码学安全的随机数，需要使用SecureRandom类来生成。</p>
+<h2 id="blum-blum-shub">Blum Blum Shub</h2>
+<p>采用如下的递归公式计算：</p>
+<p><span class="math display">\[
+x_{n+1}=x_{n}^{2}{\bmod  M}
+\]</span></p>
+<p>其中：<span class="math inline">\(M=p\cdot q\)</span>是两个大素数p和q的乘积</p>
+<p>例如令<span class="math inline">\({\displaystyle p=11}\)</span>, <span class="math inline">\({\displaystyle q=19}\)</span>, <span class="math inline">\({\displaystyle s=3}\)</span>，则：</p>
+<ol>
+<li><span class="math inline">\({\displaystyle x_{0}=3^{2}{\bmod 209}=9}\)</span></li>
+<li><span class="math inline">\({\displaystyle x_{1}=9^{2}{\bmod 209}=81}\)</span></li>
+<li><span class="math inline">\({\displaystyle x_{2}=81^{2}{\bmod 209}=82}\)</span></li>
+<li><span class="math inline">\({\displaystyle x_{3}=82^{2}{\bmod 209}=36}\)</span></li>
+<li>...</li>
+</ol>
+<p>除此之外，还有一些其他的随机数算法，便不过多介绍。</p>
+<p>参考:</p>
+<ul>
+<li><a href="http://www.2uo.de/myths-about-urandom/" target="_blank" rel="noopener">Myths about /dev/urandom</a></li>
+<li><a href="http://www.cnblogs.com/Geometry/archive/2011/01/25/1944582.html" target="_blank" rel="noopener">一个生成伪随机数的超级算法</a></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>本体辐射是指人类生活环境本来存在的辐射，主要包括宇宙射线和自然界中天然放射性核素发出的射线。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>指设备驱动程序或其它来源的背景噪声计算出来的某种结果<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>Cryptographically Secure Pseudorandom Number Generator，加密安全的伪随机数生成器<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/c/random_numbers/" data-id="ck8ppfg31004gcjqig2xnh1wi"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Random-Number/" rel="tag">Random Number</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/c/visual_studio_code_cpp_ide/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Visual Studio Code for C++ development on MacOS
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/mobile/compile_argon2_for_android/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Compile Argon2 for Android</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

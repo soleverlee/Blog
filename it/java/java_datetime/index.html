@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Java中的时间 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/java_datetime" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java中的时间
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/java_datetime/" class="article-date">
+  <time datetime="2019-11-07T00:00:00.000Z" itemprop="datePublished">2019-11-07</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>你如果以为，Java中谈到时间仅仅就意味着<code>java.util.Date</code>那就大错特错了，Java中的时间其实可以说五花八门，Java8发布后又增加了一些新的用来表示日期和时间的类，那么我们在构建应用程序的时候到底应该用哪个类来呢？彼此之间又有什么区别？</p>
+<a id="more"></a>
+<h1 id="关于时间的表示">关于时间的表示</h1>
+<p>通常由于文化和地区的不同，世界上各个地方的人们对于时间的表达方式都不尽相同，比如在中国以前用农历和十二时辰来表示，而在西方是二十四小时制（巧合的是正好一个时辰能对应上两个小时，据称与”高合成数“有关）。那么在计算机领域，在表示时间的时候也有不同的表示方法，比较常见的有：</p>
+<ul>
+<li>通过计算当前时间到Jan 01 1970(Unix Epoch)这一天（准确的说是00：00）经过的秒数来表示，例如 <code>1573090869</code>。</li>
+<li>比较直接的方法就是直接以时分秒的形式表示当地时间，同时将当地的时区加进去，例如 <code>2001-07-04T12:08:56.235-07:00</code></li>
+</ul>
+<h1 id="java中的时间类">Java中的时间类</h1>
+<p>抛开时间戳不谈，在Java中专门用来表示时间的其他类有：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Class</th>
+<th style="text-align: left;">Since</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">java.util.Date</td>
+<td style="text-align: left;">JDK1.0</td>
+<td style="text-align: left;">日期+时间</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">java.util.Calendar</td>
+<td style="text-align: left;">JDK1.1</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">java.sql.Date</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">只包含日期</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">java.sql.Time</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">只包含时间</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">java.sql.Timestamp</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">java.time.Instant</td>
+<td style="text-align: left;">JDK1.8</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">java.time.LocalTime</td>
+<td style="text-align: left;">JDK1.8</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">java.time.LocalDate</td>
+<td style="text-align: left;">JDK1.8</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">java.time.OffsetTime</td>
+<td style="text-align: left;">JDK1.8</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">java.time.OffsetDateTime</td>
+<td style="text-align: left;">JDK1.8</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">java.time.ZonedDateTime</td>
+<td style="text-align: left;">JDK1.8</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<p>在Java8之前，我们通常用<code>java.util.Date</code>来表示时间，虽然没啥需求实现不了的，但有着以下的问题：</p>
+<ul>
+<li>时间类不统一，<code>java.util</code>和<code>java.sql</code>包中都有关于时间的类，而时间格式化的又在<code>java.text</code>包中，有点乱的很</li>
+<li>所有时间的类都是mutable的，非线程安全</li>
+</ul>
+<p>所以Java8开始对时间进行了修改，使用起来将更加方便。通常来讲，对于需要处理时区问题的系统，<code>OffsetDateTime</code>是一个较好的选择，即包含了时间信息，又包含了时区的信息，可以得到准确的时间表述。官方文档中也建议使用：</p>
+<blockquote>
+<p>It is intended that ZonedDateTime or Instant is used to model data in simpler applications. This class may be used when modeling date-time concepts in more detail, or when communicating to a database or in a network protocol.</p>
+</blockquote>
+<p>在处理类似时间转换的时候，可以借助<code>ZonedDateTime</code>来实现。例如有一个<code>yyyyMMddHHmmss</code>格式的时间，但该时间是<code>CST</code>时间，这个时间有如下的特点：</p>
+<ul>
+<li>在夏季时间相当于utc+5</li>
+<li>在冬季相当于utc+6</li>
+</ul>
+<p>而每年会有一个时间点去切换这个夏季时间和冬季时间（称之为day-saving)，而且不是一个固定的日期（大致相当于按照第几个星期几来算的），要想把这个时间转换为标准的时间描述，可以采取这样的方式:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a>LocalDateTime localDateTime = LocalDateTime.<span class="fu">parse</span>(</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="st">&quot;20191010095425&quot;</span>, DateTimeFormatter.<span class="fu">ofPattern</span>(<span class="st">&quot;yyyyMMddHHmmss&quot;</span>));</span>
+<span id="cb1-3"><a href="#cb1-3"></a>ZonedDateTime zonedDateTime = ZonedDateTime.<span class="fu">of</span>(</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    localDateTime, <span class="bu">TimeZone</span>.<span class="fu">getTimeZone</span>(<span class="st">&quot;CST&quot;</span>));</span>
+<span id="cb1-5"><a href="#cb1-5"></a>OffsetDateTime result = zonedDateTime</span>
+<span id="cb1-6"><a href="#cb1-6"></a>    .<span class="fu">toOffsetDateTime</span>()</span>
+<span id="cb1-7"><a href="#cb1-7"></a>    .<span class="fu">withOffsetSameInstant</span>(ZoneOffset.<span class="fu">UTC</span>);</span></code></pre></div>
+<ul>
+<li><a href="https://stackoverflow.com/questions/30234594/whats-the-difference-between-java-8-zoneddatetime-and-offsetdatetime" target="_blank" rel="noopener">What's the difference between java 8 ZonedDateTime and OffsetDateTime?</a></li>
+<li><a href="https://docs.oracle.com/javase/8/docs/api/java/time/OffsetDateTime.html" target="_blank" rel="noopener">OffsetDateTime</a></li>
+<li><a href="https://docs.oracle.com/javase/8/docs/api/java/time/ZonedDateTime.html" target="_blank" rel="noopener">ZonedDateTime</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/java_datetime/" data-id="ck8ppfg3s005wcjqiewf50i90"
+         class="article-share-link">Share</a>
+      
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/rust/rust_lang_2_ownership/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Rust(2) Ownership
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/java_thread_pool_executor/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">理解Java并发(2)：ThreadPoolExecutor解析</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

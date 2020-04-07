@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Rust(1) 基本语法 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/rust/rust_lang_1_basic" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Rust(1) 基本语法
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/rust/rust_lang_1_basic/" class="article-date">
+  <time datetime="2019-10-22T00:00:00.000Z" itemprop="datePublished">2019-10-22</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Rust/">Rust</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>使用rust语言编写hello world再容易不过了：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="pp">println!</span>(<span class="st">&quot;Hello world!&quot;</span>);</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="op">}</span></span></code></pre></div>
+<p>然后利用rustc编译器编译即可:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="ex">rustc</span> hell.rs -o hello.out <span class="kw">&amp;&amp;</span> <span class="ex">./hello.out</span></span></code></pre></div>
+<a id="more"></a>
+<h1 id="可变mutable与不可变immutable">可变(mutable)与不可变(immutable)</h1>
+<p>rust程序默认的变量是不可变的，类似Scala这种函数式编程的语言，鼓励用户使用immutable的变量。当然如果你非想要使用可变的对象也是支持的：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">let</span> i = <span class="dv">32</span>; <span class="co">// immutable</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">let</span> <span class="kw">mut</span> i = <span class="dv">32</span>;</span></code></pre></div>
+<p>编译器会检查是否对不可变对象重新赋值:</p>
+<pre><code>  |
+4 |     let i = 10;
+  |         -
+  |         |
+  |         first assignment to `i`
+  |         help: make this binding mutable: `mut i`
+...
+7 |     i = 99;
+  |     ^^^^^^ cannot assign twice to immutable variable</code></pre>
+<p>那么，对于简单类型直接赋值会有问题，如果是复杂类型，如何呢？比如我们用一个不可变的字符串，然后去调用它的函数改变值，会发生生么情况呢？</p>
+<pre><code>--&gt; test.rs:5:5
+  |
+4 |     let s = String::from(&quot;hello&quot;);
+  |         - help: consider changing this to be mutable: `mut s`
+5 |     s.push_str(&quot; world!!!&quot;);
+  |     ^ cannot borrow as mutable
+</code></pre>
+<p>结果表明，rust依然保持对象是不可变的。看了一下这个方法的定义，有些蹊跷：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">pub</span> <span class="kw">fn</span> push_str(&amp;<span class="kw">mut</span> <span class="kw">self</span>, string: &amp;<span class="dt">str</span>) <span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>    <span class="kw">self</span>.vec.extend_from_slice(string.as_bytes())</span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="op">}</span></span></code></pre></div>
+<p>具体怎么做到的，我们后面再来研究。</p>
+<h1 id="基本类型">基本类型</h1>
+<p>rust跟大多数编译型语言一样是静态类型(statically typed)的语言，即所有的变量的类型在程序编译的时候就是已知的。在rust语言中，有着如下的基本类型：</p>
+<h2 id="标量类型scalar-types">标量类型(Scalar types)</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">类型</th>
+<th style="text-align: center;">长度</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">bool</td>
+<td style="text-align: center;">1</td>
+<td>true/ false</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">char</td>
+<td style="text-align: center;">4</td>
+<td>并不等同于Unicode</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">i8/u8</td>
+<td style="text-align: center;">8</td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">i16/u16</td>
+<td style="text-align: center;">16</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">i32/u32</td>
+<td style="text-align: center;">32</td>
+<td>i32是默认类型，通常拥有最快的速度</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">i64/u64</td>
+<td style="text-align: center;">64</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">i128/u128</td>
+<td style="text-align: center;">128</td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">isize/usize</td>
+<td style="text-align: center;">arch</td>
+<td>取决于机器架构，在32位机器上位32位，64位上位64位</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">f32</td>
+<td style="text-align: center;">32</td>
+<td>浮点数使用IEEE-754标准</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">f64</td>
+<td style="text-align: center;">64</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb7"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">let</span> f = <span class="cn">true</span>;</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="kw">let</span> sum:<span class="dt">i32</span> = <span class="dv">100</span>;</span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="kw">let</span> heart_eyed_cat = <span class="ch">&#39;😻&#39;</span>;</span></code></pre></div>
+<h2 id="复合类型compound-types">复合类型(Compound types)</h2>
+<p>复合类型分为元组（Tuple）和数组。元组可以用来将不同类型的解构组合到一起：</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">let</span> t: (<span class="dt">i32</span>, <span class="dt">bool</span>) = (<span class="dv">100</span>, <span class="cn">false</span>);</span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="kw">let</span> (x, y) = t; <span class="co">// 解构元组</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="kw">let</span> x = t.<span class="dv">0</span>;    <span class="co">// 或者通过序号访问</span></span></code></pre></div>
+<p>数组的与元组的区别在于数组中包含的都是同一种数据类型的值。</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">let</span> a = <span class="op">[</span><span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span><span class="op">]</span>;</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="kw">let</span> a: <span class="op">[</span><span class="dt">i32</span>; <span class="dv">5</span><span class="op">]</span> = <span class="op">[</span><span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span><span class="op">]</span>; <span class="co">// 显示声明一个数组</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="kw">let</span> b = <span class="op">[</span><span class="dv">10</span>; <span class="dv">5</span><span class="op">]</span>;                   <span class="co">// 声明初始值为10、长度为5的数组</span></span></code></pre></div>
+<p>值得注意的是，在rust中元组和数组都是固定长度的，一旦声明以后就不可以更改。如果非要可变长度的集合，那么可以考虑使用标准库中的<code>vector</code>。并且数组中的元素也是不可以更改的，如果尝试去更改一个不可变的对象编译时会出错：</p>
+<pre><code>6 |     let b = [100; 5];
+  |         - help: consider changing this to be mutable: `mut b`
+7 |     b[1] = 1024;
+  |     ^^^^^^^^^^^ cannot assign</code></pre>
+<p>这和一些其他的语言(例如Java中的final)是有区别的。</p>
+<p>数组中如果如果声明的长度和和实际值的长度不一样会怎样呢？rust在编译时就会出错：</p>
+<pre><code> --&gt; hell.rs:11:23
+   |
+11 |     let a: [i32; 3] = [1];
+   |                       ^^^ expected an array with a fixed size of 3 elements, found one with 1 element</code></pre>
+<p>另外，rust程序会在运行时对数组的边界进行检查，如果越界访问数组将抛出错误而结束程序，而不是返回一个错误的内存。</p>
+<h1 id="方法">方法</h1>
+<p>在rust中定义一个方法使用<code>fn</code>关键字定义：</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">fn</span> foo(i: <span class="dt">i32</span>, j: <span class="dt">i32</span>) <span class="op">{</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>    <span class="kw">let</span> sum = i + j</span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="op">}</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="co">// 带有返回值的方法</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="kw">fn</span> sum(i: <span class="dt">i32</span>, j: <span class="dt">i32</span>) -&gt; <span class="dt">i32</span> <span class="op">{</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a>    i + j</span>
+<span id="cb12-8"><a href="#cb12-8"></a><span class="op">}</span></span></code></pre></div>
+<p>在rust中方法是第一类值，意味着你可以这样操作：</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">let</span> fn_s  = sum;</span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="kw">let</span> s = fn_s(i, j);</span></code></pre></div>
+<p>另外，方法中包含在大括号中的语句块，被称作是表达式(expression)，可以这样用：</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">let</span> a = <span class="op">{</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a>   e + <span class="dv">10</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="op">}</span>;</span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="pp">println!</span>(<span class="st">&quot;{}&quot;</span>, a);</span></code></pre></div>
+<h1 id="流程控制">流程控制</h1>
+<h2 id="if语句">if语句</h2>
+<p>rust的if语句和其他语言基本类似，稍微有一点区别：</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">if</span> e % <span class="dv">2</span> == <span class="dv">0</span> <span class="op">{</span>        <span class="co">// if条件后面不用写小括号</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a>    <span class="pp">println!</span>(<span class="st">&quot;{}&quot;</span>, e);</span>
+<span id="cb15-3"><a href="#cb15-3"></a><span class="op">}</span> <span class="kw">else</span> <span class="kw">if</span> e % <span class="dv">3</span> == <span class="dv">0</span> <span class="op">{</span> <span class="co">// 但是后面的语句块必须包含在大括号之中，哪怕只有一行</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a>    <span class="pp">println!</span>(<span class="st">&quot;{} % 3 ==0&quot;</span>, e);</span>
+<span id="cb15-5"><a href="#cb15-5"></a><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span id="cb15-6"><a href="#cb15-6"></a>    <span class="pp">println!</span>(<span class="st">&quot;:p&quot;</span>);</span>
+<span id="cb15-7"><a href="#cb15-7"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="条件赋值">条件赋值</h2>
+<p>因为if语句本身是一个表达式，所以可以把if和let联合在一起来使用，也就是条件赋值：</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">let</span> a = <span class="kw">if</span> condition <span class="op">{</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a>    <span class="dv">5</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a>    <span class="dv">6</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a><span class="op">}</span>;</span></code></pre></div>
+<p>当然前提是不同的分支下的语句要是一样的类型，否则编译器会检测出错误。</p>
+<h2 id="循环">循环</h2>
+<p>rust的<code>loop</code>关键字支持创建一个循环:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">let</span> <span class="kw">mut</span> i = <span class="dv">0</span>;</span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="kw">loop</span> <span class="op">{</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a>    i += <span class="dv">1</span>;</span>
+<span id="cb17-4"><a href="#cb17-4"></a>    <span class="pp">println!</span>(<span class="st">&quot;-&gt;{}&quot;</span>, i);</span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="op">}</span></span></code></pre></div>
+<p>基本上这就是一个死循环了。不知道为啥要定义这样一个奇葩的关键字。索性我们可以像其他编程语言一样<code>break</code>。值得注意的是，跟条件赋值一样，loop语句也是可以和let一起来赋值的，像下面这样：</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">let</span> s = <span class="kw">loop</span> <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a>    i += <span class="dv">1</span>;</span>
+<span id="cb18-3"><a href="#cb18-3"></a>    <span class="pp">println!</span>(<span class="st">&quot;-&gt;{}&quot;</span>, i);</span>
+<span id="cb18-4"><a href="#cb18-4"></a>    <span class="kw">if</span>(i &gt; <span class="dv">100</span>) <span class="op">{</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a>        <span class="kw">break</span> i;</span>
+<span id="cb18-6"><a href="#cb18-6"></a>    <span class="op">}</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a><span class="op">}</span>;</span>
+<span id="cb18-8"><a href="#cb18-8"></a><span class="pp">println!</span>(<span class="st">&quot;s = {}&quot;</span>, s); <span class="co">// s = 101</span></span></code></pre></div>
+<p>除了这个<code>loop</code>外，也可以“正常的”像其他语言一样，使用<code>while</code>和<code>for</code>进行条件循环：</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">while</span> i &lt; <span class="dv">1000</span> <span class="op">{</span>    <span class="co">// 不用写小括号</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a>    i += <span class="dv">1</span>;</span>
+<span id="cb19-3"><a href="#cb19-3"></a><span class="op">}</span></span>
+<span id="cb19-4"><a href="#cb19-4"></a></span>
+<span id="cb19-5"><a href="#cb19-5"></a><span class="kw">for</span> e <span class="kw">in</span> a.iter() <span class="op">{</span> <span class="co">// 使用for循环遍历数组</span></span>
+<span id="cb19-6"><a href="#cb19-6"></a>    <span class="pp">println!</span>(<span class="st">&quot;{}&quot;</span>, e); </span>
+<span id="cb19-7"><a href="#cb19-7"></a><span class="op">}</span></span>
+<span id="cb19-8"><a href="#cb19-8"></a></span>
+<span id="cb19-9"><a href="#cb19-9"></a><span class="co">// for i in (1..10).rev()</span></span>
+<span id="cb19-10"><a href="#cb19-10"></a><span class="co">// 使用rev()反转顺序</span></span>
+<span id="cb19-11"><a href="#cb19-11"></a><span class="kw">for</span> i <span class="kw">in</span> (<span class="dv">1</span>..<span class="dv">10</span>) <span class="op">{</span></span>
+<span id="cb19-12"><a href="#cb19-12"></a>    <span class="pp">println!</span>(<span class="st">&quot;{}&quot;</span>, i);</span>
+<span id="cb19-13"><a href="#cb19-13"></a><span class="op">}</span></span></code></pre></div>
+<h1 id="rust语言的一些惯例">rust语言的一些惯例</h1>
+<h2 id="命名方式">命名方式</h2>
+<p>rust中推荐使用蛇形命名(snake case)来作为方法和变量的命名方式，所有的标识符都是小写且使用下划线分隔，例如：</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">let</span> foo_bar = <span class="dv">1</span>;</span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">fn</span> print_info() <span class="op">{</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a></span>
+<span id="cb20-5"><a href="#cb20-5"></a><span class="op">}</span></span></code></pre></div>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/rust/rust_lang_1_basic/" data-id="ck8ppfg4n007rcjqi2606ganr"
+         class="article-share-link">Share</a>
+      
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/java_cocurrent_basics/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            理解Java并发(1)：基本机制
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/c/nrvo_in_cplusplus/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">C++中的NRVO</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

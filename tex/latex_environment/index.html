@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Mac上的LaTeX环境搭建 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-tex/latex_environment" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Mac上的LaTeX环境搭建
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/tex/latex_environment/" class="article-date">
+  <time datetime="2020-02-06T00:00:00.000Z" itemprop="datePublished">2020-02-06</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/TeX/">TeX</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>一直希望能够自如的使用TeX来进行写作，但学习曲线还是比较高的，可惜断断续续一直没有能够入门。趁着这段时间疫情严重，待在家里又不想搞学习，那不如来重头开始学习一下吧。 <a id="more"></a></p>
+<h1 id="一些相关的概念">一些相关的概念</h1>
+<p>TeX <span class="math inline">\(/tɛx/\)</span> 是高德纳（Donald Ervin Knuth）教授编写的排版软件，通俗来讲就是跟Word差不多的东西，但是TeX就好像是Markdown一样，跟编程语言差不多，不是那种所见即所得的。以下是一些相关的概念：</p>
+<h2 id="tex-engine">TeX Engine</h2>
+<p>TeX引擎就是实际可以运行TeX的二进制程序，主要有以下几种：</p>
+<ul>
+<li>Knuth的原始 TeX，只能支持plain tex格式，<code>tex &lt;somefile&gt;</code>这样。现在最新的版本是<a href="ftp://ftp.cs.stanford.edu/pub/tex/tex14.tar.gz" target="_blank" rel="noopener">January 12, 2014发布的版本<code>3.14159265</code></a></li>
+<li>ε-TeX: 1990s后期发布的对TeX的一组增强扩展，实际上除了原始的TeX引擎其他的引擎都已经默认支持了这些特性</li>
+<li>pdfTeX: pdfTeX包含了PDF 和DVI格式的输出，被许多TeX的发行版用作默认的TeX引擎</li>
+<li>XeTeX: 同样包含了ε-TeX并原生支持Unicode和OpenType</li>
+<li>LuaTeX: 基于pdfTeX并支持Luau脚本的TeX引擎，最初被作为pdfTeX的下一代版本但事实上形成了一个独立的分支。同样，它支持ε-TeX，使用UTF8，并能够支持嵌入Lua脚本</li>
+</ul>
+<h2 id="tex-格式">TeX 格式</h2>
+<p>TeX是一个宏（macro）处理器，macro就像是编程语言中的函数一样，</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode tex"><code class="sourceCode latex"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">\def</span>\foo{bar}</span></code></pre></div>
+<p>上面这个指令会将所有的<code>\foo</code>替换成<code>bar</code>。基于TeX有不同的格式，实际上就是一些macro的集合，相当于提供了一些库供用户使用，主要有以下这些：</p>
+<ul>
+<li>Plain TeX：原始的TeX发行版包含的基本指令集</li>
+<li>LaTeX2e: LaTeX的最新稳定版本（最新的试验版本是LaTeX3），所有的TeX程序都支持LaTeX2e</li>
+<li>ConTex: 另一种TeX系统</li>
+</ul>
+<h2 id="发行版">发行版</h2>
+<p>TeX有许多种发行版，例如：</p>
+<ul>
+<li><a href="https://miktex.org/" target="_blank" rel="noopener">MiKTeX</a>: 支持Windows的一种发行版</li>
+<li><a href="http://tug.org/texlive/" target="_blank" rel="noopener">TeX Live</a>: 许多Linux/Unix默认的TeX系统，也支持Windows和Mac</li>
+<li><a href="http://tug.org/mactex/" target="_blank" rel="noopener">MacTeX</a>: TeXLive的Mac版本</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>借用维基百科上的词条来总结一下吧，更加一目了然各个概念之间的区别：</p>
+<figure>
+<img src="/images/tex-levels.png" alt="" /><figcaption>TeX Concepts</figcaption>
+</figure>
+<h1 id="mac上的tex环境">Mac上的TeX环境</h1>
+<p>Mac上推荐安装MacTeX。安装完成之后，可以看到一个TeXShop的编辑器，并可以在terminal中运行<code>tex</code>命令：</p>
+<pre><code>tex
+This is TeX, Version 3.14159265 (TeX Live 2019) (preloaded format=tex)
+**</code></pre>
+<p>然后就是选择编辑器了，网上有不少教程，基于VSCode或者Sublime Text等的，在Mac上还有另一个选择就是Textmate了，在Textmate中安装<code>LaTeX</code>的Bundle即可，然后打开它的设置:</p>
+<p><img src="/images/Textmate-latex-settings.png" style="width:300px"></p>
+<p>编写完成之后，使用Command + R运行即可预览：</p>
+<p><img src="/images/Textmate-latex-preview.png" style="width:800px"></p>
+<p>值得注意的是，如果使用XeLaTeX要支持中文需要设置一下字体：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode tex"><code class="sourceCode latex"><span id="cb3-1"><a href="#cb3-1"></a><span class="bu">\documentclass</span>{<span class="ex">article</span>}</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="bu">\usepackage</span>{<span class="ex">fontspec</span>}</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="fu">\setmainfont</span>{Hiragino Sans GB}</span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="kw">\begin</span>{<span class="ex">document</span>}</span>
+<span id="cb3-5"><a href="#cb3-5"></a> Hello，中国！</span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="kw">\end</span>{<span class="ex">document</span>}</span></code></pre></div>
+<p>参考：</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/TeX#cite_note-13" target="_blank" rel="noopener">TeX</a></li>
+<li><a href="https://tex.stackexchange.com/questions/49/what-is-the-difference-between-tex-and-latex" target="_blank" rel="noopener">What is the difference between TeX and LaTeX?</a></li>
+<li><a href="http://tug.org/levels.html" target="_blank" rel="noopener">LaTeX vs. MiKTeX: The levels of TeX</a></li>
+<li><a href="https://www.latex-tutorial.com/tutorials/" target="_blank" rel="noopener">A simple guide to LaTeX - Step by Step</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/tex/latex_environment/" data-id="ck8ppfg1q0036cjqi9nmqdvmq"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LaTeX/" rel="tag">LaTeX</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/tex/latex_sections/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            LaTeX(1)：章节和段落
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/debug_jdk_source/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">调试JDK源码</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

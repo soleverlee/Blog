@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    再谈Micro Services Architecture |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/arch/rethink_microservice" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      再谈Micro Services Architecture
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/arch/rethink_microservice/" class="article-date">
+  <time datetime="2017-06-24T00:00:00.000Z" itemprop="datePublished">2017-06-24</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Distributed/">Distributed</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>再来谈一点我对微服务的理解。首先是微服务的一个服务划分问题。 <a id="more"></a> <img src="https://cdn-1.wp.nginx.com/wp-content/uploads/2016/04/Richardson-microservices-part1-2_microservices-architecture.png" alt="Micro Services" /></p>
+<p>这张架构图我觉得比价典型了，在设计微服务架构的时候，个人认为应该有以下可以考虑的：</p>
+<ul>
+<li>每个服务应该按照业务功能去划分，相对要独立、小，但又不能过分细微否则微服务的数量和数据共享将变得复杂</li>
+<li>每个微服务有自己的数据存储，不同的微服务不应该共享数据库存储；当然如果是对某一个微服务进行多部署和负载均衡，那么这些微服务可能会共享一个数据库或者数据库集群</li>
+<li>微服务间应该只通过接口调用，不应该去直接读取其他接口的数据例如数据库</li>
+<li>通常情况下，微服务内部不需要进行权限认证；但必须通过API Gateway暴露给外部系统</li>
+<li>微服务接口应该添加版本号，这样如果接口定义有变动，可以在不影响系统的情况下实现逐步切换</li>
+</ul>
+<p>微服务对外必须走Api Gateway的理由是：</p>
+<ul>
+<li>可以通过Gateway实现介入的权限认证等</li>
+<li>可以实现负载均衡，或者内部服务的切换而对外部来说是感觉不到变化的</li>
+<li>对外提供一个统一的入口</li>
+</ul>
+<p>再来说说一个我认为不好的设计。首先我们来说说<code>前端</code>和<code>后端</code>，在我看来，对于B/S架构来说，前端单单就是在浏览器运行的这一部分东西，但通常人们也会把微服务中的Front End称之为前端，比如一个NodeJS实现的HTML5客户端，那这里NodeJS的东西也会被认为是前端了。虽然这两个定义究竟是对是错没什么价值所在，但我发现我们的<code>前端</code>开发人员有着一个不好的习惯：</p>
+<ul>
+<li>直接在前端的JS中调用微服务，通过一个api的代理直接访问了后端的一个服务（类似于Gateway的一个服务但是存在很多逻辑）</li>
+</ul>
+<p>什么意思呢，就是说，把逻辑都写在客户端执行的Javascript中，而不是传统意义上的<code>后端</code>。这样做的实际问题有（我发现的）：</p>
+<ul>
+<li>逻辑混乱，对于微服务来说不大可能会直接提供可用的接口，往往需要多次调用和自行处理，这样页面会请求很多接口，所有逻辑都在页面上，调试只能依赖于浏览器</li>
+<li>性能问题，如果加载大量的数据对浏览器来说是噩梦，处理起来会依赖于客户端的性能</li>
+<li>安全问题，相当于直接暴露了微服务的接口出来，这样本来可以在session中做的事情需要到cookie中做了</li>
+</ul>
+<p>这里其实会有争议，那么如果是有这样的业务逻辑，应该写在哪里？假设现有的微服务都是很基础的微服务。</p>
+<ul>
+<li>肯定不应该直接写在页面上</li>
+<li>写在页面对应的后端上？</li>
+<li>新建一个含有逻辑的微服务，在页面上调用这个微服务？</li>
+</ul>
+<p>我觉得后两种都是可以考虑的，或者说可以同时存在的。首先从部署来讲，后端和微服务应该是部署在同一个网络内，从后端直接访问微服务时是不需要进行权限验证的；因此业务逻辑应该写在后端中，这样页面访问的接口只会得到一个结果而你不能看到具体的过程，这样在一定程度上是更安全和有效的。其次，如果业务逻辑比较复杂，或者说有需要在其他地方也使用，而现有的微服务没有直接的接口时，需要考虑新建一个处理业务的微服务来处理这些逻辑。即使是这样，仍然最好在服务器端来调用这些微服务。</p>
+<p>参考：</p>
+<ul>
+<li><a href="https://www.nginx.com/blog/introduction-to-microservices/" target="_blank" rel="noopener">Introduction to Microservices</a></li>
+<li><a href="https://www.nginx.com/blog/building-microservices-using-an-api-gateway/" target="_blank" rel="noopener">Building Microservices: Using an API Gateway</a></li>
+<li><a href="https://www.nginx.com/blog/building-microservices-inter-process-communication/" target="_blank" rel="noopener">Building Microservices: Inter-Process Communication in a Microservices Architecture</a></li>
+<li><a href="https://www.nginx.com/blog/service-discovery-in-a-microservices-architecture/" target="_blank" rel="noopener">Service Discovery in a Microservices Architecture</a></li>
+<li><a href="https://www.nginx.com/blog/event-driven-data-management-microservices/" target="_blank" rel="noopener">Event-Driven Data Management for Microservices</a></li>
+<li><a href="https://www.nginx.com/blog/deploying-microservices/" target="_blank" rel="noopener">Choosing a Microservices Deployment Strategy</a></li>
+<li><a href="https://www.nginx.com/blog/refactoring-a-monolith-into-microservices/" target="_blank" rel="noopener">Refactoring a Monolith into Microservices</a></li>
+<li><a href="http://microservices.io/patterns/data/database-per-service.html" target="_blank" rel="noopener">Pattern: Database per service</a></li>
+<li><a href="https://martinfowler.com/bliki/PolyglotPersistence.html" target="_blank" rel="noopener">PolyglotPersistence</a></li>
+<li><a href="https://www.infoq.com/articles/microservices-aggregates-events-cqrs-part-1-richardson" target="_blank" rel="noopener">Developing Transactional Microservices Using Aggregates, Event Sourcing and CQRS - Part 1</a></li>
+<li><a href="http://chrisrichardson.net/learnmicroservices.html" target="_blank" rel="noopener">Learn microservices</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/arch/rethink_microservice/" data-id="ck8ppfg2t0042cjqi8v6v6nxd"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Api-Gateway/" rel="tag">Api Gateway</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BFF/" rel="tag">BFF</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MicroService/" rel="tag">MicroService</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/devops/deploy_nexus/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            搭建Nexus私服
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/arch/about_event_sourcing/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">关于Event Sourcing架构</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

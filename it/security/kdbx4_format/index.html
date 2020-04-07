@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    KDBX4 文件格式解析 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/security/kdbx4_format" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      KDBX4 文件格式解析
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/security/kdbx4_format/" class="article-date">
+  <time datetime="2019-03-07T00:00:00.000Z" itemprop="datePublished">2019-03-07</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Security/">Security</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>最近因为开始开发我自己的密码管理软件，因此对一些开源的密码管理软件做了一下研究，这其中一个比较著名的就是<a href="https://keepass.info/" target="_blank" rel="noopener">KeePass</a>。KeePass将密码存在一个文本文件中，最新的格式是<a href="https://keepass.info/help/kb/kdbx_4.html" target="_blank" rel="noopener">KDBX4</a>，官方的KeePass是在.Net平台上开发的，也有不少其他平台的移植版本，当然KDBX解析的库也比较多，可惜即便是官方文档也没有详细的描述。几经折腾找到了一个比较好的实现<a href="https://keepassxc.org/" target="_blank" rel="noopener">Keepassxc</a>，这是一个基于c++和QT开发的跨平台版本，兼容Keepass的文件格式，我把代码做了精简就得到<a href="https://github.com/soleverlee/keepass-client" target="_blank" rel="noopener">一个KDBX的操作库</a>，顺便调试了一下KDBX的文件格式，看看它是怎么存密码的。 <a id="more"></a></p>
+<p><a href="/images/ka.kdbx">这里</a>有一个使用keepass创建的简单数据库，master密码是1125482715。</p>
+<figure>
+<img src="/images/keepass_ka.png" alt="" /><figcaption>ka.kdbx</figcaption>
+</figure>
+<h1 id="文件头明文">文件头（明文）</h1>
+<p>我们以十六进制形式打开文件可以看到这样的结构：</p>
+<figure>
+<img src="/images/kdbx_hex_ka_header.png" alt="" /><figcaption>Hex of ka.kdbx</figcaption>
+</figure>
+<h2 id="文件头格式">文件头格式</h2>
+<p>其中，文件头的结构可以用以下的形式来表述：</p>
+<p><span class="math display">\[
+Item_{i} = Id_{i} + Length + Data \\
+Header = MagicNumber + Version + Item_{0} + ... + Item_{n} + Hash + Hmac
+\]</span></p>
+<p>首先，MagicNumber=<code>0x9AA2D903 0xB54BFB67</code>，代表这是KDBX文件格式</p>
+<p>然后可以看到Version=<code>0x00040000</code>，目前有这样几种版本： - 0x00040000=4 - 0x00030001=3.1 - 0x00030000=3 - 0x00020000=2</p>
+<p>然后是多个Header Item, 结构为[ID][Length][Data]，譬如<code>02100000 0031C1F2 E6BF7143 50BE5805 216AFC5A FF</code>即代表id=0x02, length=0x00000010=16, data=0x31~0xFF。其中，这些ID中有一些特殊含义的ID：</p>
+<pre><code>EndOfHeader = 0,
+Comment = 1,
+CipherID = 2,
+CompressionFlags = 3,
+MasterSeed = 4,
+TransformSeed = 5,
+TransformRounds = 6,
+EncryptionIV = 7,
+ProtectedStreamKey = 8,
+StreamStartBytes = 9,
+InnerRandomStreamID = 10,
+KdfParameters = 11,
+PublicCustomData = 12</code></pre>
+<p>所以这个Header就是表明加密算法，这些算法用UUID来标记：</p>
+<ul>
+<li><code>0x31c1f2e6bf714350be5805216afc5aff</code> AES</li>
+<li><code>0xad68f29f576f4bb9a36ad47af965346c</code> TWOFISH</li>
+<li><code>0xD6038A2B8B6F4CB5A524339A31DBB59A</code> CHACHA20</li>
+</ul>
+<h2 id="文件头校验">文件头校验</h2>
+<p>在文件头的后面有两个比较特殊的段，存储了两个用来验证文件头正确性的字段：</p>
+<ul>
+<li>Header Hash(SHA-256)，即文件头的哈希值</li>
+<li>Hmac(HMAC-SHA-256 )值，为文件头和密码一起加密后得出的值</li>
+</ul>
+<p>通过计算哈希值能够判断文件头是否被人篡改，或者更准确的说是不是出现了损坏，因为如果真的被人篡改了，我相信他会连这个hash一起改掉，验证没有太大意义。因为KDB中数据采取了对称加密算法，而文件中也不会存储主密码，所以我们如何知道用户输入的密码是不是正确呢？</p>
+<p>在Kdb以前的版本中，是尝试通过使用用户输入的密码去进行解密，如果出现问题或者解密出来的内容哈希值对不上，那么密码不对了。而在kdbx4中，采取了HMAC的方式，Hmac在哈希的基础上，加入了一个Key，意味着同一段数据，用不同的Key哈希之后的结果是不一样的。那么就可以根据用户输入的密码来计算Hmac值，如果和文件中记录的对不上，认为密码错误。</p>
+<p>其实这个问题我也想过，我之前的想法是，把一段已知的明文加密后存储起来，然后再解密的时候，尝试用用户的密码加密后，来解密这个密文，看是否匹配。。当然如果这样做，需要考虑一下<a href="https://zh.wikipedia.org/wiki/%E5%B7%B2%E7%9F%A5%E6%98%8E%E6%96%87%E6%94%BB%E5%87%BB" target="_blank" rel="noopener">已知明文攻击</a>。</p>
+<p><a href="https://stackoverflow.com/questions/14493029/reliable-way-to-tell-if-wrong-key-is-used-in-aes256-decryption" target="_blank" rel="noopener">这里</a>还有有一个讨论可以参考。</p>
+<h2 id="key-transform">Key transform</h2>
+<p>虽然不同的用户设置的密码都不一样，但通常我们在进行加密的时候，不会直接拿这个作为Key，而是会通过KDF <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> 将原始密码进行转换。keepass也不例外，我们这个文件设置的是使用Argon2来进行KDF，之前的版本采取的是AES-KDF。Keepass中转换的步骤如下:</p>
+<ol>
+<li>将原始密码进行SHA-256转换，即 <span class="math display">\[ sha256（1125482715）= d31d31dd2d99b5d35ce232896d0b3f1fe41daf6ba47b5c24d52e8890a0307da6 \]</span></li>
+<li>再进行一次SHA-256 <span class="math display">\[ sha256(d31d31dd2d99b5d35ce232896d0b3f1fe41daf6ba47b5c24d52e8890a0307da6) = \\ bfa11b4e4376cf1b17088a3de375f1df6a9c4cb3eb36f3ce2416b10481eb619f \]</span></li>
+<li>将上次得到的哈希值，同header中配置的Transform seed进行KDF，得到最终的transformedMasterKey, 这里我们用的是argon2。<span class="math display">\[ argon2d(2, 1024, pwd, salt) = \\
+104e9ba7b6b4479eec1a8fe3f9ca285fd10e0f33435fcabd8edf3e16380a98c7 \]</span>这一步计算参见下面的代码：</li>
+</ol>
+<p>其中：<span class="math display">\[ KdfSeed=3f09ea13ceffb8e867a4af3ab17854f9f5f152591653c737a8962b94356e2c0f \]</span></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1"></a><span class="pp">#include </span><span class="im">&quot;argon2.h&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="pp">#include </span><span class="im">&lt;stdlib.h&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span>*argv[])</span>
+<span id="cb2-6"><a href="#cb2-6"></a>{</span>
+<span id="cb2-7"><a href="#cb2-7"></a>    <span class="dt">uint8_t</span> pwd[<span class="dv">32</span>] = {<span class="bn">0xbf</span>, <span class="bn">0xa1</span>, <span class="bn">0x1b</span>, <span class="bn">0x4e</span>, <span class="bn">0x43</span>, <span class="bn">0x76</span>, <span class="bn">0xcf</span>, <span class="bn">0x1b</span>, <span class="bn">0x17</span>, <span class="bn">0x08</span>, <span class="bn">0x8a</span>, <span class="bn">0x3d</span>, <span class="bn">0xe3</span>, <span class="bn">0x75</span>, <span class="bn">0xf1</span>, <span class="bn">0xdf</span>, <span class="bn">0x6a</span>, <span class="bn">0x9c</span>, <span class="bn">0x4c</span>, <span class="bn">0xb3</span>, <span class="bn">0xeb</span>, <span class="bn">0x36</span>, <span class="bn">0xf3</span>, <span class="bn">0xce</span>, <span class="bn">0x24</span>, <span class="bn">0x16</span>, <span class="bn">0xb1</span>, <span class="bn">0x04</span>, <span class="bn">0x81</span>, <span class="bn">0xeb</span>, <span class="bn">0x61</span>, <span class="bn">0x9f</span>};</span>
+<span id="cb2-8"><a href="#cb2-8"></a>    <span class="dt">uint8_t</span> salt[<span class="dv">32</span>] = {<span class="bn">0x3f</span>, <span class="bn">0x09</span>, <span class="bn">0xea</span>, <span class="bn">0x13</span>, <span class="bn">0xce</span>, <span class="bn">0xff</span>, <span class="bn">0xb8</span>, <span class="bn">0xe8</span>, <span class="bn">0x67</span>, <span class="bn">0xa4</span>, <span class="bn">0xaf</span>, <span class="bn">0x3a</span>, <span class="bn">0xb1</span>, <span class="bn">0x78</span>, <span class="bn">0x54</span>, <span class="bn">0xf9</span>, <span class="bn">0xf5</span>, <span class="bn">0xf1</span>, <span class="bn">0x52</span>, <span class="bn">0x59</span>, <span class="bn">0x16</span>, <span class="bn">0x53</span>, <span class="bn">0xc7</span>, <span class="bn">0x37</span>, <span class="bn">0xa8</span>, <span class="bn">0x96</span>, <span class="bn">0x2b</span>, <span class="bn">0x94</span>, <span class="bn">0x35</span>, <span class="bn">0x6e</span>, <span class="bn">0x2c</span>, <span class="bn">0x0f</span>};</span>
+<span id="cb2-9"><a href="#cb2-9"></a>    <span class="dt">uint8_t</span> result[<span class="dv">32</span>];</span>
+<span id="cb2-10"><a href="#cb2-10"></a>    <span class="co">// argon2: seed=kef.seed, version=19, rounds=2, memory=1024, parallelism=2</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a>    argon2_hash(<span class="dv">2</span>, <span class="dv">1024</span>, <span class="dv">2</span>, pwd, <span class="dv">32</span>, salt, <span class="dv">32</span>, result, <span class="dv">32</span>, nullptr, <span class="dv">0</span>, Argon2_d, <span class="dv">19</span>);</span>
+<span id="cb2-12"><a href="#cb2-12"></a>    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">32</span>; i ++)</span>
+<span id="cb2-13"><a href="#cb2-13"></a>        printf(<span class="st">&quot;%02x&quot;</span>, result[i]);</span>
+<span id="cb2-14"><a href="#cb2-14"></a>}</span></code></pre></div>
+<h2 id="hmac计算">Hmac计算</h2>
+<p>另一个就是HMac值的计算了，首先需要算出一个Key，在keepass中是这样去算的:</p>
+<p><span class="math display">\[
+Key1 = sha512(MasterSeed + TransformedMasterKey + 0x01)
+\]</span></p>
+<pre><code>sha512(17e4aa736440b2c6f963184b9baf07a3c2b7ac652a95d4b375baf938cd5dbe4b104e9ba7b6b4479eec1a8fe3f9ca285fd10e0f33435fcabd8edf3e16380a98c701)
+= 9340685dcea0fbee49a68417708cbffb24958fc6fb20de6cb158196b6291f0719f46669bbc8f7254bcbc0da0650d795fe9c782e443d3f32b7a957f73c8f58128</code></pre>
+<p>然后需要把这个key再计算一下:</p>
+<p><span class="math display">\[
+Key = sha512(BlockIndex + Key1)
+\]</span></p>
+<pre><code>sha512(ffffffffffffffff9340685dcea0fbee49a68417708cbffb24958fc6fb20de6cb158196b6291f0719f46669bbc8f7254bcbc0da0650d795fe9c782e443d3f32b7a957f73c8f58128)
+=1062ee78cf505ac4af4e53f343b04782178a3c6d6b8e64ecb23ca6ce9489ab30660b92cf1f88dbf0333769e9f362ae2d7dff82554d864a4c2d1d3b751b5698f7</code></pre>
+<p>这个Key才是最终用来计算Hmac的Key:</p>
+<p><span class="math display">\[
+HmacValue = Hmac-sha256(header, Key)
+\]</span></p>
+<pre><code>Hmac-sha256(03D9A29A67FB4BB500000400021000000031C1F2E6BF714350BE5805216AFC5AFF030400000000000000042000000017E4AA736440B2C6F963184B9BAF07A3C2B7AC652A95D4B375BAF938CD5DBE4B0B8B00000000014205000000245555494410000000EF636DDF8C29444B91F7A9A403E30A0C040100000056040000001300000005010000004908000000020000000000000005010000004D0800000000001000000000000401000000500400000002000000420100000053200000003F09EA13CEFFB8E867A4AF3AB17854F9F5F152591653C737A8962B94356E2C0F000710000000C1F6FD873E14050697C168B3E9DA5DB200040000000D0A0D0A, 1062ee78cf505ac4af4e53f343b04782178a3c6d6b8e64ecb23ca6ce9489ab30660b92cf1f88dbf0333769e9f362ae2d7dff82554d864a4c2d1d3b751b5698f7)
+=376123254b1aef5db7cb13e73807fc74341b8baa7e182a50f4cfdf14d5fdd532</code></pre>
+<h1 id="文件内容encrypted">文件内容（Encrypted)</h1>
+<h2 id="秘钥计算">秘钥计算</h2>
+<p>在文件头后面，跟着的是文件的数据内容了，这部分数据是加密过的。因此首先需要知道是根据什么样的秘钥进行加密的。其实很简单:</p>
+<p><span class="math display">\[
+Key = sha256 (MasterSeed + TransformedMasterKey)
+\]</span></p>
+<pre><code>sha256(17E4AA736440B2C6F963184B9BAF07A3C2B7AC652A95D4B375BAF938CD5DBE4B104e9ba7b6b4479eec1a8fe3f9ca285fd10e0f33435fcabd8edf3e16380a98c7)
+=dce60234d641f71f377ecafb5a566ce954d26c03fd3b5b23e9ed092ef42b5290</code></pre>
+<p>所以这个文件中，解密是这样的：</p>
+<pre><code>Key=dce60234d641f71f377ecafb5a566ce954d26c03fd3b5b23e9ed092ef42b5290
+Iv=c1f6fd873e14050697c168b3e9da5db2
+
+9a0106470245744f9121bbafa5dd10df =&gt; 01040000000300000002400000008B2E</code></pre>
+<p>这里需要指出的是，这里应该使用AES-CBC-NoPadding算法，这样加密后的密文和原文是一样的长度，否则会变长。而且解密的时候，是一段一段的解的，16byte一截。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">byte</span>[] <span class="fu">decrypt</span>(<span class="dt">byte</span>[] key, <span class="dt">byte</span>[] initVector, <span class="dt">byte</span>[] encrypted) {</span>
+<span id="cb8-2"><a href="#cb8-2"></a>        <span class="kw">try</span> {</span>
+<span id="cb8-3"><a href="#cb8-3"></a>            <span class="bu">IvParameterSpec</span> iv = <span class="kw">new</span> <span class="bu">IvParameterSpec</span>(initVector);</span>
+<span id="cb8-4"><a href="#cb8-4"></a>            <span class="bu">SecretKeySpec</span> skeySpec = <span class="kw">new</span> <span class="bu">SecretKeySpec</span>(key, <span class="st">&quot;AES&quot;</span>);</span>
+<span id="cb8-5"><a href="#cb8-5"></a></span>
+<span id="cb8-6"><a href="#cb8-6"></a>            <span class="bu">Cipher</span> cipher = <span class="bu">Cipher</span>.<span class="fu">getInstance</span>(<span class="st">&quot;AES/CBC/NoPadding&quot;</span>);</span>
+<span id="cb8-7"><a href="#cb8-7"></a>            cipher.<span class="fu">init</span>(<span class="bu">Cipher</span>.<span class="fu">DECRYPT_MODE</span>, skeySpec, iv);</span>
+<span id="cb8-8"><a href="#cb8-8"></a></span>
+<span id="cb8-9"><a href="#cb8-9"></a>            <span class="kw">return</span> cipher.<span class="fu">doFinal</span>(encrypted);</span>
+<span id="cb8-10"><a href="#cb8-10"></a>        } <span class="kw">catch</span> (<span class="bu">Exception</span> ex) {</span>
+<span id="cb8-11"><a href="#cb8-11"></a>            ex.<span class="fu">printStackTrace</span>();</span>
+<span id="cb8-12"><a href="#cb8-12"></a>        }</span>
+<span id="cb8-13"><a href="#cb8-13"></a></span>
+<span id="cb8-14"><a href="#cb8-14"></a>        <span class="kw">return</span> <span class="kw">null</span>;</span>
+<span id="cb8-15"><a href="#cb8-15"></a>    }</span></code></pre></div>
+<h2 id="inner-header">Inner Header</h2>
+<p>Inner Header跟Header结构一样，对应了如下的类型：</p>
+<pre><code>0x00: End of header.
+0x01: Inner random stream ID (this supersedes the inner random stream ID stored in the outer header of a KDBX 3.1 file).
+0x02: Inner random stream key (this supersedes the inner random stream key stored in the outer header of a KDBX 3.1 file).
+0x03: Binary (entry attachment). D = F ‖ M, where F is one byte and M is the binary content (i.e. the actual entry attachment data). F stores flags for the binary; supported flags are:
+    0x01: The user has turned on process memory protection for this binary.</code></pre>
+<h2 id="xml-database">XML Database</h2>
+<p>Inner Header之后一大段就是XML加密后的内容了，直接解密就可以了。解密出来其实就是个XML。这里就不过多解释了。 最终结构就是如图所示了：</p>
+<p><img src="/images/keepass_hex_sturcture.png" alt="Hex of ka.kdbx" />，</p>
+<p>目前还有两个地方没大搞懂的就是，标红的地方，就是加密的部分开头和结尾的，不知道有何用，代码嵌套的挺深的，看了下没找到地方，各个文档中也没说清楚，不过可以肯定的是，这两个地方用到了。有时间再看吧。</p>
+<p>References:</p>
+<ul>
+<li><a href="https://cryptii.com/pipes/aes-encryption" target="_blank" rel="noopener">Cryptii</a></li>
+<li><a href="https://www.devglan.com/online-tools/aes-encryption-decryption" target="_blank" rel="noopener">AES Encryption and Decryption Online Tool(Calculator)</a></li>
+<li><a href="http://extranet.cryptomathic.com/hashcalc/index" target="_blank" rel="noopener">Hash</a></li>
+<li><a href="https://github.com/Evidlo/keepassxc-specs/blob/master/kdbx-binary/kdbx4_overview.md" target="_blank" rel="noopener">overview for KDBX4</a></li>
+<li><a href="https://gist.github.com/msmuenchen/9318327" target="_blank" rel="noopener">KeePass v2.x (KDBX v3.x) file format</a></li>
+<li><a href="https://gist.github.com/lgg/e6ccc6e212d18dd2ecd8a8c116fb1e45" target="_blank" rel="noopener">Keepass file format explained</a></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>key derivation function<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/security/kdbx4_format/" data-id="ck8ppfg4r0080cjqi9lr4cs7r"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AES/" rel="tag">AES</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Argon2/" rel="tag">Argon2</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KDBX/" rel="tag">KDBX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KeePass/" rel="tag">KeePass</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/mobile/create_flutter_plugin/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            创建一个Flutter的插件
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/java_gc/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Java GC小结</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

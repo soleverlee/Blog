@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    阅读笔记：ConcurrentHashMap |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/read_concurrent_hashmap" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      阅读笔记：ConcurrentHashMap
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/read_concurrent_hashmap/" class="article-date">
+  <time datetime="2020-03-19T00:00:00.000Z" itemprop="datePublished">2020-03-19</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>我们知道HashMap不是Thread-safe的，而HashTable内部采取了同步操作，是线程安全的。然而有趣的是你去看HashTable的文档，它会建议你：如果不要Thread-Safe你就用HashMap吧，否则你用ConcurrentHashMap好了。</p>
+<p>一般如果对线程安全有要求，我们有如下的一些选择：</p>
+<ul>
+<li>ConcurrentHashMap</li>
+<li>Hashtable</li>
+<li>Collections.synchronizedMap</li>
+</ul>
+<a id="more"></a>
+<h1 id="collections.synchronizedmap">Collections.synchronizedMap</h1>
+<p>这个实现很粗暴，实际上就是将Map的各个操作都进行了包装和同步：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">private</span> <span class="dt">static</span> <span class="kw">class</span> SynchronizedMap&lt;K,V&gt;</span>
+<span id="cb1-2"><a href="#cb1-2"></a>        <span class="kw">implements</span> <span class="bu">Map</span>&lt;K,V&gt;, <span class="bu">Serializable</span> {</span>
+<span id="cb1-3"><a href="#cb1-3"></a>    <span class="kw">private</span> <span class="dt">final</span> <span class="bu">Map</span>&lt;K,V&gt; m;     <span class="co">// Backing Map</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>    <span class="dt">final</span> <span class="bu">Object</span>      mutex;  </span>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a>    <span class="fu">SynchronizedMap</span>(<span class="bu">Map</span>&lt;K,V&gt; m) {</span>
+<span id="cb1-7"><a href="#cb1-7"></a>        <span class="kw">this</span>.<span class="fu">m</span> = Objects.<span class="fu">requireNonNull</span>(m);</span>
+<span id="cb1-8"><a href="#cb1-8"></a>        mutex = <span class="kw">this</span>;</span>
+<span id="cb1-9"><a href="#cb1-9"></a>    }</span></code></pre></div>
+<p>在构造函数中传入了原来的Map，以及一个对象锁（如果不传那就默认是this了）。然后，所有的操作都进行了同步处理：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">public</span> <span class="dt">boolean</span> <span class="fu">containsValue</span>(<span class="bu">Object</span> value) {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>    <span class="kw">synchronized</span> (mutex) {<span class="kw">return</span> m.<span class="fu">containsValue</span>(value);}</span>
+<span id="cb2-3"><a href="#cb2-3"></a>}</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">public</span> V <span class="fu">get</span>(<span class="bu">Object</span> key) {</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="kw">synchronized</span> (mutex) {<span class="kw">return</span> m.<span class="fu">get</span>(key);}</span>
+<span id="cb2-6"><a href="#cb2-6"></a>}</span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="co">// ...</span></span></code></pre></div>
+<h1 id="hashtable">HashTable</h1>
+<p>HashTable实现线程安全的方式与上面有些类似，对所有需要同步的地方直接进行了同步：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">public</span> <span class="kw">synchronized</span> <span class="dt">int</span> <span class="fu">size</span>() {</span>
+<span id="cb3-2"><a href="#cb3-2"></a>    <span class="kw">return</span> count;</span>
+<span id="cb3-3"><a href="#cb3-3"></a>}</span></code></pre></div>
+<p>那么HashMap和HashTable有什么区别呢？除了同步之外，总结下来有以下几点：</p>
+<ul>
+<li>HashMap允许一个null的key，value也可以为null；但是HashTable不允许null作为key或者value</li>
+<li>HashMap是JDK1.2才引入的</li>
+<li>HashTable是基于Dictionary接口实现的</li>
+</ul>
+<p>HashTable（以及ConcurrentHashMap）都是不允许null值作为Key和Vaule的，主要的原因是因为要支持并发，假设调用<code>get(key)</code>得到了null，你是不能确认是key不存在，还是说存在但是值为null。在非并发场景下可以通过<code>contains(key)</code>来判断是否真的存在，但是在并发场景下，很可能会被其他线程修改。在JDK注释中有这样的解释：</p>
+<blockquote>
+<p>The main reason that nulls aren't allowed in ConcurrentMaps (ConcurrentHashMaps, ConcurrentSkipListMaps) is that ambiguities that may be just barely tolerable in non-concurrent maps can't be accommodated. The main one is that if map.get(key) returns null, you can't detect whether the key explicitly maps to null vs the key isn't mapped. In a non-concurrent map, you can check this via map.contains(key), but in a concurrent one, the map might have changed between calls.</p>
+</blockquote>
+<h1 id="concurrenthashmap">ConcurrentHashMap</h1>
+<p>在Java1.7和1.8中ConcurrentHashMap实现差别较大，在1.7中采用分段锁的方式实现，将Map分为许多个Segment（Segment继承自ReentrantLock）,操作的时候，只会去占用某一个Segment，而其他的Segment不会受到影响。</p>
+<p>而在1.8中直接使用CAS+ synchronized来实现。其在内存中的结构与HashMap几乎相同了。</p>
+<h2 id="get操作">get操作</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">public</span> V <span class="fu">get</span>(<span class="bu">Object</span> key) {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>    <span class="bu">Node</span>&lt;K,V&gt;[] tab; <span class="bu">Node</span>&lt;K,V&gt; e, p; <span class="dt">int</span> n, eh; K ek;</span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a>    <span class="co">// 得到最终的hash值（将高位混合到低位去避免哈希冲突）</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a>    <span class="dt">int</span> h = <span class="fu">spread</span>(key.<span class="fu">hashCode</span>());</span>
+<span id="cb4-6"><a href="#cb4-6"></a>    <span class="kw">if</span> ((tab = table) != <span class="kw">null</span> &amp;&amp; (n = tab.<span class="fu">length</span>) &gt; <span class="dv">0</span> &amp;&amp;</span>
+<span id="cb4-7"><a href="#cb4-7"></a>        <span class="co">// (n-1) &amp; h 计算出所在的index值（与HashMap相同）</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a>        (e = <span class="fu">tabAt</span>(tab, (n - <span class="dv">1</span>) &amp; h)) != <span class="kw">null</span>) { </span>
+<span id="cb4-9"><a href="#cb4-9"></a>        <span class="co">// 如果哈希值相同，则直接定位到节点，再判断是否equal即可</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a>        <span class="kw">if</span> ((eh = e.<span class="fu">hash</span>) == h) {                </span>
+<span id="cb4-11"><a href="#cb4-11"></a>            <span class="co">// 这里比较key是否equal，单纯只凭hashCode是不够的。</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a>            <span class="co">// 首先比较内存地址是否一致；然后再调用equals方法，是一种优化手段。</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a>            <span class="kw">if</span> ((ek = e.<span class="fu">key</span>) == key || (ek != <span class="kw">null</span> &amp;&amp; key.<span class="fu">equals</span>(ek)))</span>
+<span id="cb4-14"><a href="#cb4-14"></a>                <span class="kw">return</span> e.<span class="fu">val</span>;</span>
+<span id="cb4-15"><a href="#cb4-15"></a>        }</span>
+<span id="cb4-16"><a href="#cb4-16"></a>        <span class="co">/*</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a><span class="co">            Hash值的首位被用作标记位，为负数的hash值是特殊的节点（也就是红黑树化了）</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a><span class="co">        */</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a>        <span class="co">// 如果根据哈希值没有匹配到，那证明可能有哈希冲突，为负数是红黑树则在树中查找</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a>        <span class="kw">else</span> <span class="kw">if</span> (eh &lt; <span class="dv">0</span>)                         </span>
+<span id="cb4-21"><a href="#cb4-21"></a>            <span class="kw">return</span> (p = e.<span class="fu">find</span>(h, key)) != <span class="kw">null</span> ? p.<span class="fu">val</span> : <span class="kw">null</span>;</span>
+<span id="cb4-22"><a href="#cb4-22"></a>        <span class="co">// 否则是普通的链表，在链表中一直朝下找即可</span></span>
+<span id="cb4-23"><a href="#cb4-23"></a>        <span class="kw">while</span> ((e = e.<span class="fu">next</span>) != <span class="kw">null</span>) {           </span>
+<span id="cb4-24"><a href="#cb4-24"></a>            <span class="kw">if</span> (e.<span class="fu">hash</span> == h &amp;&amp;</span>
+<span id="cb4-25"><a href="#cb4-25"></a>                ((ek = e.<span class="fu">key</span>) == key || (ek != <span class="kw">null</span> &amp;&amp; key.<span class="fu">equals</span>(ek))))</span>
+<span id="cb4-26"><a href="#cb4-26"></a>                <span class="kw">return</span> e.<span class="fu">val</span>;</span>
+<span id="cb4-27"><a href="#cb4-27"></a>        }</span>
+<span id="cb4-28"><a href="#cb4-28"></a>    }</span>
+<span id="cb4-29"><a href="#cb4-29"></a>    <span class="kw">return</span> <span class="kw">null</span>;</span>
+<span id="cb4-30"><a href="#cb4-30"></a>}</span></code></pre></div>
+<p>可见get操作没有加任何的锁，而是通过将<code>transient volatile Node&lt;K,V&gt;[] table;</code>将table设置为volatile来保证可见性的。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">transient</span> <span class="kw">volatile</span> <span class="bu">Node</span>&lt;K,V&gt;[] table;</span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="dt">static</span> <span class="kw">class</span> <span class="bu">Node</span>&lt;K,V&gt; <span class="kw">implements</span> <span class="bu">Map</span>.<span class="fu">Entry</span>&lt;K,V&gt; {</span>
+<span id="cb5-4"><a href="#cb5-4"></a>    <span class="dt">final</span> <span class="dt">int</span> hash;</span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="dt">final</span> K key;</span>
+<span id="cb5-6"><a href="#cb5-6"></a>    <span class="kw">volatile</span> V val;</span>
+<span id="cb5-7"><a href="#cb5-7"></a>    <span class="kw">volatile</span> <span class="bu">Node</span>&lt;K,V&gt; next;</span>
+<span id="cb5-8"><a href="#cb5-8"></a>    <span class="co">//...</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a>}</span></code></pre></div>
+<h2 id="put操作">put操作</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a><span class="dt">final</span> V <span class="fu">putVal</span>(K key, V value, <span class="dt">boolean</span> onlyIfAbsent) {</span>
+<span id="cb6-2"><a href="#cb6-2"></a>    <span class="kw">if</span> (key == <span class="kw">null</span> || value == <span class="kw">null</span>) <span class="kw">throw</span> <span class="kw">new</span> <span class="bu">NullPointerException</span>();</span>
+<span id="cb6-3"><a href="#cb6-3"></a>    <span class="dt">int</span> hash = <span class="fu">spread</span>(key.<span class="fu">hashCode</span>());</span>
+<span id="cb6-4"><a href="#cb6-4"></a>    <span class="dt">int</span> binCount = <span class="dv">0</span>;</span>
+<span id="cb6-5"><a href="#cb6-5"></a>    <span class="kw">for</span> (<span class="bu">Node</span>&lt;K,V&gt;[] tab = table;;) {</span>
+<span id="cb6-6"><a href="#cb6-6"></a>        <span class="bu">Node</span>&lt;K,V&gt; f; <span class="dt">int</span> n, i, fh;</span>
+<span id="cb6-7"><a href="#cb6-7"></a>        <span class="co">// 因为是懒加载，第一次插入的时候可能需要初始化</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a>        <span class="kw">if</span> (tab == <span class="kw">null</span> || (n = tab.<span class="fu">length</span>) == <span class="dv">0</span>)</span>
+<span id="cb6-9"><a href="#cb6-9"></a>            tab = <span class="fu">initTable</span>();</span>
+<span id="cb6-10"><a href="#cb6-10"></a>        <span class="co">// 没有找到（节点之前不存在）</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a>        <span class="kw">else</span> <span class="kw">if</span> ((f = <span class="fu">tabAt</span>(tab, i = (n - <span class="dv">1</span>) &amp; hash)) == <span class="kw">null</span>) {</span>
+<span id="cb6-12"><a href="#cb6-12"></a>            <span class="co">// 尝试CAS插入节点到空桶中，如果失败，则会重新走上面的流程进来</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a>            <span class="kw">if</span> (<span class="fu">casTabAt</span>(tab, i, <span class="kw">null</span>,</span>
+<span id="cb6-14"><a href="#cb6-14"></a>                         <span class="kw">new</span> <span class="bu">Node</span>&lt;K,V&gt;(hash, key, value, <span class="kw">null</span>)))</span>
+<span id="cb6-15"><a href="#cb6-15"></a>                <span class="kw">break</span>;                   <span class="co">// no lock when adding to empty bin</span></span>
+<span id="cb6-16"><a href="#cb6-16"></a>        }</span>
+<span id="cb6-17"><a href="#cb6-17"></a>        <span class="co">// 如果（后面的流程）插入到了红黑树中，会导致首节点改变，所以这个地方需要帮忙更改过来</span></span>
+<span id="cb6-18"><a href="#cb6-18"></a>        <span class="kw">else</span> <span class="kw">if</span> ((fh = f.<span class="fu">hash</span>) == MOVED)</span>
+<span id="cb6-19"><a href="#cb6-19"></a>            tab = <span class="fu">helpTransfer</span>(tab, f);</span>
+<span id="cb6-20"><a href="#cb6-20"></a>        <span class="kw">else</span> {</span>
+<span id="cb6-21"><a href="#cb6-21"></a>            V oldVal = <span class="kw">null</span>;</span>
+<span id="cb6-22"><a href="#cb6-22"></a>            <span class="co">// f为当前定位到的桶中的第一个节点，将其同步进行后续操作</span></span>
+<span id="cb6-23"><a href="#cb6-23"></a>            <span class="kw">synchronized</span> (f) {</span>
+<span id="cb6-24"><a href="#cb6-24"></a>                <span class="co">// 看看同步之前当前节点是否已经被更改了；如果是则需要重新开始轮回</span></span>
+<span id="cb6-25"><a href="#cb6-25"></a>                <span class="kw">if</span> (<span class="fu">tabAt</span>(tab, i) == f) {</span>
+<span id="cb6-26"><a href="#cb6-26"></a>                    <span class="co">// 普通链表</span></span>
+<span id="cb6-27"><a href="#cb6-27"></a>                    <span class="kw">if</span> (fh &gt;= <span class="dv">0</span>) {</span>
+<span id="cb6-28"><a href="#cb6-28"></a>                        binCount = <span class="dv">1</span>;</span>
+<span id="cb6-29"><a href="#cb6-29"></a>                        <span class="kw">for</span> (<span class="bu">Node</span>&lt;K,V&gt; e = f;; ++binCount) {</span>
+<span id="cb6-30"><a href="#cb6-30"></a>                            K ek;</span>
+<span id="cb6-31"><a href="#cb6-31"></a>                            <span class="co">// 如果已经存在值</span></span>
+<span id="cb6-32"><a href="#cb6-32"></a>                            <span class="kw">if</span> (e.<span class="fu">hash</span> == hash &amp;&amp;</span>
+<span id="cb6-33"><a href="#cb6-33"></a>                                ((ek = e.<span class="fu">key</span>) == key ||</span>
+<span id="cb6-34"><a href="#cb6-34"></a>                                 (ek != <span class="kw">null</span> &amp;&amp; key.<span class="fu">equals</span>(ek)))) {</span>
+<span id="cb6-35"><a href="#cb6-35"></a>                                oldVal = e.<span class="fu">val</span>;</span>
+<span id="cb6-36"><a href="#cb6-36"></a>                                <span class="kw">if</span> (!onlyIfAbsent)</span>
+<span id="cb6-37"><a href="#cb6-37"></a>                                    e.<span class="fu">val</span> = value;</span>
+<span id="cb6-38"><a href="#cb6-38"></a>                                <span class="kw">break</span>;</span>
+<span id="cb6-39"><a href="#cb6-39"></a>                            }</span>
+<span id="cb6-40"><a href="#cb6-40"></a>                            <span class="co">// 不存在则新增一个节点，插入到链表尾部</span></span>
+<span id="cb6-41"><a href="#cb6-41"></a>                            <span class="bu">Node</span>&lt;K,V&gt; pred = e;</span>
+<span id="cb6-42"><a href="#cb6-42"></a>                            <span class="kw">if</span> ((e = e.<span class="fu">next</span>) == <span class="kw">null</span>) {</span>
+<span id="cb6-43"><a href="#cb6-43"></a>                                pred.<span class="fu">next</span> = <span class="kw">new</span> <span class="bu">Node</span>&lt;K,V&gt;(hash, key,</span>
+<span id="cb6-44"><a href="#cb6-44"></a>                                                          value, <span class="kw">null</span>);</span>
+<span id="cb6-45"><a href="#cb6-45"></a>                                <span class="kw">break</span>;</span>
+<span id="cb6-46"><a href="#cb6-46"></a>                            }</span>
+<span id="cb6-47"><a href="#cb6-47"></a>                        }</span>
+<span id="cb6-48"><a href="#cb6-48"></a>                    }</span>
+<span id="cb6-49"><a href="#cb6-49"></a>                    <span class="co">// 按红黑树处理</span></span>
+<span id="cb6-50"><a href="#cb6-50"></a>                    <span class="kw">else</span> <span class="kw">if</span> (f <span class="kw">instanceof</span> TreeBin) {</span>
+<span id="cb6-51"><a href="#cb6-51"></a>                        <span class="bu">Node</span>&lt;K,V&gt; p;</span>
+<span id="cb6-52"><a href="#cb6-52"></a>                        binCount = <span class="dv">2</span>;</span>
+<span id="cb6-53"><a href="#cb6-53"></a>                        <span class="kw">if</span> ((p = ((TreeBin&lt;K,V&gt;)f).<span class="fu">putTreeVal</span>(hash, key,</span>
+<span id="cb6-54"><a href="#cb6-54"></a>                                                       value)) != <span class="kw">null</span>) {</span>
+<span id="cb6-55"><a href="#cb6-55"></a>                            oldVal = p.<span class="fu">val</span>;</span>
+<span id="cb6-56"><a href="#cb6-56"></a>                            <span class="kw">if</span> (!onlyIfAbsent)</span>
+<span id="cb6-57"><a href="#cb6-57"></a>                                p.<span class="fu">val</span> = value;</span>
+<span id="cb6-58"><a href="#cb6-58"></a>                        }</span>
+<span id="cb6-59"><a href="#cb6-59"></a>                    }</span>
+<span id="cb6-60"><a href="#cb6-60"></a>                }</span>
+<span id="cb6-61"><a href="#cb6-61"></a>            }</span>
+<span id="cb6-62"><a href="#cb6-62"></a>            <span class="kw">if</span> (binCount != <span class="dv">0</span>) {</span>
+<span id="cb6-63"><a href="#cb6-63"></a>                <span class="kw">if</span> (binCount &gt;= TREEIFY_THRESHOLD)</span>
+<span id="cb6-64"><a href="#cb6-64"></a>                    <span class="fu">treeifyBin</span>(tab, i);</span>
+<span id="cb6-65"><a href="#cb6-65"></a>                <span class="kw">if</span> (oldVal != <span class="kw">null</span>)</span>
+<span id="cb6-66"><a href="#cb6-66"></a>                    <span class="kw">return</span> oldVal;</span>
+<span id="cb6-67"><a href="#cb6-67"></a>                <span class="kw">break</span>;</span>
+<span id="cb6-68"><a href="#cb6-68"></a>            }</span>
+<span id="cb6-69"><a href="#cb6-69"></a>        }</span>
+<span id="cb6-70"><a href="#cb6-70"></a>    }</span>
+<span id="cb6-71"><a href="#cb6-71"></a>    <span class="fu">addCount</span>(<span class="dv">1L</span>, binCount);</span>
+<span id="cb6-72"><a href="#cb6-72"></a>    <span class="kw">return</span> <span class="kw">null</span>;</span>
+<span id="cb6-73"><a href="#cb6-73"></a>}</span></code></pre></div>
+<ul>
+<li><a href="https://www.javatpoint.com/difference-between-hashmap-and-hashtable" target="_blank" rel="noopener">Difference between HashMap and Hashtable</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/read_concurrent_hashmap/" data-id="ck8ppfg3x006acjqic8ub3z0h"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JDK1-8/" rel="tag">JDK1.8</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/c/eclipse_cdt/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            使用Eclipse-CDT构建CMake项目
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/read_hashmap/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">阅读笔记：HashMap</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

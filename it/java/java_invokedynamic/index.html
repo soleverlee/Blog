@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    浅析Java中的InvokeDynamic |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/java_invokedynamic" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      浅析Java中的InvokeDynamic
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/java_invokedynamic/" class="article-date">
+  <time datetime="2019-12-24T00:00:00.000Z" itemprop="datePublished">2019-12-24</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>Java语言在被编译成class文件后，在class文件中，有专门的一个<a href="https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4" target="_blank" rel="noopener">“常量池”(Constant Pool)</a>区域来存储一些运行所需要的常量，包括一些写死的变量（比如定义一个字符串<code>String str = "Hello world"</code>以及一些符号，例如类和方法的的名称等）。在JVM(se7)规范中，有以下这些类型的常量：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="ex">CONSTANT_Class</span>                           CONSTANT_Long            </span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="ex">CONSTANT_Fieldref</span>                        CONSTANT_Double          </span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="ex">CONSTANT_Methodref</span>                       CONSTANT_NameAndType     </span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="ex">CONSTANT_InterfaceMethodref</span>              CONSTANT_Utf8            </span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="ex">CONSTANT_String</span>                          CONSTANT_MethodHandle    </span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="ex">CONSTANT_Integer</span>                         CONSTANT_MethodType      </span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="ex">CONSTANT_Float</span>                           CONSTANT_InvokeDynamic       </span></code></pre></div>
+<p>大部分我们顾名思义，都可以知道是大概是干啥的，比如字符串啊，数字啊，方法名称之类的；但是可以注意到最后面一个是称之为<code>CONSTANT_InvokeDynamic</code>的常量，这个就有点陌生了。那么，这是一个什么样的常量？什么情况下会出现这个呢？</p>
+<a id="more"></a>
+<h1 id="invokedynamic指令"><code>invokedynamic</code>指令</h1>
+<p>在JVM规范中有说，<code>CONSTANT_InvokeDynamic</code>常量是用来给<code>invokedynamic</code>指令指定一系列的参数的，那么有必要先了解一下<code>invokedynamic</code>这个指令了。这是Java 7引入的一个新指令，也是自Java 1.0以来第一次引入新的指令。</p>
+<h2 id="java7之前的invoke-指令">Java7之前的<code>invoke-</code>指令</h2>
+<p>实际上，在此之前，已经有一些列的<code>invoke</code>开头的指令了：</p>
+<ul>
+<li><code>invokevirtual</code>：用来调用类的实例方法，也就是最普遍的方式</li>
+<li><code>invokestatic</code>：用来调用静态方法</li>
+<li><code>invokeinterface</code>：用来调用通过接口调用的方法</li>
+<li><code>invokespecial</code>：用来调用一些编译时就能够确定的，包括初始化(<code>&lt;init&gt;</code>)、类的私有方法，以及父类的方法(<code>super.someMethod()</code>)</li>
+</ul>
+<p>拿一个简单的Java程序来看看是怎么回事：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="co">// Foo.java</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">public</span> <span class="kw">class</span> Foo {</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">main</span>(<span class="bu">String</span>[] args) {</span>
+<span id="cb2-4"><a href="#cb2-4"></a>        <span class="dt">long</span> now = <span class="bu">System</span>.<span class="fu">currentTimeMillis</span>();            <span class="co">//静态方法调用</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a></span>
+<span id="cb2-6"><a href="#cb2-6"></a>        <span class="bu">ArrayList</span>&lt;<span class="bu">String</span>&gt; arrayList =  <span class="kw">new</span> <span class="bu">ArrayList</span>&lt;&gt;(); <span class="co">//构造函数将被调用</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>        <span class="bu">List</span>&lt;<span class="bu">String</span>&gt; list = arrayList;</span>
+<span id="cb2-8"><a href="#cb2-8"></a></span>
+<span id="cb2-9"><a href="#cb2-9"></a>        arrayList.<span class="fu">add</span>(<span class="st">&quot;hello&quot;</span>);                           <span class="co">//调用类实例方法</span></span>
+<span id="cb2-10"><a href="#cb2-10"></a>        list.<span class="fu">add</span>(<span class="st">&quot;world&quot;</span>);                                <span class="co">//通过接口调用</span></span>
+<span id="cb2-11"><a href="#cb2-11"></a>    }</span>
+<span id="cb2-12"><a href="#cb2-12"></a>}</span></code></pre></div>
+<p>通过<code>javac Foo.java &amp;&amp; javap -v Foo</code>可以查看编译后生成的class文件，里面可以找到<code>invoke</code>相关的指令调用：</p>
+<pre><code>public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=5, args_size=1
+         0: invokestatic  #2                  // Method java/lang/System.currentTimeMillis:()J
+         3: lstore_1
+         4: new           #3                  // class java/util/ArrayList
+         7: dup
+         8: invokespecial #4                  // Method java/util/ArrayList.&quot;&lt;init&gt;&quot;:()V
+        11: astore_3
+        12: aload_3
+        13: astore        4
+        15: aload_3
+        16: ldc           #5                  // String hello
+        18: invokevirtual #6                  // Method java/util/ArrayList.add:(Ljava/lang/Object;)Z
+        21: pop
+        22: aload         4
+        24: ldc           #7                  // String world
+        26: invokeinterface #8,  2            // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        31: pop
+        32: return</code></pre>
+<p>这样就比较好理解了，就跟我们平常调用函数一样，</p>
+<ul>
+<li><code>System.currentTimeMillis()</code>静态函数的调用生成了<code>invokestatic</code>指令，这个指令的参数是静态方法（包含类名和方法名）</li>
+<li><code>ArrayList</code>的构造方法调用生成了<code>invokespecial</code>指令，这里在<code>new</code>指令之后接着使用<code>invokespecial</code>指令来进行初始化操作</li>
+<li>通过<code>ArrayList</code>的实例方法<code>add</code>调用生成了<code>invokevirtual</code>指令</li>
+<li>而通过<code>List</code>接口的<code>add</code>方法调用生成了<code>invokeinterface</code>指令</li>
+</ul>
+<p>尽管已经有了以上的四种指令，这些指令都有一个特点，那就是不管是什么方法，是静态还是实例方法，是子类还是父类的方法，在编译的时候已经能够确定出到底会调用到哪个方法了。有没有一种可能，就是我在编译的时候不能确定，而是在运行的时候才能确定呢？</p>
+<h2 id="鸭子类型duck-typing">鸭子类型（<strong><em>Duck Typing</em></strong>）</h2>
+<p>这就是所谓的<a href="https://zh.wikipedia.org/wiki/%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B" target="_blank" rel="noopener">鸭子类型</a>了，可能叫<strong><em>Duck typing</em></strong>其实更好理解一点，这个名称来源自<a href="https://zh.wikipedia.org/wiki/%E9%B8%AD%E5%AD%90%E6%B5%8B%E8%AF%95" target="_blank" rel="noopener">鸭子测试</a>:</p>
+<blockquote>
+<p>“当看到一只鸟走起来像鸭子、游泳起来像鸭子、叫起来也像鸭子，那么这只鸟就可以被称为鸭子。”</p>
+</blockquote>
+<figure>
+<img src="https://devopedia.org/images/article/24/2998.1514520209.jpg" alt="" /><figcaption>A humorous and apt representation of duck typing. Source: Mastracci, 2014.</figcaption>
+</figure>
+<p>我们知道，Java是一个强类型的语言，有很多的类型检查，比如你要调用某个接口，而被调用的对象没有实现这个接口那么是无法完成的。而Duck Typing正如上面这个图片形象的表示，我并不关心对象本身是个什么东西，而关心这个对象是否支持我所需要的所有属性或者方法。维基百科上的这个伪代码可以更直接的解释：</p>
+<pre><code>function calculate(a, b, c) =&gt; return (a+b)*c
+
+example1 = calculate (1, 2, 3)
+example2 = calculate ([1, 2, 3], [4, 5, 6], 2)
+example3 = calculate (&#39;apples &#39;, &#39;and oranges, &#39;, 3)</code></pre>
+<p>这些对象没有使用继承或者其他的方式相互发生联系，但只要它们支持<code>+</code>和<code>*</code>这两个方法，调用就可以成功。<code>invokedyanmic</code>指令从某种程度上来说，就是为了支持<em>Duck typing</em>。</p>
+<p>看到这里可能细心的读者会注意到，咦，这东西看着好像<code>lambda</code>?</p>
+<p>没错，事实上<code>lambda</code>的确是跟<code>invokedynamic</code>有关的，但有意思的是<code>lambda</code>是直到Java 8才推出（<a href="https://www.jcp.org/en/jsr/detail?id=335" target="_blank" rel="noopener">JSR 335: Lambda Expressions for the JavaTM Programming Language</a>)。在此之前，是无法通过<code>javac</code>编译器生成包含这个指令的class的。<code>invokedynamic</code>指令是在<a href="https://jcp.org/en/jsr/detail?id=292" target="_blank" rel="noopener">JSR 292: Supporting Dynamically Typed Languages on the JavaTM Platform</a>中被引入的，可以注意到，原本是为了支持基于JVM的动态语言，并不是说要在Java中来做Duck typing，这样就比较合理了。</p>
+<p>当然借助于一些字节码操作框架（例如<a href="http://www.csg.is.titech.ac.jp/~chiba/javassist/" target="_blank" rel="noopener">Javassit</a>、<a href="http://asm.ow2.org/" target="_blank" rel="noopener">ASM</a>等，是可以手动创造出含有<code>invokedynamic</code>的class的，不过会有些麻烦。</p>
+<h2 id="lambda与invokedynamic">lambda与invokedynamic</h2>
+<p>如果我们用支持<code>lambda</code>的Java 8是可以很容易的创建出一个包含<code>invokedynamic</code>常量和指令的class的，比如下面这个例子：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">import</span><span class="im"> java.util.function.*;</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="kw">public</span> <span class="kw">class</span> Hello {</span>
+<span id="cb5-4"><a href="#cb5-4"></a></span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">main</span>(<span class="bu">String</span>[] args) {</span>
+<span id="cb5-6"><a href="#cb5-6"></a>        Supplier&lt;<span class="bu">String</span>&gt; welcome = () -&gt; <span class="st">&quot;Hello world!&quot;</span>;</span>
+<span id="cb5-7"><a href="#cb5-7"></a>        <span class="bu">System</span>.<span class="fu">out</span>.<span class="fu">println</span>(welcome.<span class="fu">get</span>());</span>
+<span id="cb5-8"><a href="#cb5-8"></a>    }</span>
+<span id="cb5-9"><a href="#cb5-9"></a>}</span></code></pre></div>
+<p>当查看编译后的class文件会发现有下面的部分：</p>
+<pre><code>Constant pool:
+   #1 = Methodref          #9.#20         // java/lang/Object.&quot;&lt;init&gt;&quot;:()V
+   #2 = InvokeDynamic      #0:#26         // #0:get:()Ljava/util/function/Supplier;
+
+public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=2, args_size=1
+         0: invokedynamic #2,  0              // InvokeDynamic #0:get:()Ljava/util/function/Supplier;</code></pre>
+<p>一个就是在常量池中可以看到一个InvokeDynamic类型的常量，指向了<code>Supplier.get()</code>方法；另一个就是在<code>main</code>方法中对lambda的调用，被编译成<code>invokedynamic</code>指令。</p>
+<h1 id="invokedynamic的机制">invokedynamic的机制</h1>
+<p>来研究一下<code>invokedyanmic</code>到底是怎么工作的吧。要了解它怎么工作的，我们先要知道编译生成的class文件中有些什么。刚我们看到，class文件中有两个部分与之相关，一个是常量池中的InvokeDyanmic信息，另一个是方法字节码中的<code>invokedynamic</code>指令调用。实际上JVM在引入这个新指令的同时，也在常量池(Constant Pool)和属性表(Attributes)中加入了与之相关的内容，也就是<code>CONSTANT_InvokeDynamic_info</code>和<code>BootstrapMethods_attribute</code>。得益于class文件的扩展性，这些改动实际上并没有改变class文件本身的结构，仅仅只是加了更多合法的选项在里边。</p>
+<h2 id="引导函数bootstrap-method表">引导函数(Bootstrap method)表</h2>
+<p>在class的<code>Attributes</code>（属性表）中新加入的一个<code>BootstrapMethods_attribute</code>属性，这个属性里面会存储一些函数的相关信息，而且是和<code>CONSTANT_InvokeDynamic</code>常量一一对应的。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1"></a>BootstrapMethods_attribute {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>    u2 attribute_name_index;</span>
+<span id="cb7-3"><a href="#cb7-3"></a>    u4 attribute_length;</span>
+<span id="cb7-4"><a href="#cb7-4"></a>    u2 num_bootstrap_methods;</span>
+<span id="cb7-5"><a href="#cb7-5"></a>    {   u2 bootstrap_method_ref;</span>
+<span id="cb7-6"><a href="#cb7-6"></a>        u2 num_bootstrap_arguments;</span>
+<span id="cb7-7"><a href="#cb7-7"></a>        u2 bootstrap_arguments[num_bootstrap_arguments];</span>
+<span id="cb7-8"><a href="#cb7-8"></a>    } bootstrap_methods[num_bootstrap_methods];</span>
+<span id="cb7-9"><a href="#cb7-9"></a>}</span></code></pre></div>
+<p>每一个引导函数都包含几个重要的属性：</p>
+<ul>
+<li>bootstrap_method_ref: 指向一个<code>CONSTANT_MethodHandle_info</code>引用，表明实际调用的方法信息</li>
+<li>bootstrap_arguments: 对应这个函数的参数</li>
+</ul>
+<p>这个引导函数通常是这个样子：</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1"></a><span class="dt">static</span> CallSite <span class="fu">bootstrapMethod</span>(MethodHandles.<span class="fu">Lookup</span> caller, <span class="bu">String</span> name, MethodType type);</span></code></pre></div>
+<p>这个函数返回一个调用点(<a href="https://docs.oracle.com/javase/7/docs/api/java/lang/invoke/CallSite.html" target="_blank" rel="noopener">CallSite</a>)对象，这个对象包含了方法调用所需要的一切信息，用来给<code>invokedynamic</code>指令使用。</p>
+<p>在Java8的<code>java.lang.invoke.LambdaMetafactory</code>类中，对应也增加定义了两个用来支持调用lambda的引导函数：</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1"></a><span class="dt">static</span> CallSite <span class="fu">altMetafactory</span>(MethodHandles.<span class="fu">Lookup</span> caller, <span class="bu">String</span> invokedName, MethodType invokedType, </span>
+<span id="cb9-2"><a href="#cb9-2"></a>                               <span class="bu">Object</span><span class="kw">... </span>args);</span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="dt">static</span> CallSite <span class="fu">metafactory</span>(MethodHandles.<span class="fu">Lookup</span> caller, <span class="bu">String</span> invokedName, MethodType invokedType, </span>
+<span id="cb9-4"><a href="#cb9-4"></a>                            MethodType samMethodType, MethodHandle implMethod, MethodType instantiatedMethodType);</span></code></pre></div>
+<p>而在上面的例子中，这个引导函数是这样的：</p>
+<pre><code>BootstrapMethods:
+  0: #22 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #23 ()Ljava/lang/Object;
+      #24 invokestatic Hello.lambda$main$0:()Ljava/lang/String;
+      #25 ()Ljava/lang/String;</code></pre>
+<h2 id="invokedynamic常量">InvokeDynamic常量</h2>
+<p>InvokeDynamic常量的定义如下：</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1"></a>CONSTANT_InvokeDynamic_info {</span>
+<span id="cb11-2"><a href="#cb11-2"></a>    u1 tag;</span>
+<span id="cb11-3"><a href="#cb11-3"></a>    u2 bootstrap_method_attr_index;</span>
+<span id="cb11-4"><a href="#cb11-4"></a>    u2 name_and_type_index;</span>
+<span id="cb11-5"><a href="#cb11-5"></a>}</span></code></pre></div>
+<p>其中<code>bootstrap_method_attr_index</code>指向一个引导函数(Bootstrap method)的序号，<code>name_and_type_index</code>则表明方法的名称和描述。在上面的例子中，仅有一个引导函数，这个<code>bootstrap_method_attr_index</code>自然就是对应到这个引导函数了。而在<code>invokedynamic</code>指令调用的地方，是这样的：</p>
+<pre><code>invokedynamic #2,  0              // InvokeDynamic #0:get:()Ljava/util/function/Supplier;</code></pre>
+<p>其中这个<code>#2</code>即常量池中的<code>InvokeDynamic</code>常量。</p>
+<h2 id="invokedynamic指令-1"><code>invokedynamic</code>指令</h2>
+<p>根据<a href="https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.5.invokedynamic" target="_blank" rel="noopener">JVM的规范</a>中的描述可以看到<code>invokedynamic</code>指令的格式如下：</p>
+<pre><code>invokedynamic indexbyte1 indexbyte2 0 0</code></pre>
+<p>其中前两个操作数可以通过<code>(indexbyte1 &lt;&lt; 8) | indexbyte2</code>的方式合成一个常量池中的索引值，也就是上面的<code>#2</code>，而另外两个操作数是固定的0。</p>
+<h1 id="labmda的jvm实现">Labmda的JVM实现</h1>
+<p>刚才已经看到，Java中对lambda'的调用实际上通过<code>LambdaMetafactory.metafactory</code>来完成的，通过了解这个类的实现，可以一看lambda的究竟。</p>
+<figure>
+<img src="/images/debug_metafactory.png" alt="" /><figcaption>Debug metafactory</figcaption>
+</figure>
+<p>在这个类里面创建了一个匿名类，并通过<code>UNSAFE.ensureClassInitialized(innerClass)</code>直接加载到JVM中，没有出现在class文件中，不过通过jvm参数可以输出出来：</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1"></a><span class="ex">java</span> -Djdk.internal.lambda.dumpProxyClasses=/Users/hfli/Downloads/tmp Hello</span></code></pre></div>
+<p>这样会生成一个<code>Hello$$Lambda$1.class</code>的文件，反编译这个类可以看到如下的信息：</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1"></a><span class="dt">final</span> <span class="kw">class</span> Hello$$Lambda$<span class="dv">1</span> <span class="kw">implements</span> Supplier {</span>
+<span id="cb15-2"><a href="#cb15-2"></a>    <span class="kw">private</span> Hello$$Lambda$<span class="dv">1</span>() {</span>
+<span id="cb15-3"><a href="#cb15-3"></a>    }</span>
+<span id="cb15-4"><a href="#cb15-4"></a></span>
+<span id="cb15-5"><a href="#cb15-5"></a>    <span class="at">@Hidden</span></span>
+<span id="cb15-6"><a href="#cb15-6"></a>    <span class="kw">public</span> <span class="bu">Object</span> <span class="fu">get</span>() {</span>
+<span id="cb15-7"><a href="#cb15-7"></a>        <span class="kw">return</span> Hello.<span class="fu">lambda</span>$main$<span class="dv">0</span>();</span>
+<span id="cb15-8"><a href="#cb15-8"></a>    }</span>
+<span id="cb15-9"><a href="#cb15-9"></a>}</span></code></pre></div>
+<p>这里实际是包装了一下<code>Supplier</code>接口，而具体调用的<code>Hello.lambda$main$0()</code>方法，可以在<code>Hello.class</code>文件中看到（需要使用<code>javap -p</code>选项输出私有方法):</p>
+<pre><code>private static java.lang.String lambda$main$0();
+    descriptor: ()Ljava/lang/String;
+    flags: ACC_PRIVATE, ACC_STATIC, ACC_SYNTHETIC
+    Code:
+      stack=1, locals=0, args_size=0
+         0: ldc           #7                  // String Hello world!
+         2: areturn
+      LineNumberTable:
+        line 6: 0</code></pre>
+<p>所以大致是这个样子的过程：</p>
+<ul>
+<li>调用lambda时，首先通过找到对应的引导方法（也就是<code>metafactory()</code>)，开始执行</li>
+<li>JVM生成一个匿名类<code>Hello$$Lambda$1</code>，这个类中包含了lambda的实际实现</li>
+<li>创建一个CallSite，绑定到一个MethodHandle指向这个匿名类的实现<code>Hello$$Lambda$1.get()</code>。这里引导方法就调用完成了</li>
+<li>这个MethodHandle指向的方法被执行，调用到<code>Hello.lambda$main$0()</code>关联的字节码，得到最终的结果</li>
+</ul>
+<p>值得注意的是，引导方法只需要执行一次，如果一个lambda执行了多次，那么只有第一次会去调用引导方法生成CallSite，以后都可以直接拿来使用了。</p>
+<h1 id="结语">结语</h1>
+<p>通过上面的描述，相信大家对<code>invokedynamic</code>有了一个粗略的了解，但要真正深入去了解的话，还是有很多东西需要去了解和研究的。虽然<code>invokedynamic</code>指令很强大，给了JVM的开发者很大的自由度，但实际上对于Java程序员来说，并没有太多可以操控的东西。如同上面提到的Duck Typing，在C#中可以这样：</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode c#"><code class="sourceCode cs"><span id="cb17-1"><a href="#cb17-1"></a>Object obj = ...; <span class="co">// no static type available </span></span>
+<span id="cb17-2"><a href="#cb17-2"></a>dynamic duck = obj;</span>
+<span id="cb17-3"><a href="#cb17-3"></a>duck.<span class="fu">quack</span>();     <span class="co">// or any method. no compiler checking.</span></span></code></pre></div>
+<p>可能我们永远也没法使用Java来完成同样的任务，也许有一部分人会比较失望，但本身这是一把双刃剑，我还是倾向<a href="http://www.yinwang.org/blog-cn/2016/01/18/java" target="_blank" rel="noopener">给Java说句公道话</a>。而借助于JVM平台，我们实际上有了越来越多的选择，Scala, Kotlin，Groovy等等。可以说从某个方面来讲，正是Java决策者对于每一个决策的慎重，才造就了今天Java程序员不愁饭吃的局面。</p>
+<blockquote>
+<p>"When you have 9 million programmers using your language and out of which 1 million programmers know where you live you have to decide things differently." ——<a href="https://www.youtube.com/watch?v=1OpAgZvYXLQ&amp;t=1993s" target="_blank" rel="noopener">Venkat Subramaniam</a></p>
+</blockquote>
+<p>参考文章：</p>
+<ul>
+<li><a href="https://www.infoq.com/articles/Invokedynamic-Javas-secret-weapon/" target="_blank" rel="noopener">Invokedynamic - Java’s Secret Weapon</a></li>
+<li><a href="https://stackoverflow.com/questions/6638735/whats-invokedynamic-and-how-do-i-use-it" target="_blank" rel="noopener">What's invokedynamic and how do I use it?</a></li>
+<li><a href="https://zh.wikipedia.org/wiki/%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B" target="_blank" rel="noopener">Duck Typing - Wiki</a></li>
+<li><a href="https://devopedia.org/duck-typing" target="_blank" rel="noopener">Duck Typing</a></li>
+<li><a href="http://blog.headius.com/2008/09/first-taste-of-invokedynamic.html" target="_blank" rel="noopener">A First Taste of InvokeDynamic</a></li>
+<li><a href="https://www.javacodegeeks.com/2012/02/java-7-complete-invokedynamic-example.html" target="_blank" rel="noopener">Java 7: A complete invokedynamic example</a></li>
+<li><a href="https://my.oschina.net/lt0314/blog/3146028" target="_blank" rel="noopener">你不知道Lambda的秘密和陷阱</a></li>
+<li><a href="http://wiki.jvmlangsummit.com/images/9/93/2011_Forax.pdf" target="_blank" rel="noopener">JSR 292 Cookbook</a></li>
+<li><a href="https://www.jianshu.com/p/d74e92f93752" target="_blank" rel="noopener">理解 invokedynamic</a></li>
+</ul>
+<p>邮件阅读体验不佳，如需更好体验可以移步 <a href="https://riguz.com/it/java/java_invokedynamic/">在线版本</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/java_invokedynamic/" data-id="ck8ppfg3u0063cjqi8n4j1jh1"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/debug_jdk_source/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            调试JDK源码
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/devops/introduction_to_vagrant/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">使用Vagrant来管理Virtualbox</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

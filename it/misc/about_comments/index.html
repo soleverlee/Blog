@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    关于代码注释 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/misc/about_comments" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      关于代码注释
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/misc/about_comments/" class="article-date">
+  <time datetime="2018-01-16T00:00:00.000Z" itemprop="datePublished">2018-01-16</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Misc/">Misc</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>在一个“敏捷”的团队，写注释被认作是一个不好的习惯，因为他们认为，</p>
+<blockquote>
+<p>Good programming is self-explanatory. Bad Programming requires explanation</p>
+</blockquote>
+<p>总结一下，认为程序中不需要写注释的原因主要有如下的几点： * 需要写注释的程序说明代码不够清晰啊，可以可以通过重构的方式，让代码变得“可读” * 维护注释是一件工作量很大的事情，改完代码之后，时常会忘记修改注释 * 注释如果解释的不清楚，那就需要“注释的注释”... * …… <a id="more"></a> 不能不说这些没有道理，实际上也都是很关心的问题，代码写的更好更可读，当然是值得推崇的。并且诚如所言，代码应该是“自解释”的，大部分情况下，我们可能的确不需要注释。代码的可读性，和注释，目的都是一样的，让别人看得懂，不会掉坑里面。这里的坑，可能是代码逻辑的，可能是业务逻辑的，可能是某个库的bug，可能是某种奇怪的设计或者历史原因。</p>
+<p>所以说，有另外一个更重要的他们没有考虑到的就是：</p>
+<blockquote>
+<p>self-explanatory code only tell how it is working. It rarely tells how it should work.</p>
+</blockquote>
+<p>正好最近又遇到一次坑。来描述一下这个故事： 起因是我们系统需要从一个第三方系统中查询数据。这个系统调用，我们代码里面是这么写的：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">try</span> {</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="kw">return</span> client.<span class="fu">getVehicleBaseData</span>(finOrVin);</span>
+<span id="cb1-3"><a href="#cb1-3"></a>} <span class="kw">catch</span> (<span class="bu">Exception</span> e) {</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    log.<span class="fu">error</span>(<span class="st">&quot;error loading vehicle basic data from eva for finOrVin:{}&quot;</span>, finOrVin);</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    <span class="kw">throw</span> <span class="kw">new</span> <span class="fu">EvaAccessFailureException</span>(evaLoadService.<span class="fu">generateFallback</span>(e.<span class="fu">getMessage</span>()));</span>
+<span id="cb1-6"><a href="#cb1-6"></a>}</span></code></pre></div>
+<p>这段代码的功能是，调用外部系统的api，然后返回一个结果；如果出错则抛出异常。同时，需要根据出错的“代码”来判断是对方系统的内部错误，还是资源找不到。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a>Fallback <span class="fu">generateFallback</span>(<span class="bu">String</span> message) {</span>
+<span id="cb2-2"><a href="#cb2-2"></a>    <span class="kw">try</span> {</span>
+<span id="cb2-3"><a href="#cb2-3"></a>        <span class="dt">int</span> startPos = message.<span class="fu">indexOf</span>(<span class="st">&quot;{</span><span class="sc">\&quot;</span><span class="st">error</span><span class="sc">\&quot;</span><span class="st">:&quot;</span>);</span>
+<span id="cb2-4"><a href="#cb2-4"></a>        <span class="kw">if</span> (startPos == -<span class="dv">1</span>) {</span>
+<span id="cb2-5"><a href="#cb2-5"></a>            <span class="kw">return</span> <span class="kw">new</span> <span class="fu">Fallback</span>(UNEXPECTED, message);</span>
+<span id="cb2-6"><a href="#cb2-6"></a>        }</span>
+<span id="cb2-7"><a href="#cb2-7"></a>        EvaErrorResponse response = JsonUtils.<span class="fu">unmarshal</span>(message.<span class="fu">substring</span>(startPos), EvaErrorResponse.<span class="fu">class</span>);</span>
+<span id="cb2-8"><a href="#cb2-8"></a>        <span class="kw">return</span> <span class="kw">new</span> <span class="fu">Fallback</span>(<span class="fu">getByStringValue</span>(response.<span class="fu">getError</span>().<span class="fu">getErrorCode</span>()));</span>
+<span id="cb2-9"><a href="#cb2-9"></a>    } <span class="kw">catch</span> (<span class="bu">Exception</span> e) {</span>
+<span id="cb2-10"><a href="#cb2-10"></a>        log.<span class="fu">error</span>(<span class="st">&quot;unexpected error message from EVA {}&quot;</span>, message);</span>
+<span id="cb2-11"><a href="#cb2-11"></a>        log.<span class="fu">error</span>(e.<span class="fu">getMessage</span>(), e);</span>
+<span id="cb2-12"><a href="#cb2-12"></a>        <span class="kw">return</span> <span class="kw">new</span> <span class="fu">Fallback</span>(UNEXPECTED, message);</span>
+<span id="cb2-13"><a href="#cb2-13"></a>    }</span>
+<span id="cb2-14"><a href="#cb2-14"></a>}</span></code></pre></div>
+<p>这段代码尝试从message里面解析一串error，然后再反序列化为JSON，这里是这个EvaErrorResponse的定义：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a><span class="at">@Data</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="at">@Builder</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="at">@Getter</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="at">@Setter</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="at">@NoArgsConstructor</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="at">@AllArgsConstructor</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="kw">public</span> <span class="kw">class</span> EvaErrorResponse {</span>
+<span id="cb3-8"><a href="#cb3-8"></a>    <span class="kw">private</span> <span class="bu">Error</span> error;</span>
+<span id="cb3-9"><a href="#cb3-9"></a>}</span>
+<span id="cb3-10"><a href="#cb3-10"></a></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="at">@Data</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="at">@Builder</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a><span class="at">@Getter</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a><span class="at">@Setter</span></span>
+<span id="cb3-15"><a href="#cb3-15"></a><span class="at">@NoArgsConstructor</span></span>
+<span id="cb3-16"><a href="#cb3-16"></a><span class="at">@AllArgsConstructor</span></span>
+<span id="cb3-17"><a href="#cb3-17"></a><span class="kw">class</span> <span class="bu">Error</span> {</span>
+<span id="cb3-18"><a href="#cb3-18"></a>    <span class="kw">private</span> <span class="bu">String</span> errorCode;</span>
+<span id="cb3-19"><a href="#cb3-19"></a>    <span class="kw">private</span> <span class="bu">String</span> errorDesc;</span>
+<span id="cb3-20"><a href="#cb3-20"></a>}</span></code></pre></div>
+<p>姑且不说一个简单的Bean用这么多Lombok注解的问题~ 然后我需要做的是，模拟这个系统的出错返回，因为我们的开发环境无法连真实的三方系统测试。那么问题来了，三方系统出错的时候，应该返回什么呢？</p>
+<p>首先问问写这个代码的人（也就是直接对接这个系统的人）吧。他给了我一个文档，文档里面是这么描述的： <img src="/images/about_comments_1.png" alt="the document" /></p>
+<p>那么问题来了，这和代码定义完全不一样啊！然后告诉我以代码为准。从这个代码根本无法确定错误返回结构。然后又看看我们这个模拟的stub的代码，关于出错的地方是这么定义的：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">public</span> <span class="kw">class</span> OabResponseDto {</span>
+<span id="cb4-2"><a href="#cb4-2"></a></span>
+<span id="cb4-3"><a href="#cb4-3"></a>    <span class="kw">private</span> <span class="dt">boolean</span> success;</span>
+<span id="cb4-4"><a href="#cb4-4"></a></span>
+<span id="cb4-5"><a href="#cb4-5"></a>    <span class="kw">private</span> <span class="bu">Object</span> result;</span>
+<span id="cb4-6"><a href="#cb4-6"></a></span>
+<span id="cb4-7"><a href="#cb4-7"></a>    <span class="kw">private</span> <span class="bu">String</span> error;</span></code></pre></div>
+<p>后来才觉察到，这是另一个系统的接口返回了。但几个系统的模拟stub都写到了一起，让人完全无法确定真实的三方接口定义。最终，我找到了调用这个接口的测试环境，自己调用了一次，原来结果是这样的：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a>{<span class="st">&quot;error&quot;</span>:{<span class="st">&quot;errorCode&quot;</span>:<span class="st">&quot;WDCS0003&quot;</span>,<span class="st">&quot;errorDesc&quot;</span>:<span class="st">&quot;Resource not available!&quot;</span>}}</span></code></pre></div>
+<p>这耗费了我半天的时间。于是为了避免有人再踩这种坑，我加了个注释在这里：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a>Fallback <span class="fu">generateFallback</span>(<span class="bu">String</span> message) {</span>
+<span id="cb6-2"><a href="#cb6-2"></a>    <span class="kw">try</span> {</span>
+<span id="cb6-3"><a href="#cb6-3"></a>        <span class="co">/**</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>         <span class="co">*</span> example actual response from eva<span class="co">:</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a>         <span class="co">*</span> <span class="co">{&quot;</span>error<span class="co">&quot;:{&quot;</span>errorCode<span class="co">&quot;:&quot;</span>WDCS0003<span class="co">&quot;,&quot;</span>errorDesc<span class="co">&quot;:&quot;</span>Resource not available<span class="co">!&quot;}}</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a>         <span class="co">*/</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a>        <span class="dt">int</span> startPos = message.<span class="fu">indexOf</span>(<span class="st">&quot;{</span><span class="sc">\&quot;</span><span class="st">error</span><span class="sc">\&quot;</span><span class="st">:&quot;</span>);</span></code></pre></div>
+<p>然而这又被批判了，理由是这段注释不能解释代码。因为这里message并不是这样。那message到底是什么样？他们说，你可以调试打个断点看。难道让每一个看代码的人都打个断点来看么，这是什么逻辑！我就呵呵了。最终我还是妥协了，删了呗，对我而言无任何影响。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/misc/about_comments/" data-id="ck8ppfg41006ocjqi220tc784"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Comment/" rel="tag">Comment</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/misc/new_config_format/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            新的配置文件格式
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/why_not_lombok/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Why I don&#39;t use lombok</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

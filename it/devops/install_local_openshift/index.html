@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    搭建Openshift本地环境 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/devops/install_local_openshift" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      搭建Openshift本地环境
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/devops/install_local_openshift/" class="article-date">
+  <time datetime="2020-03-09T00:00:00.000Z" itemprop="datePublished">2020-03-09</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Docker/">Docker</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>OpenShift是红帽基于Docker和Kubernetes的云开发平台即服务（PaaS）。而<a href="https://www.okd.io/" target="_blank" rel="noopener">OKD(The Origin Community Distribution of Kubernetes )</a>即Openshift的开源版本。在本机上搭建一套完整的Openshift环境较为麻烦，有以下几种方式：</p>
+<ul>
+<li>Running in a Container</li>
+<li>Run the All-In-One VM with Minishift</li>
+<li>使用Virtualbox构建Openshift集群</li>
+</ul>
+<a id="more"></a>
+<h1 id="使用virtualbox构建openshift集群">使用VirtualBox构建Openshift集群</h1>
+<p>按照<a href="https://docs.openshift.com/container-platform/3.11/install/index.html" target="_blank" rel="noopener">安装文档</a>应该可以在本地搭建一个集群，但是纯手动安装的话比较复杂，幸好有<a href="https://github.com/eliu/openshift-vagrant" target="_blank" rel="noopener">Openshift Vagrant</a>这个项目可以帮助我们简单的构建出一个集群环境。</p>
+<h2 id="集群规划">集群规划</h2>
+<p>下面是计划搭建的最简单的单master、多node的一个集群配置：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Node</th>
+<th style="text-align: left;">IP</th>
+<th style="text-align: left;">Role</th>
+<th style="text-align: left;">Instance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">master.example.com</td>
+<td style="text-align: left;">.100</td>
+<td style="text-align: left;">node, master, etcd</td>
+<td style="text-align: left;">4GMem, 2Core, 40GDisk</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">node1.example.com</td>
+<td style="text-align: left;">.101</td>
+<td style="text-align: left;">node</td>
+<td style="text-align: left;">2GMem, 1Core, 40GDisk</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">node2.example.com</td>
+<td style="text-align: left;">.102</td>
+<td style="text-align: left;">node</td>
+<td style="text-align: left;">2GMem, 1Core, 40GDisk</td>
+</tr>
+</tbody>
+</table>
+<p>整个安装步骤可以分为这几步：</p>
+<ul>
+<li>创建好master、node三个虚拟机</li>
+<li>通过hosts文件设置好域名解析</li>
+<li>在master、node上都安装docker依赖</li>
+<li>配置在master上可以通过ssh访问到node01、node02</li>
+<li>在master上安装ansible</li>
+<li>在master上执行openshift-ansible部署openshift</li>
+</ul>
+<h2 id="定义虚拟机">定义虚拟机</h2>
+<p>如果手动从virtualbox安装虚拟机、再安装系统的话，需要耗费不少时间，通过Vagrant我们可以快速自动化地创建出这样的一个机器集群，类似从docker拉取image一样。定义这些只需要创建一个Vagrantfile：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb1-1"><a href="#cb1-1"></a>Vagrant<span class="op">.</span>configure<span class="op">(</span><span class="st">&quot;2&quot;</span><span class="op">)</span> <span class="cf">do</span> <span class="op">|</span>config<span class="op">|</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>    config<span class="op">.</span>vm<span class="op">.</span>box <span class="op">=</span> <span class="st">&quot;centos/7&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>    config<span class="op">.</span>vm<span class="op">.</span>box_check_update <span class="op">=</span> <span class="kw">false</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a>    config<span class="op">.</span>vm<span class="op">.</span>provider <span class="st">&quot;virtualbox&quot;</span> <span class="cf">do</span> <span class="op">|</span>vb<span class="op">|</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>        vb<span class="op">.</span>memory <span class="op">=</span> <span class="dv">2048</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>        vb<span class="op">.</span>cpus <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>    <span class="cf">end</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a>    config<span class="op">.</span>vm<span class="op">.</span>provision <span class="st">&quot;shell&quot;</span><span class="op">,</span> inline<span class="op">:</span> <span class="op">&lt;&lt;-</span><span class="cn">SHELL</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>        <span class="op">/</span>vagrant<span class="op">/</span>common<span class="op">.</span>sh</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    <span class="cn">SHELL</span></span>
+<span id="cb1-13"><a href="#cb1-13"></a></span>
+<span id="cb1-14"><a href="#cb1-14"></a>    config<span class="op">.</span>hostmanager<span class="op">.</span>enabled <span class="op">=</span> <span class="kw">true</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>    config<span class="op">.</span>hostmanager<span class="op">.</span>manage_host <span class="op">=</span> <span class="kw">true</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>    config<span class="op">.</span>hostmanager<span class="op">.</span>ignore_private_ip <span class="op">=</span> <span class="kw">false</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>  </span>
+<span id="cb1-18"><a href="#cb1-18"></a>    <span class="op">(</span><span class="dv">1..2</span><span class="op">).</span>each <span class="cf">do</span> <span class="op">|</span>i<span class="op">|</span></span>
+<span id="cb1-19"><a href="#cb1-19"></a>        config<span class="op">.</span>vm<span class="op">.</span>define <span class="st">&quot;node0#{i}&quot;</span> <span class="cf">do</span> <span class="op">|</span>node<span class="op">|</span></span>
+<span id="cb1-20"><a href="#cb1-20"></a>            node<span class="op">.</span>vm<span class="op">.</span>network <span class="st">&quot;private_network&quot;</span><span class="op">,</span> ip<span class="op">:</span> <span class="st">&quot;#{NETWORK_BASE}#{i}&quot;</span></span>
+<span id="cb1-21"><a href="#cb1-21"></a>            node<span class="op">.</span>vm<span class="op">.</span>hostname <span class="op">=</span> <span class="st">&quot;node0#{i}.example.com&quot;</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>        <span class="cf">end</span></span>
+<span id="cb1-23"><a href="#cb1-23"></a>    <span class="cf">end</span></span>
+<span id="cb1-24"><a href="#cb1-24"></a><span class="cf">end</span></span></code></pre></div>
+<p>以上的配置定义了操作系统、内存和cpu，以及网络和域名设置，然后创建node01、node02。这里用到了vagrant的hostmanager插件，他会去修改宿主机以及虚拟机的hosts文件，增加域名映射。同时，可以把一些公共的依赖项安装脚本进行provision，例如安装docker。然后，还需要创建master节点：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb2-1"><a href="#cb2-1"></a>config<span class="op">.</span>vm<span class="op">.</span>define <span class="st">&quot;master&quot;</span><span class="op">,</span> primary<span class="op">:</span> <span class="kw">true</span> <span class="cf">do</span> <span class="op">|</span>master<span class="op">|</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>        master<span class="op">.</span>vm<span class="op">.</span>network <span class="st">&quot;private_network&quot;</span><span class="op">,</span> ip<span class="op">:</span> <span class="st">&quot;#{NETWORK_BASE}0&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>        <span class="op">#</span> master<span class="op">.</span>vm<span class="op">.</span>hostname <span class="op">=</span> <span class="st">&quot;master.example.com&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>        master<span class="op">.</span>hostmanager<span class="op">.</span>aliases <span class="op">=</span> <span class="op">%</span>w<span class="op">(</span>master<span class="op">.</span>example<span class="op">.</span>com etcd<span class="op">.</span>example<span class="op">.</span>com nfs<span class="op">.</span>example<span class="op">.</span>com<span class="op">)</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>        master<span class="op">.</span>vm<span class="op">.</span>provider <span class="st">&quot;virtualbox&quot;</span> <span class="cf">do</span> <span class="op">|</span>vb<span class="op">|</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>            vb<span class="op">.</span>memory <span class="op">=</span> <span class="st">&quot;4096&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>            vb<span class="op">.</span>cpus <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>        <span class="cf">end</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="cf">end</span></span></code></pre></div>
+<p>创建了vagrantfile之后，就可以利用<code>vagrant up</code>命令来创建和启动这些虚拟机了。</p>
+<figure>
+<img src="/images/Virtualbox-cluster.png" alt="" /><figcaption>Virtualbox</figcaption>
+</figure>
+<p>这里master的域名配置有个坑，那就是hostnamanger会会生成一个master.example.com的ip映射在hosts文件里面，但是这个文件开头还有127.0.0.1 指向 master.example.com，像这样：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb3-1"><a href="#cb3-1"></a><span class="dv">127.0.0.1</span>       master<span class="op">.</span>example<span class="op">.</span>com      master</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="dv">127.0.0.1</span>   localhost localhost<span class="op">.</span>localdomain localhost4 localhost4<span class="op">.</span>localdomain4</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="op">::</span><span class="dv">1</span>         localhost localhost<span class="op">.</span>localdomain localhost6 localhost6<span class="op">.</span>localdomain6</span>
+<span id="cb3-4"><a href="#cb3-4"></a></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="op">##</span> vagrant<span class="op">-</span>hostmanager<span class="op">-</span>start</span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="dv">192.168.11.102</span>  node02<span class="op">.</span>example<span class="op">.</span>com</span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="dv">192.168.11.100</span>  master<span class="op">.</span>example<span class="op">.</span>com</span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="dv">192.168.11.101</span>  node01<span class="op">.</span>example<span class="op">.</span>com</span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="op">##</span> vagrant<span class="op">-</span>hostmanager<span class="op">-</span><span class="cf">end</span></span></code></pre></div>
+<p>所以这里设置的<code>master.hostmanager.aliases</code>，同时要手动修改hostname：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="ex">hostnamectl</span> set-hostname master.example.com</span></code></pre></div>
+<h2 id="安装依赖项">安装依赖项</h2>
+<p>各个节点上都需要安装docker环境，使用下面的命令安装：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="ex">yum</span> -y install docker-1.13.1</span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="co"># http://softpanorama.org/VM/Docker/Installation/rhel7_docker_package_dockerroot_problem.shtml</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="ex">usermod</span> -aG dockerroot vagrant</span>
+<span id="cb5-6"><a href="#cb5-6"></a></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="fu">cat</span> <span class="op">&gt;</span> /etc/docker/daemon.json <span class="op">&lt;&lt;EOF</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a>{</span>
+<span id="cb5-9"><a href="#cb5-9"></a>    &quot;group&quot;: &quot;dockerroot&quot;</span>
+<span id="cb5-10"><a href="#cb5-10"></a>}</span>
+<span id="cb5-11"><a href="#cb5-11"></a><span class="op">EOF</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a></span>
+<span id="cb5-13"><a href="#cb5-13"></a><span class="ex">systemctl</span> enable docker</span>
+<span id="cb5-14"><a href="#cb5-14"></a><span class="ex">systemctl</span> start docker</span></code></pre></div>
+<p>同时需要禁用掉SELinux：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1"></a><span class="ex">setenforce</span> 0</span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="fu">sed</span> -i <span class="st">&#39;s/SELINUX=enforcing/SELINUX=permissive/g&#39;</span> /etc/selinux/config</span></code></pre></div>
+<p>而在master上需要装更多的依赖项：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1"></a><span class="ex">yum</span> install wget git net-tools bind-utils yum-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct</span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="ex">yum</span> install unzip</span>
+<span id="cb7-4"><a href="#cb7-4"></a></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="ex">yum</span> -y install https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/ansible-2.9.6-1.el7.ans.noarch.rpm</span></code></pre></div>
+<p>这里安装依赖项之前，可以考虑将Base源替换为163源，这样速度会稍微快一点。</p>
+<h2 id="配置ssh访问">配置ssh访问</h2>
+<p>应为整个集群安装是在master上进行的，但实际上有一些东西是需要操作node的，因此要配置好在master上能直接无密码登录到其他的node上。这里通过ssh私钥的形式来设置，首先在Vagrantfile中:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode lua"><code class="sourceCode lua"><span id="cb8-1"><a href="#cb8-1"></a><span class="cf">if</span> File<span class="op">.</span>exist?<span class="op">(</span><span class="st">&quot;.vagrant/machines/master/virtualbox/private_key&quot;</span><span class="op">)</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>    master<span class="op">.</span>vm<span class="op">.</span>provision <span class="st">&quot;master-key&quot;</span><span class="op">,</span> <span class="fu">type</span><span class="op">:</span> <span class="st">&quot;file&quot;</span><span class="op">,</span> source<span class="op">:</span> <span class="st">&quot;.vagrant/machines/master/virtualbox/private_key&quot;</span><span class="op">,</span> destination<span class="op">:</span> <span class="st">&quot;/home/vagrant/.ssh/master.key&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="cf">end</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="cf">if</span> File<span class="op">.</span>exist?<span class="op">(</span><span class="st">&quot;.vagrant/machines/node01/virtualbox/private_key&quot;</span><span class="op">)</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>    master<span class="op">.</span>vm<span class="op">.</span>provision <span class="st">&quot;node01-key&quot;</span><span class="op">,</span> <span class="fu">type</span><span class="op">:</span> <span class="st">&quot;file&quot;</span><span class="op">,</span> source<span class="op">:</span> <span class="st">&quot;.vagrant/machines/node01/virtualbox/private_key&quot;</span><span class="op">,</span> destination<span class="op">:</span> <span class="st">&quot;/home/vagrant/.ssh/node01.key&quot;</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="cf">end</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="cf">if</span> File<span class="op">.</span>exist?<span class="op">(</span><span class="st">&quot;.vagrant/machines/node02/virtualbox/private_key&quot;</span><span class="op">)</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a>    master<span class="op">.</span>vm<span class="op">.</span>provision <span class="st">&quot;node02-key&quot;</span><span class="op">,</span> <span class="fu">type</span><span class="op">:</span> <span class="st">&quot;file&quot;</span><span class="op">,</span> source<span class="op">:</span> <span class="st">&quot;.vagrant/machines/node02/virtualbox/private_key&quot;</span><span class="op">,</span> destination<span class="op">:</span> <span class="st">&quot;/home/vagrant/.ssh/node02.key&quot;</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="cf">end</span></span></code></pre></div>
+<p>然后通过下面的命令将文件拷贝过去：</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1"></a><span class="ex">vagrant</span> provision --provision-with master-key,node01-key,node02-key</span></code></pre></div>
+<p>这一步的目的是因为Vagrant在创建这些node的时候，这个key还没有生成，只能在创建完之后才能成功拷贝过去。然后设置master的ssh配置：</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># vagrant ssh master</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="co">#vim ~/.ssh/config</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="ex">Host</span> *</span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="ex">StrictHostKeyChecking</span> no</span></code></pre></div>
+<p>到这一步，docker、ssh访问都应该是成功的，如果想检查是否配置成功，可以在master上测试：</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1"></a><span class="ex">vagrant</span> ssh master</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="ex">docker</span> -v</span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="fu">ssh</span> -i node01.key vagrant@node01.example.com</span></code></pre></div>
+<h2 id="创建inventory">创建Inventory</h2>
+<p>通过ansible执行需要一个hosts文件，如下：</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">[OSEv3:children]</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="dt">masters</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="dt">nodes</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="dt">etcd</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="kw">[OSEv3:vars]</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="dt">ansible_ssh_user</span><span class="ot">=</span><span class="st">vagrant</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a><span class="dt">ansible_become</span><span class="ot">=</span><span class="kw">true</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a><span class="dt">openshift_deployment_type</span><span class="ot">=</span><span class="st">origin</span></span>
+<span id="cb12-10"><a href="#cb12-10"></a><span class="dt">openshift_disable_check</span><span class="ot">=</span><span class="st">disk_availability,memory_availability,docker_storage,docker_image_availability</span></span>
+<span id="cb12-11"><a href="#cb12-11"></a></span>
+<span id="cb12-12"><a href="#cb12-12"></a><span class="kw">[masters]</span></span>
+<span id="cb12-13"><a href="#cb12-13"></a><span class="dt">master.example.com ansible_ssh_private_key_file</span><span class="ot">=</span><span class="st">&quot;/home/vagrant/.ssh/master.key&quot;</span></span>
+<span id="cb12-14"><a href="#cb12-14"></a></span>
+<span id="cb12-15"><a href="#cb12-15"></a><span class="kw">[etcd]</span></span>
+<span id="cb12-16"><a href="#cb12-16"></a><span class="dt">master.example.com ansible_ssh_private_key_file</span><span class="ot">=</span><span class="st">&quot;/home/vagrant/.ssh/master.key&quot;</span></span>
+<span id="cb12-17"><a href="#cb12-17"></a></span>
+<span id="cb12-18"><a href="#cb12-18"></a><span class="kw">[nodes]</span></span>
+<span id="cb12-19"><a href="#cb12-19"></a><span class="dt">master.example.com containerized</span><span class="ot">=</span><span class="kw">false</span><span class="st"> etcd_ip=</span><span class="dv">192</span><span class="st">.</span><span class="dv">168</span><span class="st">.</span><span class="fl">11.100</span><span class="st"> openshift_node_group_name=&#39;node-config-master-infra&#39;  ansible_ssh_private_key_file=&quot;/home/vagrant/.ssh/master.key&quot;</span></span>
+<span id="cb12-20"><a href="#cb12-20"></a><span class="dt">node01.example.com openshift_node_group_name</span><span class="ot">=</span><span class="st">&#39;node-config-compute&#39; ansible_ssh_private_key_file=&quot;/home/vagrant/.ssh/node01.key&quot;</span></span>
+<span id="cb12-21"><a href="#cb12-21"></a><span class="dt">node02.example.com openshift_node_group_name</span><span class="ot">=</span><span class="st">&#39;node-config-compute&#39; ansible_ssh_private_key_file=&quot;/home/vagrant/.ssh/node02.key&quot;</span></span></code></pre></div>
+<p>这里有几点坑： * <code>containerized=false etcd_ip=192.168.11.100</code>这个如果不加会导致<a href="https://github.com/eliu/openshift-vagrant/issues/10" target="_blank" rel="noopener">"Wait for control plane pods to appear"</a>错误</p>
+<p>这个文件保存到/etc/ansible/hosts。</p>
+<h2 id="安装">安装</h2>
+<p>在master上面安装ansible:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1"></a><span class="ex">yum</span> -y install https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/ansible-2.9.6-1.el7.ans.noarch.rpm</span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="fu">wget</span> https://github.com/openshift/openshift-ansible/archive/openshift-ansible-3.11.187-1.zip</span></code></pre></div>
+<p>然后，最好把openshift-ansible里面的mirror修改成国内的，否则很可能安装不成功或者要花很长时间：</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1"></a><span class="fu">sed</span> -i <span class="st">&#39;s/mirror.centos.org/mirrors.163.com/g&#39;</span> openshift-ansible/roles/openshift_repos/templates/CentOS-OpenShift-Origin311.repo.j2</span></code></pre></div>
+<p>正是安装：</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1"></a><span class="ex">ansible-playbook</span> /home/vagrant/openshift-ansible/playbooks/prerequisites.yml <span class="kw">&amp;&amp;</span> <span class="ex">ansible-playbook</span> /home/vagrant/openshift-ansible/playbooks/deploy_cluster.yml</span></code></pre></div>
+<p>如果一切正常的话，就可以安装成功了。其中有几步比较耗时(大概十分钟左右），需要点耐心：</p>
+<pre><code>TASK [openshift_node : Install node, clients, and conntrack packages]
+TASK [openshift_node : Check status of node image pre-pull]</code></pre>
+<p>成功之后，可以看到log：</p>
+<pre><code>PLAY RECAP ***********************************************************************************************************
+localhost                  : ok=11   changed=0    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+master.example.com         : ok=622  changed=275  unreachable=0    failed=0    skipped=987  rescued=0    ignored=0
+node01.example.com         : ok=130  changed=63   unreachable=0    failed=0    skipped=167  rescued=0    ignored=0
+node02.example.com         : ok=130  changed=63   unreachable=0    failed=0    skipped=167  rescued=0    ignored=0
+
+
+INSTALLER STATUS *****************************************************************************************************
+Initialization               : Complete (0:00:18)
+Health Check                 : Complete (0:00:04)
+Node Bootstrap Preparation   : Complete (0:34:23)
+etcd Install                 : Complete (0:00:32)
+Master Install               : Complete (0:07:48)
+Master Additional Install    : Complete (0:00:34)
+Node Join                    : Complete (0:06:56)
+Hosted Install               : Complete (0:00:56)
+Cluster Monitoring Operator  : Complete (0:02:47)
+Web Console Install          : Complete (0:01:45)
+Console Install              : Complete (0:01:21)
+Service Catalog Install      : Complete (0:07:53)</code></pre>
+<p>然后就可以访问<code>https://master.example.com:8443/</code>了：</p>
+<figure>
+<img src="/images/Openshift-welcome.png" alt="" /><figcaption>Openshift home</figcaption>
+</figure>
+<p>Reference: * <a href="https://blog.csdn.net/sun_qiangwei/article/details/80443943" target="_blank" rel="noopener">OpenShift 3.9 多节点集群（Ansible）安装</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/devops/install_local_openshift/" data-id="ck8ppfg3h0056cjqi3bej1kbh"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OpenShift/" rel="tag">OpenShift</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Virtualbox/" rel="tag">Virtualbox</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/cache/redis_lru/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Redis Memory limit and eviction policy configuration
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/algorithm/about_bwt/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Burrows-Wheeler变换(Burrows–Wheeler Transform)</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

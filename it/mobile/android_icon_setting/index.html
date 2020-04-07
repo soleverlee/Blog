@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Android Develop:设置应用图标 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/mobile/android_icon_setting" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Android Develop:设置应用图标
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/mobile/android_icon_setting/" class="article-date">
+  <time datetime="2019-02-20T00:00:00.000Z" itemprop="datePublished">2019-02-20</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Android/">Android</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>前前后后各种原因耽搁了大半年，终于还是下定决心开始做我的Okapia android应用了，笔者一直从事的是Java后端和Web开发，基本上没有安卓开发的项目经验，正所谓万事开头难，一边学一边做。所以我计划把做的过程中遇到的一些问题都整理记录下来，供读者参考。 <a id="more"></a></p>
+<h1 id="原型设计">原型设计</h1>
+<p>原型设计是一项比较重要的事情，可以帮助我们在开发之前就理清楚要做什么，现在有比较多的工具可以来做这个事情。我用的是别人推荐的MockingBot（墨刀），一个国产软件，还比较好用。</p>
+<figure>
+<img src="/images/mockingbot_ui.png" alt="" /><figcaption>mockingbot</figcaption>
+</figure>
+<h1 id="图标资源文件夹">图标资源文件夹</h1>
+<p>使用android studio生成的项目中，有不少文件夹：</p>
+<figure>
+<img src="/images/android_project_res.png" alt="" /><figcaption>android project resource folder</figcaption>
+</figure>
+<ul>
+<li>drawable</li>
+<li>drawable-v24</li>
+<li>mipmap-anydpi-v26</li>
+<li>mipmap-hdpi</li>
+<li>...</li>
+</ul>
+<p>可以看出mipmap-xxxx中其实都是不同分辨率适配的不同大小的图标，唯独mipmap-anydpi-v26中其实是一个xml，将background和forground分开了拼合到了一起。而background和forground实际是一个矢量图，网上资料显示实际是svg的一个简化版本的android实现。这就麻烦了，哪里去做svg矢量图！大概有以下的途径吧：</p>
+<h1 id="图标生成与编辑">图标生成与编辑</h1>
+<h2 id="图标编辑工具">图标编辑工具</h2>
+<ul>
+<li>将图片转换为SVG <a href="https://www.pngtosvg.com/" target="_blank" rel="noopener">pngtosvg</a></li>
+<li>使用SVG编辑工具绘制（推荐macSvg）</li>
+<li>将SVG转换为android vector <a href="http://inloop.github.io/svg2android/" target="_blank" rel="noopener">svg2android</a></li>
+</ul>
+<p>这样需要生成两张图片，一个背景一个图标。注意图标要适当居中一点，边上要留一些边距。这个可以通过控制viewBox和拖动形状来完成，在macSvg中即可处理。</p>
+<figure>
+<img src="/images/macsvg.png" alt="" /><figcaption>macsvg</figcaption>
+</figure>
+<p>譬如如上的图片，它的参照系设置是400，这样把图片拖到200的位置，就基本上居中了。如果想让图片缩小一点，可以把参照系设置大一点，比如600，再把形状拖到300的位置，想直接缩小形状貌似是没找到办法。简单的颜色替换什么的，其实直接用文本编辑器就可以了。</p>
+<h2 id="导入到工程中">导入到工程中</h2>
+<p>通过在res文件夹上右键:New -&gt; Image Set即可自动生成各个分辨率的图标。</p>
+<figure>
+<img src="/images/new_image_set.png" alt="" /><figcaption>Import image set</figcaption>
+</figure>
+<h1 id="安卓中的图标与名称配置">安卓中的图标与名称配置</h1>
+<p>在AndroidManifest.xml中配置了图标的路径：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">&lt;application</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="ot">        android:allowBackup=</span><span class="st">&quot;true&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="ot">        android:icon=</span><span class="st">&quot;@mipmap/ic_launcher&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="ot">        android:label=</span><span class="st">&quot;@string/app_name&quot;</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="ot">        android:roundIcon=</span><span class="st">&quot;@mipmap/ic_launcher_round&quot;</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="ot">        android:supportsRtl=</span><span class="st">&quot;true&quot;</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="ot">        android:theme=</span><span class="st">&quot;@style/AppTheme&quot;</span><span class="kw">&gt;</span></span></code></pre></div>
+<p>可以看出指定了icon、label和roundIcon等。这里我们保持原有的ic_launcher名称即可，导入图标的时候直接替换掉即可。另一个是app的名称，需要注意的是，如果启动的Activity上有label，这时候app的名称会变成这个activity的名称，例如:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">&lt;activity</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="ot">        android:name=</span><span class="st">&quot;.FullscreenActivity&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="ot">        android:configChanges=</span><span class="st">&quot;orientation|keyboardHidden|screenSize&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="ot">        android:label=</span><span class="st">&quot;@string/title_activity_fullscreen&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="ot">        android:theme=</span><span class="st">&quot;@style/FullscreenTheme&quot;</span><span class="kw">&gt;&lt;/activity&gt;</span></span></code></pre></div>
+<p>如果这个activity是启动activity，那么app的名称就是@string/title_activity_fullscreen这个值了，要处理这个也很简单，我们直接删掉这个activity的label属性即可。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/mobile/android_icon_setting/" data-id="ck8ppfg490071cjqi80vz9vip"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android-Studio/" rel="tag">Android Studio</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/mobile/android_land_layout/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Android Develop:横屏布局
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/database/mysql_replication/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">MySQL replication</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

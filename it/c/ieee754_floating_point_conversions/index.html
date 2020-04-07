@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    IEEE 754浮点数转换 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/c/ieee754_floating_point_conversions" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      IEEE 754浮点数转换
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/c/ieee754_floating_point_conversions/" class="article-date">
+  <time datetime="2019-06-27T00:00:00.000Z" itemprop="datePublished">2019-06-27</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/C/">C++</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>一个小数的二进制是怎么样的呢？我们先看看一个二进制的小数怎么转换成十进制： <span class="math display">\[
+\begin{aligned} 
+11101.01011_{10} &amp;= 1 \times 2^{4} + 1 \times 2^{3} + 1 \times 2^{2} + 0 \times 2^{1} + 1 \times 2^{0} + 0 \times 2^{-1} + 1 \times 2^{-2} + 1 \times 2^{-3} + 1 \times 2^{-4} + 1 \times 2^{-5} \\
+  &amp;= 16 + 8 + 4 + 0 + 1 + 0 + \frac{1}{2} + 0 + \frac{1}{16} + \frac{1}{32} \\
+  &amp;= 29.34375
+\end{aligned}
+\]</span> <a id="more"></a></p>
+<h1 id="ieee-754">IEEE 754</h1>
+<p><a href="https://en.wikipedia.org/wiki/IEEE_754" target="_blank" rel="noopener">IEEE 754</a> 标准中规定了浮点数在计算机中的表示方法，主要就是单精度(float)和双精度(double):</p>
+<pre><code>              S Exp      Fraction
+Single(32bit) ▯▮▮▮▮▮▮▮▮▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯
+Double(64bit) ▯▮▮▮▮▮▮▮▮▮▮▮▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯</code></pre>
+<p>其计算公式为： <span class="math display">\[
+x = (-1)^{S}\times(1+ Fraction)\times 2^{(Exponent-Bias)}
+\]</span> 其中，Bias为<a href="https://zh.wikipedia.org/wiki/IEEE_754#%E6%8C%87%E6%95%B8%E5%81%8F%E7%A7%BB%E5%80%BC" target="_blank" rel="noopener">指数偏移值</a>，是一个固定值，即<span class="math inline">\(Bias=2^{e-1} - 1\)</span> 其中e为指数部分的比特长度。</p>
+<ul>
+<li>单精度<span class="math inline">\(Bias = 2^{7} - 1 = 127\)</span></li>
+<li>双精度<span class="math inline">\(Bias = 2^{10} -1 = 1023\)</span></li>
+</ul>
+<p>举个例子，刚才我们算出来的小数可以这样表示：</p>
+<p><span class="math display">\[
+\begin{aligned} 
+29.34375 &amp;= 11101.01011 = 11101.01011_{2} \times 2^{0} \\
+    &amp;= 1.110101011_{2} \times 2^{4} \\
+    &amp;= (-1)^{0} \times (1 + 0.110101011_{2}) \times 2^{131 - 127} \\
+    &amp;= (-1)^{0} \times (1 + 0.110101011_{2}) \times 2^{10000011_{2} - 127} \\
+    &amp;= (-1)^{0} \times (1 + 0.110101011_{2}) \times 2^{1027 - 1023} \\
+    &amp;= (-1)^{0} \times (1 + 0.110101011_{2}) \times 2^{10000000011_{2} - 127} \\
+\end{aligned}
+\]</span></p>
+<p>因此在计算机中，表示为：</p>
+<pre><code>Float:
+▯▮▮▮▮▮▮▮▮▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯
+010000011110101011..............
+
+Double:
+▯▮▮▮▮▮▮▮▮▮▮▮▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯
+010000000011110101011...........................................</code></pre>
+<p>不足的部分补上0，即：<span class="math inline">\(0100000111101010110000000000000_{2}=41eac000{16}\)</span></p>
+<p>除了正常的浮点数外，还有几个比较特殊的：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Float(32bit)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Zero</td>
+<td style="text-align: left;">0 00000000 00000000000000000000000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Negative Zero</td>
+<td style="text-align: left;">1 00000000 00000000000000000000000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Infinity</td>
+<td style="text-align: left;">0 11111111 00000000000000000000000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Negative Infinity</td>
+<td style="text-align: left;">1 11111111 00000000000000000000000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Not a Number (NaN)</td>
+<td style="text-align: left;">0 11111111 00001000000000100001000</td>
+</tr>
+</tbody>
+</table>
+<h1 id="十进制与二进制转换">十进制与二进制转换</h1>
+<p>计算方式为，将小数的整数部分与2取余倒序排列；将小数部分与2取整正序排列。例如，将3.14转换为float:</p>
+<ul>
+<li>首先将整数部分直接转换为二进制 <span class="math inline">\(3_{10} = 11_{2}\)</span>
+<ul>
+<li><span class="math inline">\(3\mod2 = \fbox{1}\)</span></li>
+<li><span class="math inline">\(1\mod2 = \fbox{1}\)</span></li>
+</ul></li>
+<li>小数部分为0.14，不断乘以2后取整数部分，然后用小数继续乘以2直到值为1
+<ul>
+<li><span class="math inline">\(0.14 \times 2 = \fbox{0}.28\)</span></li>
+<li><span class="math inline">\(0.28 \times 2 = \fbox{0}.56\)</span></li>
+<li><span class="math inline">\(0.56 \times 2 = \fbox{1}.12\)</span></li>
+<li><span class="math inline">\(0.12 \times 2 = \fbox{0}.24\)</span></li>
+<li><span class="math inline">\(0.24 \times 2 = \fbox{0}.48\)</span></li>
+<li><span class="math inline">\(0.48 \times 2 = \fbox{0}.96\)</span></li>
+<li><span class="math inline">\(0.96 \times 2 = \fbox{1}.92\)</span></li>
+<li><span class="math inline">\(0.92 \times 2 = \fbox{1}.84\)</span></li>
+<li>.....</li>
+<li>重复以上步骤，得到<span class="math inline">\(0.14_{10}=0.001000111101011100001010001111010..._{2}\)</span></li>
+</ul></li>
+</ul>
+<h1 id="舍入操作">舍入操作</h1>
+<p>对于尾数多余精度的情况，需要舍去多余的部分，但不是按照四舍五入的方式，而是按照”向偶舍入“的方式，意思就是，如果多余的部分大于0.5(<span class="math inline">\(0.5_{10} = 0.1_{2})\)</span>则最低位进1；如果小于0.5则舍去；如果正好是等于0.5则根据最低位判断，如果最低位是1则进位，否则舍去。这样按照统计学来看，对于一个小数有相同的机会进位或者被舍去。</p>
+<p>例如对于上例中的3.14，我们可以得到：</p>
+<p><span class="math display">\[
+\begin{aligned} 
+3.14 &amp;= 11.001000111101011100001010001111010..._{2} \\
+    &amp;= 1.1001000111101011100001010001111010..._{2} \times 2^{1} \\
+    &amp;= (-1)^{0} + (1 + 0.1001000111101011100001010001111010..._{2}) \times 2^{128 - 127} \\
+    &amp;= (-1)^{0} + (1 + 0.10010001111010111000010{\color{blue}{10001111010...}}_{2}) \times 2^{10000000_{2} - 127} \\
+    &amp;\approx (-1)^{0} + (1 + 0.1001000111101011100001{\color{red}1}_{2}) \times 2^{10000000_{2} - 127}
+\end{aligned}
+\]</span></p>
+<p>因此3.14的float表示为：</p>
+<pre><code>▯▮▮▮▮▮▮▮▮▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯▯
+01000000010010001111010111000011</code></pre>
+<h1 id="还原">还原</h1>
+<p>那么，对于一个存储在磁盘上的浮点数，我们怎么将它加载到内存中来？对于C来说，实际也是采用的IEEE754标准(float, double)，所以实际上浮点数在内存中的表示是一致的，直接转换即可：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">struct</span> ConstantFloat {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>        <span class="at">mutable</span> u4 bytes;</span>
+<span id="cb4-3"><a href="#cb4-3"></a>        <span class="dt">float</span> &amp;getValue() <span class="at">const</span> {</span>
+<span id="cb4-4"><a href="#cb4-4"></a>            <span class="cf">return</span> *<span class="kw">reinterpret_cast</span>&lt;<span class="dt">float</span> *&gt;(&amp;bytes);</span>
+<span id="cb4-5"><a href="#cb4-5"></a>        }</span>
+<span id="cb4-6"><a href="#cb4-6"></a>    };</span></code></pre></div>
+<p>参考：</p>
+<ul>
+<li><a href="http://sandbox.mc.edu/~bennet/cs110/flt/dtof.html" target="_blank" rel="noopener">Decimal to Floating-Point Conversions</a></li>
+<li><a href="http://cs.boisestate.edu/~alark/cs354/lectures/ieee754.pdf" target="_blank" rel="noopener">IEEE 754 FLOATING POINT REPRESENTATION</a></li>
+<li><a href="https://www.h-schmidt.net/FloatConverter/IEEE754.html" target="_blank" rel="noopener">IEEE-754 Floating Point Converter</a></li>
+<li><a href="https://www.rapidtables.com/convert/number/binary-to-decimal.html" target="_blank" rel="noopener">Binary to Decimal converter</a></li>
+<li><a href="https://www.jianshu.com/p/e5d72d764f2f" target="_blank" rel="noopener">IEEE754表示浮点数</a></li>
+<li><a href="http://www.binaryconvert.com/result_double.html?decimal=050057046051052051055053" target="_blank" rel="noopener">Online Binary-Decimal Converter</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/c/ieee754_floating_point_conversions/" data-id="ck8ppfg2y004bcjqi8aph2r5l"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/IEEE-754/" rel="tag">IEEE 754</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/tdd_in_sprintboot/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            使用TDD开发SpringBoot应用
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/arch/cdc_in_microservices/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">浅谈CDC在微服务中的应用</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

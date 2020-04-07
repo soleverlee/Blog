@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    分布式系统 ID 生成 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/arch/distributed_id_generation" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      分布式系统 ID 生成
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/arch/distributed_id_generation/" class="article-date">
+  <time datetime="2017-09-27T00:00:00.000Z" itemprop="datePublished">2017-09-27</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Distributed/">Distributed</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>ID生成一直是一个老生常谈的问题，个人不习惯使用ID自增的方式，从0开始...每次递增，原因是因为low...最近研究了一下ID生成的算法，主要用来给我们的订单系统用。首先说一下背景：我们的系统提供给很多经销商使用，每个经销商登录到我们的系统，发生业务、产生订单。 <a id="more"></a></p>
+<h1 id="设计原则">设计原则</h1>
+<ul>
+<li><strong>唯一性</strong>：保证生成的ID不会出现重复，需要考虑分布式部署情况下的唯一性</li>
+<li><strong>安全性</strong>：不会通过订单号泄露流水信息（比如别人通过订单号知道你一天大概多少交易量）</li>
+<li><strong>长度</strong>：长度未明确要求，在满足其他需要的情况下应该尽量短</li>
+<li><strong>字符集</strong>：字符未明确要求，按允许数字 + 英文字母（大写）设计</li>
+<li><strong>性能要求</strong>：如果按500家商家上线，每家每天1000次订单生成，其中高峰期每分钟10单，系统能支持运行10年的指标来计算，每天的订单数为500 * 1000 = 50W，高峰期每分钟为500 * 10 = 5000单，10年为 500 * 1000 * 365 * 10 = 1825000000单</li>
+<li><strong>易读性</strong>：如果使用英文字母，则可以考虑去除掉容易混淆的字母：O I S Z 等</li>
+</ul>
+<h1 id="option-1snowflake算法">Option 1：Snowflake算法</h1>
+<p>参考twitter的snowflake 64bit ID生成算法，设计如下的ID规则：</p>
+<p>0 00000000 00000000 00000000 00000000 00000000 0 00000000 00 00000000 0000</p>
+<ul>
+<li>1 bit 符号位，固定为0，不使用</li>
+<li>41bit时间戳，即当前时间到某一开始时间的毫秒数</li>
+<li>10bit 商家标识，可根据其上线时间递增</li>
+<li>12bit 序列号，每一毫秒内从0开始，如果超过最大值则等待下一毫秒</li>
+</ul>
+<p>其中41bit时间戳最大可支持的时间： (2^41) / (365 × 24 × 60 × 60 × 1000) = 2199023255552 / 31536000000 ≈ 69.7(年)</p>
+<p>10bit 标识 最大支持的商家数为： 2^10 = 1024</p>
+<p>12bit 序列号最大支持为每秒： 2^12 = 4096</p>
+<p>生成的ID大概像这样：</p>
+<pre><code>274432
+...
+278501
+278502
+278503
+278504
+...
+109996123808346299
+109996123808346300
+109996123808346301
+….
+2647243359755833344
+2647243359755833345
+2647243359755833346</code></pre>
+<p>如果需要支持分布式部署，则可考虑将商家标识的10位中插入机器标识，根据最大可能的机器节点数来选取位数。比如分配3位，就可以支持2^3=8台机器。同样，时间戳可以浮动，一般的系统根本不需要考虑超过5年以上的情况，能用两年就不错了...当然我倾向于支持10年，10年后如果世界末日不到，系统还在用，那就再想办法吧。</p>
+<h1 id="option-2-时间戳-商家标识-随机数">Option 2 : 时间戳 + 商家标识 + 随机数</h1>
+<h2 id="时间6位-商家标识-4位-随机数4位">时间（6位）+ 商家标识 （4位） + 随机数（4位）</h2>
+<p>170911 0001 8774</p>
+<p>其中，商家标识和随机数取值范围为[0-9A-Z]即 T = 26 + 10 = 36(种)</p>
+<p>其中，商家标识最大支持的商家数为： T × T × T × T = T^ 4 = 1679616</p>
+<p>随机数支持范围同商家标识。因时间精确到天，因此随机数每日不能重复，每天最大支持的订单数（每个商家）即为： T^ 4 = 1679616</p>
+<h2 id="时间3位-商家标识-2位-随机数2位">时间（3位）+ 商家标识 （2位） + 随机数（2位）</h2>
+<p>79A 0A F1</p>
+<p>其中年、月、日各占一位，其中年可以取年份-2017年的差值，超过9则用字母表示，例如2017年9月25日，可表示为： 09M</p>
+<p>这是简短的方案，年份只取一位则最多只可以使用T = 36年，否则会出现重复</p>
+<p>其中商家标识最大支持： T ^ 2 = 1296</p>
+<p>每天每一个商家标识最多只能支持T^ 2 = 1296笔订单号，若不能满足业务需求则可以将随机数扩展为3-4位</p>
+<h2 id="时间8位-商家标识-2位-序列号2位">时间（8位）+ 商家标识 （2位） + 序列号（2位）</h2>
+<p>65DEF7BE AF 35 65DEF7BE （16进制）= 1709111230（10进制）</p>
+<p>因时间精确到分钟，随机数按照每分钟递增，因此每分钟可以支持订单数： T ^ 2 = 1296 每天可支持的订单数为： 24 × 60 × T^ 2 = 1866240</p>
+<h1 id="option-3-时间戳-随机数">Option 3 : 时间戳 + 随机数</h1>
+<p>时间戳（6位） + 随机数（4位） 170911 9527</p>
+<p>使用4位数字则每日最大只能9999单，使用字母则可以有 T^ 4 = 1679616 单 若按500家商家算平均每个商家每天有3359单</p>
+<h1 id="option-4-渠道号-时间戳-流水号-用户标识随机数">Option 4 : 渠道号 + 时间戳 +（流水号 +用户标识+随机数）</h1>
+<p>R 79A 0011 9527 34</p>
+<p>其中，流水号按用户按天生成，用户标识取用户ID后四位，例如： 流水号（4位） + 用户标识（4位） + 随机数（2位） 0011 9527 34</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/arch/distributed_id_generation/" data-id="ck8ppfg2r003wcjqi45ar1ekq"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/UUID/" rel="tag">UUID</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/mobile/use_opencv_on_android/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            在Android 上使用 OpenCV
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/arch/spring_cloud_contract/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">使用Spring Cloud Contract进行契约测试</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

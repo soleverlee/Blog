@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    C++中的NRVO |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/c/nrvo_in_cplusplus" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      C++中的NRVO
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/c/nrvo_in_cplusplus/" class="article-date">
+  <time datetime="2019-09-25T00:00:00.000Z" itemprop="datePublished">2019-09-25</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/C/">C++</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>对于C++这种需要精细管理对象的语言来说有时候真是比较复杂，一个看似简单的问题一直在困惑着我：到底可不可以在方法中返回局部变量呢？ <a id="more"></a></p>
+<h1 id="可以返回临时变量">可以返回临时变量</h1>
+<p>答案是肯定的，如果我们在一个方法中返回了临时变量，这个临时变量实际上是在栈里面的，当执行完方法后栈就销毁了，那么为什么我们还可以这样做呢？来看一个例子：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1"></a><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">using</span> <span class="kw">namespace</span> std;</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">class</span> Value {</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    <span class="kw">public</span>:</span>
+<span id="cb1-6"><a href="#cb1-6"></a>        Value(<span class="dt">int</span> _m):m(_m) { <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;test constructor&quot;</span> &lt;&lt; m &lt;&lt; <span class="bu">std::</span>endl; }</span>
+<span id="cb1-7"><a href="#cb1-7"></a>        Value(<span class="at">const</span> Value&amp; t) { </span>
+<span id="cb1-8"><a href="#cb1-8"></a>            <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;test copy constructor&quot;</span> &lt;&lt; m &lt;&lt; <span class="bu">std::</span>endl; </span>
+<span id="cb1-9"><a href="#cb1-9"></a>            <span class="kw">this</span>-&gt;m = t.m;</span>
+<span id="cb1-10"><a href="#cb1-10"></a>        }</span>
+<span id="cb1-11"><a href="#cb1-11"></a>        ~Value() { <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;test destructor&quot;</span> &lt;&lt; m &lt;&lt; <span class="bu">std::</span>endl; }</span>
+<span id="cb1-12"><a href="#cb1-12"></a>        <span class="dt">void</span> print() { <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;m:&quot;</span> &lt;&lt; m &lt;&lt; <span class="bu">std::</span>endl; }</span>
+<span id="cb1-13"><a href="#cb1-13"></a>    <span class="kw">private</span>:</span>
+<span id="cb1-14"><a href="#cb1-14"></a>        <span class="dt">int</span> m;</span>
+<span id="cb1-15"><a href="#cb1-15"></a>};</span>
+<span id="cb1-16"><a href="#cb1-16"></a></span>
+<span id="cb1-17"><a href="#cb1-17"></a><span class="kw">class</span> Producer {</span>
+<span id="cb1-18"><a href="#cb1-18"></a><span class="kw">public</span>:</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    Value produce(<span class="dt">int</span> i) {</span>
+<span id="cb1-20"><a href="#cb1-20"></a>        Value t(i);</span>
+<span id="cb1-21"><a href="#cb1-21"></a>        <span class="cf">return</span> t;</span>
+<span id="cb1-22"><a href="#cb1-22"></a>    }</span>
+<span id="cb1-23"><a href="#cb1-23"></a>};</span>
+<span id="cb1-24"><a href="#cb1-24"></a></span>
+<span id="cb1-25"><a href="#cb1-25"></a><span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span>* argv[]) {</span>
+<span id="cb1-26"><a href="#cb1-26"></a>    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;Hello world!&quot;</span> &lt;&lt; <span class="bu">std::</span>endl;</span>
+<span id="cb1-27"><a href="#cb1-27"></a>    Producer p;</span>
+<span id="cb1-28"><a href="#cb1-28"></a>    Value t = p.produce(<span class="dv">100</span>);</span>
+<span id="cb1-29"><a href="#cb1-29"></a>    t.print();</span>
+<span id="cb1-30"><a href="#cb1-30"></a>    <span class="cf">return</span> <span class="dv">1</span>;</span>
+<span id="cb1-31"><a href="#cb1-31"></a>}</span></code></pre></div>
+<p>执行的结果是：</p>
+<pre><code>Hello world!
+test constructor100
+m:100
+test destructor100</code></pre>
+<p>结果证明这样做其实是可以取到我们定义的值的，这么做可行的原因是，实际上，编译器会帮我们把临时变量拷贝一份出来，所以即便栈销毁了，我们也能够拿到新的值。</p>
+<h1 id="不要返回临时变量的引用">不要返回临时变量的引用</h1>
+<p>那么，如果我们返回临时变量的引用呢？</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">class</span> Producer {</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">public</span>:</span>
+<span id="cb3-3"><a href="#cb3-3"></a>    Value* produce(<span class="dt">int</span> i){</span>
+<span id="cb3-4"><a href="#cb3-4"></a>        Value t(i);</span>
+<span id="cb3-5"><a href="#cb3-5"></a>        <span class="cf">return</span> &amp;t;</span>
+<span id="cb3-6"><a href="#cb3-6"></a>    }</span>
+<span id="cb3-7"><a href="#cb3-7"></a>};</span></code></pre></div>
+<p>这样做得到的结果是不对的：</p>
+<pre><code>test.cpp:21:17: warning: address of stack memory associated with local variable &#39;t&#39; returned [-Wreturn-stack-address]
+        return &amp;t;
+                ^
+1 warning generated.
+Hello world!
+test constructor100
+test destructor100
+m:-327065280</code></pre>
+<p>编译器会有一个警告，尽管我们仍旧可以运行我们的代码，但是实际上我们得到的值是不对的。</p>
+<h1 id="nrvo机制">NRVO机制</h1>
+<p>那么，既然我们返回临时对象的值，实际上会得到一个拷贝的对象，那么如果我们有拷贝构造函数，是不是应该被调用呢？</p>
+<p>然而在前面的例子中，拷贝构造函数并没有被调用到，这又是为什么呢？答案就是因为NRVO(Return Value Optimization)。这是c++11中的特性。我们首先可以尝试禁用掉这个特性，看看会发生什么。</p>
+<pre><code>hfli@CNhfli ~ $ g++ -fno-elide-constructors test.cpp
+hfli@CNhfli ~ $ ./a.out
+Hello world!
+test constructor100
+test copy constructor0
+test destructor100
+test copy constructor0
+test destructor100
+m:100
+test destructor100</code></pre>
+<p>可以看出，拷贝构造函数调用了两次，第一次是在produce函数中返回的时候，第二次是我们在给变量赋值的时候。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/c/nrvo_in_cplusplus/" data-id="ck8ppfg2z004dcjqi75kycc2g"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NRVO/" rel="tag">NRVO</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/rust/rust_lang_1_basic/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Rust(1) 基本语法
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/tdd_in_sprintboot/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">使用TDD开发SpringBoot应用</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

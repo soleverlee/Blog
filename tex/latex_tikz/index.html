@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    LaTeX(3)：使用TikZ绘制图形 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-tex/latex_tikz" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      LaTeX(3)：使用TikZ绘制图形
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/tex/latex_tikz/" class="article-date">
+  <time datetime="2020-02-09T00:00:00.000Z" itemprop="datePublished">2020-02-09</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/TeX/">TeX</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p><a href="https://www.ctan.org/pkg/pgf" target="_blank" rel="noopener">PGF</a>是一个用来进行图形绘制的（底层）包，TikZ是利用这个包实现的用户友好的接口。所以通常在LaTeX中会用TikZ来进行矢量图形的绘制。</p>
+<a id="more"></a>
+<h1 id="基本概念">基本概念</h1>
+<h2 id="基本语法">基本语法</h2>
+<p>要使用tikz进行图形绘制只需要简单引入tikz宏包，并将绘制代码包含在一个上下文中就可以了:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb1-1"><a href="#cb1-1"></a><span class="bu">\usepackage</span>{<span class="ex">tikz</span>}</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="co">% ...</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
+<p>同样如果希望把图片作为一个figure，那么再套一层:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb2-1"><a href="#cb2-1"></a><span class="bu">\usepackage</span>{<span class="ex">graphicx</span>}</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="bu">\usepackage</span>{<span class="ex">tikz</span>}</span>
+<span id="cb2-3"><a href="#cb2-3"></a></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">\begin</span>{<span class="ex">document</span>}</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="kw">\begin</span>{<span class="ex">figure</span>}[h]</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    <span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}</span>
+<span id="cb2-7"><a href="#cb2-7"></a>        <span class="fu">\draw</span> (0, 0) -- (1, 1);</span>
+<span id="cb2-8"><a href="#cb2-8"></a>    <span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span>
+<span id="cb2-9"><a href="#cb2-9"></a>    <span class="fu">\caption</span>{这是一条直线}</span>
+<span id="cb2-10"><a href="#cb2-10"></a>    <span class="kw">\end</span>{<span class="ex">figure</span>}</span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="kw">\end</span>{<span class="ex">document</span>}</span></code></pre></div>
+<h2 id="坐标系和缩放">坐标系和缩放</h2>
+<p>默认情况下TikZ使用的是笛卡尔坐标系，即是这样：</p>
+<p><img src="/images/Latex-tikz-coordinates.png" style="width:400px"></p>
+<p>另外，TikZ提供了一个缩放的选项，可以用来缩放图形，所以不必要担心绝对坐标的问题：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}[scale=0.5]</span></code></pre></div>
+<p>甚至还可以针对x轴和y轴分别设置缩放：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}[xscale=0.5, yscale=0.3]</span></code></pre></div>
+<p><img src="/images/Latex-tikz-scale.png" style="width:400px"></p>
+<p>在TikZ中，默认的单位是厘米(cm)。如果希望改变这个值，可以这样设置：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}[x=2cm,y=1.5cm]</span>
+<span id="cb5-2"><a href="#cb5-2"></a></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="co">% 或者</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}[x={(2cm,0cm)},y={(0cm,1.5cm)}]</span></code></pre></div>
+<h1 id="图形绘制">图形绘制</h1>
+<h2 id="直线">直线</h2>
+<p>绘制直线：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">\draw</span> (0, 0) -- (1, 1);</span></code></pre></div>
+<p>绘制折线：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">\draw</span> (0, 0) -- (1, 1) -- (2, 2) -- (1, 0) -- (0, 3);</span></code></pre></div>
+<p>绘制背景网格:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb8-1"><a href="#cb8-1"></a><span class="fu">\draw</span>[help lines] (0,0) grid (3,3);</span></code></pre></div>
+<p><img src="/images/Latex-tikz-lines.png" style="width:400px"></p>
+<h3 id="箭头">箭头</h3>
+<p>如果希望绘制箭头也十分方便：</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">\draw</span> [-&gt;] (0,0) -- (2,0);        <span class="co">%→</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="fu">\draw</span> [&lt;-] (0, -0.5) -- (2,-0.5); <span class="co">%←</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="fu">\draw</span> [|-&gt;] (0,-1) -- (2,-1);     <span class="co">%带尾巴的箭头</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="fu">\draw</span> [&lt;-&gt;] (0, 0) -- (1, 1);     <span class="co">%双向箭头</span></span></code></pre></div>
+<h3 id="线的粗细">线的粗细</h3>
+<p>线的粗细可以用如下来表示：</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">\draw</span> [ultra thin] (0, 1) -- (2, 1)</span></code></pre></div>
+<p>总共可用的粗细如下：</p>
+<p><img src="/images/Latex-line-width.png" style="width:400px"></p>
+<p>或者直接指定线的粗细，默认的单位是点:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">\draw</span> [line width=12] (0,0) -- (2,0);</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="fu">\draw</span> [line width=0.2cm] (4,.75) -- (5,.25);</span></code></pre></div>
+<p>除此之外另一个选项是<code>[help lines]</code>，用来绘制灰色的参考线。</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">\draw</span> [help lines] (0, 5) -- (0, 0) -- (5, 0);</span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="fu">\draw</span> [line width=2pt] (0, 0) -- (5, 5);</span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="fu">\draw</span> [very thin] (0, 3) -- (4, 0);</span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="fu">\draw</span> [thin] (0, 2) -- (5, 2);</span></code></pre></div>
+<h3 id="样式及颜色">样式及颜色</h3>
+<p>样式可以分为：</p>
+<ul>
+<li>虚线 <code>\draw [dashed]</code></li>
+<li>实线 <code>\draw [dotted]</code></li>
+</ul>
+<p>颜色有很多直接可以用的颜色表示，类似css一样：</p>
+<blockquote>
+<p>red, green, blue, cyan, magenta, yellow, black, gray, darkgray, lightgray,brown, lime, olive, orange, pink, purple, teal, violetand white</p>
+</blockquote>
+<p>一个较为完整的例子:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}</span>
+<span id="cb13-2"><a href="#cb13-2"></a>    <span class="fu">\draw</span> [help lines] (0, 5) -- (0, 0) -- (5, 0) node [right=3]{Nice sample!};</span>
+<span id="cb13-3"><a href="#cb13-3"></a>    <span class="fu">\draw</span> [dashed, red, line width=2pt] (0, 0) -- (5, 5);</span>
+<span id="cb13-4"><a href="#cb13-4"></a>    <span class="fu">\draw</span> [blue, very thin] (0, 3) -- (4, 0);</span>
+<span id="cb13-5"><a href="#cb13-5"></a>    <span class="fu">\draw</span> [dotted, thin] (0, 2) -- (5, 2);</span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
+<h2 id="几何图形">几何图形</h2>
+<h3 id="矩形">矩形</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb14-1"><a href="#cb14-1"></a><span class="fu">\draw</span> [blue] (0,0) rectangle (1.5, 1);</span></code></pre></div>
+<h3 id="网格">网格</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb15-1"><a href="#cb15-1"></a><span class="fu">\draw</span> [blue] (0,0) grid (1.5, 1);</span></code></pre></div>
+<h3 id="圆">圆</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb16-1"><a href="#cb16-1"></a><span class="fu">\draw</span> [red, ultra thick] (3, 0.5) circle [radius=0.5];</span></code></pre></div>
+<h3 id="弧线">弧线</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb17-1"><a href="#cb17-1"></a><span class="fu">\draw</span> [gray, ultra thick] (6,0) arc [radius=1, start angle=45, end angle= 120];</span></code></pre></div>
+<p>这个弧线的表示方法比较有意思，代表从(6, 0)出发，半径为1，初始角度为45°，当变成120°的时候停止。另一种方法：</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb18-1"><a href="#cb18-1"></a><span class="fu">\draw</span>[very thick] (0,0) to [out=90,in=195] (2,1.5);</span></code></pre></div>
+<p>表示从(0,0)开始， 到(2, 1.5)这个点，起始角度为90°，到达的角度为195°。</p>
+<p>感觉很难控制这个....</p>
+<h3 id="圆角折线">圆角折线</h3>
+<p>加多一个<code>rounded corners</code>就可以把折线变成圆角的了：</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">\draw</span> [&lt;-&gt;, rounded corners, thick, purple] (0,2) -- (0,0) -- (3,0);</span></code></pre></div>
+<ul>
+<li><a href="https://www.latex-tutorial.com/tutorials/tikz/" target="_blank" rel="noopener">Draw pictures in LaTeX - With tikz/pgf</a></li>
+<li><a href="http://cremeronline.com/LaTeX/minimaltikz.pdf" target="_blank" rel="noopener">A very minimal introduction to TikZ∗</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/tex/latex_tikz/" data-id="ck8ppfg1t003bcjqi79ej6un4"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LaTeX/" rel="tag">LaTeX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TikZ/" rel="tag">TikZ</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/algorithm/about_bwt/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Burrows-Wheeler变换(Burrows–Wheeler Transform)
+          
+        </div>
+      </a>
+    
+    
+      <a href="/tex/latex_images/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">LaTeX(2)：插入图片</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

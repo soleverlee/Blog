@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Flutter性能优化实践 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/mobile/flutter_isolate" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Flutter性能优化实践
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/mobile/flutter_isolate/" class="article-date">
+  <time datetime="2019-11-20T00:00:00.000Z" itemprop="datePublished">2019-11-20</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Android/">Android</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>我的加密软件有一个登录页面，需要用户输入主密码然后验证密码之后才能进入。因为密码转换(Key transform)过程中用到了Argon2算法，而这个算法没有原生的dart实现，所以必须要通过插件的形式来完成，为此我还专门做了一个插件<a href="https://pub.dev/packages/encryptions" target="_blank" rel="noopener">encryptions</a>。调用插件得到秘钥这个过程大概要花个1~4秒钟，最近在安卓真机上测试发现，这个过程中我的进度条竟然出现了卡顿，也就是说本来应该转圈圈的，结果一开始就卡住不动了，那我还需要这个加载动画干嘛呢？为此研究了一番，如何来解决这个问题。 <a id="more"></a></p>
+<h1 id="背景">背景</h1>
+<p>先还是大致介绍一下我的场景。如图所示：</p>
+<figure>
+<img src="/images/login_blocked.gif" alt="" /><figcaption>Blocked Login UI</figcaption>
+</figure>
+<p>点击完成之后，期待的情况应该是显示圈圈转动的，但很明显这个地方卡住了。代码实现是是采用的mobx作状态管理，然后使用插件调用的argon2的原生c代码。页面的部分如下：</p>
+<pre class="dart"><code>children: &lt;Widget&gt;[
+  _profileImage(),
+  Observer(
+    builder: (_) {
+      return _userStore.isBusy ? _progressBar() : _input(context);
+    },
+  )
+],</code></pre>
+<p>然后是登录事件的处理代码:</p>
+<pre class="dart"><code>@action
+Future&lt;bool&gt; login(ProtectedValue masterPassword) async {
+  setBusy();
+  bool success = false;
+  try {
+    final PasswordCredential credential =
+        await _loginService.checkUserCredential(masterPassword);
+    _errorMessage = null;
+    _userCredential = credential;
+    success = true;
+  } catch (_) {
+    _userCredential = null;
+    _errorMessage = &quot;密码验证失败&quot;;
+  }
+  setIdle();
+  return success;
+}</code></pre>
+<h1 id="定位问题">定位问题</h1>
+<h2 id="使用flutter-profile工具">使用flutter profile工具</h2>
+<p>这就让我犯迷糊了，不是用了future么，async/await这么厉害来着，为毛会卡住呢？因为本身我是dart和flutter的初学者，不清楚一些细节，所以一开始怀疑的是，在点击登录之后设置<code>busy</code>状态的这一个步骤没有生效导致的。因为本身用的是mobx框架来处理的，很自然就开始怀疑是不是这个玩意有bug？或者说是我的用法有些问题？然而搜索了很久也没有找到相关的问题，一度有些不知所措。</p>
+<p>所以首先想搞清楚的是，到底是什么操作导致了卡顿呢？这时候想到flutter可能有性能分析的工具，能不能帮助定位到具体的代码行呢？于是在Profile模式下运行程序，这是相关的信息：</p>
+<figure>
+<img src="/images/login_blocked_overlay.gif" alt="" /><figcaption>Performance overlay</figcaption>
+</figure>
+<p>然后还有dev tools中的对应信息：</p>
+<figure>
+<img src="/images/dart_devtools.png" alt="" /><figcaption>Dart dev tools</figcaption>
+</figure>
+<p>很可惜从这个分析结果中我没有能找到对我有帮助的信息，唯一只能说确定的确会卡顿...</p>
+<h2 id="换个思路继续试">换个思路继续试</h2>
+<p>因为从这条路感觉已经走不通了，所以决定从其他的地方入手继续查。我注意到在登录的时候，偶尔会出现这样的日志：</p>
+<pre><code>I/Choreographer(15562): Skipped 107 frames!  The application may be doing too much work on its main thread.</code></pre>
+<p>这说明啥？说明的确是卡了....这时候我开始怀疑，如果在登录这个事件里面做的事情很多的情况下，即便我们用了async/await，是不是也会卡顿呢？为了屏蔽掉其他条件的干扰，我们需要将登陆事件变得简单一些：</p>
+<pre class="dart"><code>oid onPasswordSubmitted(BuildContext context, String password) async {
+  print(&#39;login with: ${password}&#39;);
+  for(int i = 0; i &lt; 100000; i++) {
+  }
+}</code></pre>
+<p>果然发现这样UI一样会卡住，甚至卡的更厉害了，根本连进度圈都出不来了。从这个结果来看，说明async/await并不能保证不会block住UI，顺着这个思路朝下找，于是就找到问题的根本原因了。</p>
+<h1 id="让事件在单独的线程中运行">让事件在单独的线程中运行</h1>
+<h2 id="flutter线程模型">Flutter线程模型</h2>
+<p>原来dart跟JavaScript一样是一个单线程的模型，也就是是说，async/await里面的方法并不是在多个线程中取执行的，而是通过事件机制，在单线程中完成的。那么就很容易解释UI卡顿的场景了，UI更新和事件代码是交替执行的，如果其中事件执行的部分花费了较长时间，UI就没办法去更新，所以界面就会卡在那里，也就是日志里面所说的<code>Skipped 107 frames!  The application may be doing too much work on its main thread.</code>了。</p>
+<figure>
+<img src="https://cdn.jsdelivr.net/gh/flutterchina/flutter-in-action/docs/imgs/2-12.png" alt="" /><figcaption>Dart event model</figcaption>
+</figure>
+<p>从dart的文档中可以了解到，dart内部有两个队列：</p>
+<ul>
+<li>event queue： 包含所有的外部事件例如IO、点击、绘制等</li>
+<li>microtask queue： 微任务通常来自于dart内部或者手动插入<code>Future.microtask(…)</code></li>
+</ul>
+<p>microstask队列的优先级是要高于事件队列的。这里我们的登录事件和UI更新都同在事件队列中，很显然是因为我们的登录事件耗时太长从而掉帧了，那么解决的方案也就是，可不可以在新的线程中执行我们的事件呢？</p>
+<h2 id="isolate机制">Isolate机制</h2>
+<p>研究了一下发现在dart中不叫线程，如果想达到这种目的需要使用一个称之为<code>Isolate</code>的东西，大致相当于新开一个线程来处理。要使用Isolate有两种办法：</p>
+<ul>
+<li>使用<code>compute</code>方法</li>
+<li>使用<code>Isolate.spawn</code>（更低级的操作）</li>
+</ul>
+<p>下面是一个例子：</p>
+<pre class="dart"><code>Future&lt;List&lt;Photo&gt;&gt; fetchPhotos(http.Client client) async {
+  final response =
+      await client.get(&#39;https://jsonplaceholder.typicode.com/photos&#39;);
+
+  // Use the compute function to run parsePhotos in a separate isolate.
+  return compute(parsePhotos, response.body);
+}</code></pre>
+<h2 id="compute方法">Compute方法</h2>
+<p>看样子使用Isolate看似就像在Java中新建一个线程一样，然后就可以在线程中运行代码了。那我们直接把登录事件的处理挪进去不就得了么？然而实际情况是，这玩意并不是十分好用，有着诸多（恶心）的限制。先来看一下最简单直接的<code>compute</code>方法：</p>
+<pre class="dart"><code>typedef ComputeCallback&lt;Q, R&gt; = FutureOr&lt;R&gt; Function(Q message);</code></pre>
+<p>这个方法有两个参数，一个是callback（相当于java中的Runnable，就是你要执行的方法)，另一个是message，相当于是参数。这些参数有着如下的限制：</p>
+<ul>
+<li>callback必须是顶级的方法或者<code>static</code>方法，不能是类的实例方法或者是闭包</li>
+<li>只有一个参数，那么我的方法需要传多个参数怎么办？</li>
+</ul>
+<p>这就有些尴尬了，不仅要求是静态方法，还限制了参数，而我们的事件处理中有很多的依赖项，这可咋放进去呢？那么很可能只能用另一种方式了。</p>
+<h2 id="isolate.spawn">Isolate.spawn</h2>
+<p>这个就显得更为麻烦了，大致的用法是这样的：</p>
+<pre class="dart"><code>
+var ourFirstReceivePort = new ReceivePort();             // 需要一个ReceivePort来接收消息
+await Isolate.spawn(echo, ourFirstReceivePort.sendPort); // 创建一个Isolate
+var echoPort = await ourFirstReceivePort.first;          // 等待执行完成并接收返回值
+
+// 在Isolate中运行的代码需要将返回值通过sendPort发送过来
+sendPort.send(...);</code></pre>
+<p>这个<code>spawn</code>方法如下：</p>
+<pre class="dart"><code>external static Future&lt;Isolate&gt; spawn&lt;T&gt;(
+      void entryPoint(T message), T message,
+      {bool paused: false,
+      bool errorsAreFatal,
+      SendPort onExit,
+      SendPort onError,
+      @Since(&quot;2.3&quot;) String debugName});</code></pre>
+<p>同样有着如下的限制：</p>
+<ul>
+<li>两个参数，一个entryPoint，另一个是这个entryPoint方法的唯一参数（也就是message)</li>
+<li>entryPoint方法必须是顶级方法或者静态方法</li>
+<li>message参数必须是基本类型、SendPort或者只包含这两者的list或者map。</li>
+</ul>
+<p>这样就更加有些尴尬了，如果我们希望调用一个实例方法怎么办呢？我的登录过程中的一个关键步骤是调用argon2，这个方法我希望能在单独的线程之中调用：</p>
+<pre class="dart"><code>class Argon2Kdf implements Kdf {
+  @override
+  Future&lt;Uint8List&gt; derive(Uint8List password, Uint8List salt) async {
+    Argon2 argon2 = new Argon2();
+    return await argon2.argon2i(password, salt) as Uint8List;
+  }
+}</code></pre>
+<p>这个方法本身是一个实例方法，既然我们只能用顶级方法和实例方法，而且Argon2这个类也没有什么依赖，也罢，那就创建一个好了，没有问题，现在问题来了，我们需要的两个参数是password和salt，这个参数类型不是基本类型，不支持呢，咋办呢？</p>
+<h2 id="isolate中通信">Isolate中通信</h2>
+<p>原来isolate不像Java的线程一样可以使用共享内存，而是想actor模型一样，只能通过消息进行通信。那么，我们需要将参数转换为支持的基本类型，通过SendPort发送过去：</p>
+<pre class="dart"><code>class Argon2Kdf implements Kdf {
+  static final Argon2 argon2 = Argon2(iterations: 2);
+
+  static void argon2Call(SendPort replyPort) async {
+    final receivePort = ReceivePort();
+    replyPort.send(receivePort.sendPort);
+    final List&lt;dynamic&gt; params = await receivePort.first;
+    final SendPort reportPort1 = params[0];
+
+    final String passwordHex = params[1];
+    final String saltHex = params[2];
+    final Uint8List password = hex.decode(passwordHex) as Uint8List;
+    final Uint8List salt = hex.decode(saltHex) as Uint8List;
+
+    final Uint8List result = await argon2.argon2i(password, salt) as Uint8List;
+
+    reportPort1.send(hex.encode(result));
+  }
+
+  @override
+  Future&lt;Uint8List&gt; derive(Uint8List password, Uint8List salt) async {
+    final ReceivePort response = ReceivePort();
+    final isolate = await FlutterIsolate.spawn(argon2Call, response.sendPort);
+    final SendPort sendPort = await response.first;
+    final ReceivePort response1 = ReceivePort();
+    sendPort.send([response1.sendPort, hex.encode(password), hex.encode(salt)]);
+    final String result = await response1.first;
+
+    isolate.kill();
+
+    return hex.decode(result);
+  }
+}</code></pre>
+<p>这里有两点需要注意：</p>
+<ul>
+<li>调用<code>await response.first</code>之后这个SendPort就自动解除订阅了，不能用来接收其他消息了</li>
+<li>Isolate.spawn不支持运行插件代码，所以用FlutterIsolate这个库来实现，而使用方法是一致的</li>
+</ul>
+<p>如果直接使用<code>Isolate.spawn</code>会有如下的报错信息:</p>
+<pre><code>E/flutter (18071): [ERROR:flutter/runtime/dart_isolate.cc(808)] Unhandled exception:
+E/flutter (18071): error: native function &#39;Window_sendPlatformMessage&#39; (4 arguments) cannot be found</code></pre>
+<p>这样最终的效果就是:</p>
+<figure>
+<img src="/images/login_unblocked.gif" alt="" /><figcaption>Login unblocked</figcaption>
+</figure>
+<ul>
+<li><a href="https://medium.com/dartlang/dart-asynchronous-programming-isolates-and-event-loops-bffc3e296a6a" target="_blank" rel="noopener">Dart asynchronous programming: Isolates and event loops</a></li>
+<li><a href="https://flutter.dev/docs/cookbook/networking/background-parsing#4-move-this-work-to-a-separate-isolate" target="_blank" rel="noopener">Move this work to a separate isolate</a></li>
+<li><a href="https://pub.dev/packages/flutter_isolate" target="_blank" rel="noopener">flutter_isolate</a></li>
+<li><a href="https://alvinalexander.com/dart/dart-isolates-example" target="_blank" rel="noopener">A Dart Isolates example (Actors in Dart)</a></li>
+<li><a href="https://github.com/flutter/flutter/issues/26413" target="_blank" rel="noopener">'Window_sendPlatformMessage' (4 arguments) cannot be found</a></li>
+<li><a href="https://stackoverflow.com/questions/54127158/flutter-window-sendplatformmessage-4-arguments-cannot-be-found" target="_blank" rel="noopener">Flutter - 'Window_sendPlatformMessage' (4 arguments) cannot be found</a></li>
+<li><a href="https://github.com/dart-lang/sdk/issues/35962" target="_blank" rel="noopener">Cannot send regular Dart Instance to Isolate spawned with spawnUri</a></li>
+<li><a href="https://github.com/flutter/flutter/issues/34993" target="_blank" rel="noopener">Plugins crash with "Methods marked with @UiThread must be executed on the main thread."</a></li>
+<li><a href="https://book.flutterchina.club/chapter2/thread_model_and_error_report.html" target="_blank" rel="noopener">Dart单线程模型</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/mobile/flutter_isolate/" data-id="ck8ppfg4j007jcjqi1bxj0qpv"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Dart/" rel="tag">Dart</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flutter/" rel="tag">Flutter</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Swift/" rel="tag">Swift</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Thread/" rel="tag">Thread</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/devops/introduction_to_vagrant/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            使用Vagrant来管理Virtualbox
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/rust/rust_lang_2_ownership/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Rust(2) Ownership</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

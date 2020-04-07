@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Rust(2) Ownership |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/rust/rust_lang_2_ownership" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Rust(2) Ownership
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/rust/rust_lang_2_ownership/" class="article-date">
+  <time datetime="2019-11-18T00:00:00.000Z" itemprop="datePublished">2019-11-18</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Rust/">Rust</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>传统的C语言需要开发人员手动管理内存，而像Java、Go这样的语言是通过垃圾回收机制自动进行内存管理。但通常垃圾回收机制本身较为复杂且需要不定期的进行（也就是说实际当内存不在需要的时候并不一定能得到及时的释放）。而rust语言采取的所有权机制（Ownership）是它区别于其他语言的一个重要特征，它被用来进行高效安全的内存管理。</p>
+<a id="more"></a>
+<h1 id="ownership概念">Ownership概念</h1>
+<p>在rust中，内存是由一个所有权管理系统进行管理的，它会使用一些由编译器在编译时生成的规则。这个内存管理系统的好处在于，不会像JVM stop-the-world一样暂停应用程序或者使得应用程序在运行的时候变慢。那么到底怎么样去定义ownership呢？有如下的一套规则：</p>
+<ul>
+<li>rust中每一个值都有一个变量作为与其对应的owner</li>
+<li>一个值在同一时间有且仅有一个owner</li>
+<li>当owner离开作用域的时候，值所在的空间会被释放(调用对象的<code>drop</code>方法)</li>
+</ul>
+<p>这和C++的析构函数如出一辙，称之为<em>Resource Acquisition Is Initialization (RAII)</em></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1"></a></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>    <span class="kw">let</span> s = <span class="dt">String</span>::from(<span class="st">&quot;hello&quot;</span>); <span class="co">// s is valid from this point forward</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a>    <span class="co">// do stuff with s</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="op">}</span>                                  <span class="co">// 程序走到这里会调用 drop 方法释放掉内存</span></span></code></pre></div>
+<h1 id="作用域转移move">作用域转移(Move)</h1>
+<p>上面说到，当对象离开作用域的时候，会调用<code>drop</code>函数来释放掉占用的内存，那么，如果遇到下面的情况呢？</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">let</span> s1 = <span class="dt">String</span>::from(<span class="st">&quot;hello&quot;</span>);</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">let</span> s2 = s1;</span></code></pre></div>
+<p>字符串在内存中实际上是分为了两部分，</p>
+<figure>
+<img src="/images/rust_string_mm.svg" alt="" /><figcaption>Rust String copy</figcaption>
+</figure>
+<p>其中，左边的值存放在栈上，是固定的长度的，另外存了一个内存地址指向实际的内容，而这部分内容也就是右边的部分，是存放在堆上面的。当我们将s2赋值给s1的时候，实际上并没有进行深拷贝，也就是说堆上的数据仍旧是那个，只是将s2的指针指向了这一部分内存。那么现在存在一个问题就是，s1和s2离开作用域的时候，都会去调用<code>drop</code>释放这部分内存，这部分内存会被释放两次，显然这是不对的。为了解决这一个问题，rust中当将一个变量赋值给另一个变量的时候，会发生作用域转移，旧的对象不再有效，而释放内存这个操作，会由转移后的对象来承担这个职责。所以，一旦作用域转移后，就不能再使用这个对象了：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1"></a> --&gt; test.rs:<span class="dv">5</span>:<span class="dv">9</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a>  |</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="dv">5</span> |     <span class="kw">let</span> s1 = s;</span>
+<span id="cb3-4"><a href="#cb3-4"></a>  |         ^^ help: consider prefixing with an underscore: `_s1`</span>
+<span id="cb3-5"><a href="#cb3-5"></a>  |</span>
+<span id="cb3-6"><a href="#cb3-6"></a>  = note: `<span class="at">#[</span>warn<span class="at">(</span>unused_variables<span class="at">)]</span>` on by <span class="kw">default</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a></span>
+<span id="cb3-8"><a href="#cb3-8"></a>error<span class="op">[</span>E0382<span class="op">]</span>: borrow of moved value: `s`</span>
+<span id="cb3-9"><a href="#cb3-9"></a> --&gt; test.rs:<span class="dv">6</span>:<span class="dv">20</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a>  |</span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="dv">4</span> |     <span class="kw">let</span> s = <span class="dt">String</span>::from(<span class="st">&quot;hello&quot;</span>);</span>
+<span id="cb3-12"><a href="#cb3-12"></a>  |         - <span class="kw">move</span> occurs because `s` has <span class="kw">type</span> `std::string::String`, which does not implement the `Copy` trait</span>
+<span id="cb3-13"><a href="#cb3-13"></a>5 |     let s1 = s;</span>
+<span id="cb3-14"><a href="#cb3-14"></a>  |              - value moved here</span>
+<span id="cb3-15"><a href="#cb3-15"></a><span class="dv">6</span> |     <span class="pp">println!</span>(<span class="st">&quot;{}&quot;</span>, s);</span>
+<span id="cb3-16"><a href="#cb3-16"></a>  |                    ^ value borrowed here after <span class="kw">move</span></span>
+<span id="cb3-17"><a href="#cb3-17"></a></span>
+<span id="cb3-18"><a href="#cb3-18"></a>error: aborting due to previous error</span></code></pre></div>
+<h2 id="使用clone进行深拷贝">使用<code>clone</code>进行深拷贝</h2>
+<p>因为默认就是浅拷贝，所以拷贝操作可以认为是很轻量级的，对性能没有什么影响。但如果的确需要深拷贝呢？那么应该使用<code>clone</code>方法，这跟其他语言差不多。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">let</span> s = <span class="dt">String</span>::from(<span class="st">&quot;hello&quot;</span>);</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="kw">let</span> s1 = s.clone();            <span class="co">// 进行深拷贝操作</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="pp">println!</span>(<span class="st">&quot;{}</span><span class="sc">\n</span><span class="st">{}&quot;</span>, s, s1);     <span class="co">// 这样s作用域并没有被转移，仍然可用</span></span></code></pre></div>
+<h2 id="简单对象的深拷贝">简单对象的深拷贝</h2>
+<p>对于简单的基本类型而言，实际上拷贝之后，也并没有发生作用域转移，这点值得注意。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">let</span> x = <span class="dv">3.14</span>;</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="kw">let</span> y = x;                   <span class="co">// 没问题，拷贝之后x即失效</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="pp">println!</span>(<span class="st">&quot;x={} y={}&quot;</span>, x, y);</span>
+<span id="cb5-4"><a href="#cb5-4"></a></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="kw">let</span> x = <span class="dt">String</span>::from(<span class="st">&quot;hello&quot;</span>);</span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="kw">let</span> y = x;</span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="pp">println!</span>(<span class="st">&quot;x={} y={}&quot;</span>, x, y); <span class="co">// 不可以，因为x已经invalid了</span></span></code></pre></div>
+<p>原因是对于这些对象的拷贝完全发生在栈上，rust认为采取上面的作用域转移的策略对它们没有任何价值，所以这样设计。</p>
+<h2 id="自定义对象的深拷贝">自定义对象的深拷贝</h2>
+<p>实质上刚才所说的简单对象复制后没有发生作用域转移的深层原因是因为它们实现了一个特殊的接口<code>Copy</code>，rust中有这些对象实现了这个接口：</p>
+<ul>
+<li>基本类型，包括数值类型、布尔、浮点数、字符类型</li>
+<li>只包含实现了<code>Copy</code>接口的元组</li>
+</ul>
+<p>对于我们自己的对象，也可以实现<code>Copy</code>接口，从而使得拷贝之后，作用域不会转移。如下：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1"></a><span class="at">#[</span>derive<span class="at">(</span><span class="bu">Debug</span><span class="at">,</span> <span class="bu">Copy</span><span class="at">,</span> <span class="bu">Clone</span><span class="at">)]</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="kw">struct</span> Point <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>    x: <span class="dt">i32</span>,</span>
+<span id="cb6-4"><a href="#cb6-4"></a>    y: <span class="dt">i32</span>,</span>
+<span id="cb6-5"><a href="#cb6-5"></a><span class="op">}</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a></span>
+<span id="cb6-7"><a href="#cb6-7"></a><span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a>    <span class="kw">let</span> p1 = Point <span class="op">{</span> x: <span class="dv">10</span>, y: <span class="dv">10</span> <span class="op">}</span>;</span>
+<span id="cb6-9"><a href="#cb6-9"></a>    <span class="kw">let</span> _p2 = p1;</span>
+<span id="cb6-10"><a href="#cb6-10"></a>    <span class="pp">println!</span>(<span class="st">&quot;p1:{:?}&quot;</span>, p1); <span class="co">// 没问题，因为Point继承了Copy接口</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="方法传参和返回值也会发生作用域转移">方法传参和返回值也会发生作用域转移</h2>
+<p>如同拷贝一样，将变量传递给函数同样会发生作用域转移，例如：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">fn</span> output(<span class="dt">str</span>: <span class="dt">String</span>) <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a>    <span class="pp">println!</span>(<span class="st">&quot;=&gt;{}&quot;</span>, <span class="dt">str</span>);</span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="op">}</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>    <span class="kw">let</span> x = <span class="dt">String</span>::from(<span class="st">&quot;hello&quot;</span>);</span>
+<span id="cb7-7"><a href="#cb7-7"></a>    output(x);</span>
+<span id="cb7-8"><a href="#cb7-8"></a>    <span class="pp">println!</span>(<span class="st">&quot;x={}&quot;</span>, x);     <span class="co">// 不可以，因为x作用域已经转移了</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="op">}</span></span></code></pre></div>
+<p>上述的Copy规则同样适用于通过方法调用发生的作用域转移。同样，如果一个函数有返回值，那么通过返回值会更改Ownership。现在可以注意到，一旦一个变量传给了某个函数调用之后，那么这个变量就被转移了，如果我们希望多次使用这个变量，岂不是很麻烦？唯一的办法就是再将它从返回值返回回来，像这样：</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">fn</span> output(<span class="dt">str</span>: <span class="dt">String</span>) -&gt; <span class="dt">String</span> <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>    <span class="pp">println!</span>(<span class="st">&quot;=&gt;{}&quot;</span>, <span class="dt">str</span>);</span>
+<span id="cb8-3"><a href="#cb8-3"></a>    <span class="dt">str</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="op">}</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="kw">fn</span> generate() -&gt; <span class="dt">String</span> <span class="op">{</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a>    <span class="dt">String</span>::from(<span class="st">&quot;hello world!&quot;</span>)</span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="op">}</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a>    <span class="kw">let</span> x = generate();</span>
+<span id="cb8-12"><a href="#cb8-12"></a>    <span class="kw">let</span> x = output(x);         <span class="co">// 通过返回值再把x传出来，重新获得所有权</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a>    <span class="pp">println!</span>(<span class="st">&quot;x={}&quot;</span>, x);       <span class="co">// 不可以，因为x作用域已经转移了</span></span>
+<span id="cb8-14"><a href="#cb8-14"></a><span class="op">}</span></span></code></pre></div>
+<p>那么如果我们函数本身也有一个返回值怎么办？虽然我们理论上也可以通过元组的方式来实现，但是代码会变得很奇怪，所以并不是真正的解决方法。</p>
+<h1 id="引用reference">引用(Reference)</h1>
+<p>解决上述问题的一个办法就是，变量引用。如果是一个变量引用的话，那么就不会夺取该变量的所有权，如下：</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">fn</span> output(<span class="dt">str</span>: &amp;<span class="dt">String</span>) <span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>    <span class="pp">println!</span>(<span class="st">&quot;=&gt;{}&quot;</span>, <span class="dt">str</span>);</span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="op">}</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a>    <span class="kw">let</span> x = generate();</span>
+<span id="cb9-7"><a href="#cb9-7"></a>    output(&amp;x);                <span class="co">// 传递x的引用，这样就不会夺取所有权了</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a>    <span class="pp">println!</span>(<span class="st">&quot;x={}&quot;</span>, x);       <span class="co">// 可以，因为x作用域未发生转移</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="op">}</span></span></code></pre></div>
+<p>是不是很像c++? 😅要创建引用也很简单，加一个<code>&amp;</code>就可以了。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">let</span> x = <span class="dt">String</span>::from(<span class="st">&quot;hello world&quot;</span>);</span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="kw">let</span> y: &amp;<span class="dt">String</span> = &amp;x;</span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="pp">println!</span>(<span class="st">&quot;x={} y={}&quot;</span>, x, y);   <span class="co">// 没问题，y是一个引用，并不会夺取所有权</span></span></code></pre></div>
+<h1 id="借用borrowing">借用(Borrowing)</h1>
+<p>引用变量作为函数的参数，称之为借用(borrowing)。所谓有借有还，再借不难，借的东西迟早都是要还回去的。如果你对借用的东西做了改变，怎么办呢？比如这样：</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1"></a><span class="dv">12</span> | <span class="kw">fn</span> output(<span class="dt">str</span>: &amp;<span class="dt">String</span>) <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>   |                ------- help: consider changing this to be a mutable reference: `&amp;<span class="kw">mut</span> <span class="pp">std::string::</span>String`</span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="dv">13</span> |     <span class="dt">str</span>.push_str(<span class="st">&quot;world!&quot;</span>);</span>
+<span id="cb11-4"><a href="#cb11-4"></a>   |     ^^^ `str` is a `&amp;` reference, so the data it refers to cannot be borrowed <span class="kw">as</span> mutable</span></code></pre></div>
+<p>不用担心，借用的对象默认就是不可变的，所以编译器会检测出来，不允许这样操作。如果的确需要改变怎么办呢？对于这种情况，可以使用<code>&amp;mut</code>创建可变的引用，当然前提是这个变量本身也要是可变的才行，否则编译器也会报错。</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">fn</span> output(<span class="dt">str</span>: &amp;<span class="kw">mut</span> <span class="dt">String</span>) <span class="op">{</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>    <span class="dt">str</span>.push_str(<span class="st">&quot;world!&quot;</span>);</span>
+<span id="cb12-3"><a href="#cb12-3"></a>    <span class="pp">println!</span>(<span class="st">&quot;=&gt;{}&quot;</span>, <span class="dt">str</span>);</span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="op">}</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a>    <span class="kw">let</span> <span class="kw">mut</span> x = <span class="dt">String</span>::from(<span class="st">&quot;hello world&quot;</span>);</span>
+<span id="cb12-8"><a href="#cb12-8"></a>    output(&amp;<span class="kw">mut</span> x);</span>
+<span id="cb12-9"><a href="#cb12-9"></a><span class="op">}</span></span></code></pre></div>
+<p>可变引用有一个限制就是，在同样的作用域里面至多可以有一个变量的可变引用，这样做的好处是在编译时就避免了数据竞争。rust中有以下的限制：</p>
+<ul>
+<li>在同一个scope中，最多有一个变量的可变引用</li>
+<li>可变引用和不可变引用不能同时存在。这里决定是否同时存在的条件是，在可变引用之后的语句是否有不可变引用被使用。</li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">let</span> <span class="kw">mut</span> s = <span class="dt">String</span>::from(<span class="st">&quot;hello&quot;</span>);</span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="kw">let</span> r1 = &amp;s; <span class="co">// no problem</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="kw">let</span> r2 = &amp;s; <span class="co">// no problem</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a><span class="pp">println!</span>(<span class="st">&quot;{} and {}&quot;</span>, r1, r2);</span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="co">// r1 and r2 are no longer used after this point</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a></span>
+<span id="cb13-8"><a href="#cb13-8"></a><span class="kw">let</span> r3 = &amp;<span class="kw">mut</span> s; <span class="co">// no problem</span></span>
+<span id="cb13-9"><a href="#cb13-9"></a><span class="co">// 如果在这个地方之后还有使用r1和r2的地方，那么编译会报错</span></span>
+<span id="cb13-10"><a href="#cb13-10"></a><span class="co">// println!(&quot;{} and {}&quot;, r1, r2);</span></span>
+<span id="cb13-11"><a href="#cb13-11"></a><span class="pp">println!</span>(<span class="st">&quot;{}&quot;</span>, r3);</span></code></pre></div>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/rust/rust_lang_2_ownership/" data-id="ck8ppfg4o007tcjqi7oblcnmp"
+         class="article-share-link">Share</a>
+      
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/mobile/flutter_isolate/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Flutter性能优化实践
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/java_datetime/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Java中的时间</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

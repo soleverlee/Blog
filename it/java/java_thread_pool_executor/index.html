@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    理解Java并发(2)：ThreadPoolExecutor解析 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/java_thread_pool_executor" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      理解Java并发(2)：ThreadPoolExecutor解析
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/java_thread_pool_executor/" class="article-date">
+  <time datetime="2019-10-31T00:00:00.000Z" itemprop="datePublished">2019-10-31</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>使用多线程技术可以有效的利用CPU时间，在同一个时间内完成更多的任务，但同时值得注意的是，线程创建本身也是有开销的，线程池使得我们可以重复的利用已经存在的线程，从而节省这一部分的开销，提高程序的效率。</p>
+<a id="more"></a>
+<h1 id="线程数的限制">线程数的限制</h1>
+<p>首先一个问题是，我们在创建新的线程的时候，是不是线程越多就越好呢？实际上是不可能无限的创建新的线程的，总会有个限制，那么问题是这个限制是多大，或者说取决于什么呢？</p>
+<h2 id="操作系统的最大线程数">操作系统的最大线程数</h2>
+<p>首先希望搞清楚的一个问题就是，到底我们可以创建多少个线程呢？在linux上，可以通过以下的方式查看系统的最大线程数限制：</p>
+<pre><code># cat /proc/sys/kernel/threads-max
+15734
+# ulimit -v
+unlimited</code></pre>
+<p>据说是按照这个公式计算出来的:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1"></a>max_threads = mempages / (<span class="dv">8</span> * THREAD_SIZE / PAGE_SIZE);</span></code></pre></div>
+<p>在windows上也比较类似，总结来说就是，每个系统的最大线程数都不尽相同，不仅与系统有关还与内存大小以及用户的设置有关系。</p>
+<h2 id="jvm限制">JVM限制</h2>
+<p>JVM本身貌似没有对线程数进行限制，但同样不能无限制的创建线程否则会出现<code>java.lang.OutOfMemoryError: unable to create new native thread</code>。在JVM中有以下的一些参数可能会影响能创建的线程数：</p>
+<ul>
+<li>-Xms 设置堆的最小值</li>
+<li>-Xmx 设置堆的最大值</li>
+<li>-Xss 设置每个线程的stack大小</li>
+</ul>
+<p>因为一个机器上的内存是一定的，所以如果<code>-Xss</code>设置的越大，单个线程所占用的栈空间越大，那么能创建的线程数就越少。一个比较有趣的事实是，能创建的最大线程数是跟<code>-Xmx</code>的值负相关的，即你设置的堆越大，反而能创建的最大线程数越少！这是别人的测试结果：</p>
+<pre><code>2 mb --&gt; 5744 threads
+4 mb --&gt; 5743 threads
+...
+768 mb --&gt; 3388 threads
+1024 mb --&gt; 2583 threads</code></pre>
+<p>原因就是堆空间越大，那么机器上剩下的内存就越少，即可以用来分配给线程栈上的内存就越少，所以会出现这样的结果。</p>
+<h1 id="线程池">线程池</h1>
+<p>在Java中线程的启动和停止是有开销的。这个开销主要包括：</p>
+<ul>
+<li>为线程开辟栈空间（例如OpenJDK6在Linux上会使用<code>pthread_create</code>来创建线程，内部使用<code>mmap</code>分配内存)</li>
+<li>通过操作系统的调用来创建和注册本地线程</li>
+<li>保存线程的相关信息（JVM/native thread descriptors)到JVM中</li>
+</ul>
+<p>根据网上的测试来看，通常使用线程池可以获得大幅的性能提升（亲测至少15倍）。而使用线程池相当于重用了已有的线程，避免了这部分开销。当任务越多越频繁的情况下，这部分开销越不可小觑。</p>
+<h2 id="threadpoolexecutor">ThreadPoolExecutor</h2>
+<p>ThreadPoolExecutor 是一个利用线程池技术实现的多任务处理器，它的申明如下：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">public</span> <span class="bu">ThreadPoolExecutor</span>(<span class="dt">int</span> corePoolSize,</span>
+<span id="cb4-2"><a href="#cb4-2"></a>                            <span class="dt">int</span> maximumPoolSize,</span>
+<span id="cb4-3"><a href="#cb4-3"></a>                            <span class="dt">long</span> keepAliveTime,</span>
+<span id="cb4-4"><a href="#cb4-4"></a>                            <span class="bu">TimeUnit</span> unit,</span>
+<span id="cb4-5"><a href="#cb4-5"></a>                            <span class="bu">BlockingQueue</span>&lt;<span class="bu">Runnable</span>&gt; workQueue) {</span>
+<span id="cb4-6"><a href="#cb4-6"></a>    <span class="kw">this</span>(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,</span>
+<span id="cb4-7"><a href="#cb4-7"></a>            <span class="bu">Executors</span>.<span class="fu">defaultThreadFactory</span>(), defaultHandler);</span>
+<span id="cb4-8"><a href="#cb4-8"></a>}</span></code></pre></div>
+<p>乍一看有很多个参数，那么该如何去配置呢？</p>
+<h3 id="corepoolsize-maximumpoolsize">CorePoolSize / MaximumPoolSize</h3>
+<p>线程池会根据这两个参数去管理池中的线程。当一个新的任务提交的时候，会遵循如下的规则：</p>
+<ul>
+<li>如果池中线程数小于corePoolSize，哪怕有空闲的线程也会创建一个新的线程来</li>
+<li>当吃中线程数超过corePoolSize但是小于MaximumPoolSize的时候，只有当workQueue满的时候才会创建新的线程</li>
+</ul>
+<p>所以当corePoolSize和MaximumPoolSize一样的时候，实际上就是一个固定大小的线程池，相当于使用<code>Executors.newFixedThreadPool</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">ExecutorService</span> <span class="fu">newFixedThreadPool</span>(<span class="dt">int</span> nThreads) {</span>
+<span id="cb5-2"><a href="#cb5-2"></a>    <span class="kw">return</span> <span class="kw">new</span> <span class="bu">ThreadPoolExecutor</span>(nThreads, nThreads,</span>
+<span id="cb5-3"><a href="#cb5-3"></a>                                  <span class="dv">0L</span>, <span class="bu">TimeUnit</span>.<span class="fu">MILLISECONDS</span>,</span>
+<span id="cb5-4"><a href="#cb5-4"></a>                                  <span class="kw">new</span> <span class="bu">LinkedBlockingQueue</span>&lt;<span class="bu">Runnable</span>&gt;());</span>
+<span id="cb5-5"><a href="#cb5-5"></a>}</span></code></pre></div>
+<p>池中的线程默认只要当提交了新任务的时候才会创建，如果希望提前创建线程可以使用<code>prestartCoreThread</code>或者<code>prestartAllCoreThreads</code>。</p>
+<h3 id="keep-alive-时间">Keep-alive 时间</h3>
+<p>当池中的线程数多余corePoolSize的时候，超出部分的线程会在空闲一段时间之后被终止掉，这个时间就是keepAliveTime。如果设置为0那么一旦超出部分运行结束之后就会被终止掉，反之如果设置为<code>Long.MAX_VALUE</code>那么空闲线程就会一直存活。</p>
+<p>默认情况下，只有超出corePoolSize的线程才会受到这个存活时间的影响，如果希望对于核心线程也能超时终止，那么可以使用<code>allowCoreThreadTimeOut</code>来控制。</p>
+<h3 id="workqueue">workQueue</h3>
+<p>工作队列用来持有提交的任务。规则如下：</p>
+<ul>
+<li>如果当前池中的线程少于corePoolSize，则创建新的线程</li>
+<li>如果大于corePoolSize，则倾向于将任务加入到workQueue中</li>
+<li>如果无法将任务加入到队列中，则会创建新的线程，直到池中的线程数达到maximumPoolSize</li>
+<li>如果超过maximumPoolSize，那么将会拒绝提交的任务</li>
+</ul>
+<p>对于队列的选择也可以使用不同的策略：</p>
+<ul>
+<li>使用<code>SynchronousQueue</code>可以直接将任务从队列转手到线程池，这个参数要配合将maximumPoolSize设置为无限大来配合使用。因为这个朝这个队列中插入一条数据将会阻塞一直到它被消费，也就是说读写操作要配套，实际上就是进行了一个数据交换，根本没有在队列中实际存储任务。如果maximumPoolSize太小可能会导致任务被拒绝。</li>
+<li>使用无界的队列例如<code>LinkedBlockingQueue</code>，那么一旦线程超过corePoolSize的时候新线程都会被加入到队列中，也就是说maximumPoolSize根本不会生效了。</li>
+<li>使用有界队列例如<code>ArrayBlockingQueue</code>，超过队列数的新任务将创建新的线程。那么这时候队列大小和线程数上限需要权衡配合。</li>
+</ul>
+<p>References:</p>
+<ul>
+<li><a href="https://stackoverflow.com/questions/344203/maximum-number-of-threads-per-process-in-linux" target="_blank" rel="noopener">Maximum number of threads per process in Linux?</a></li>
+<li><a href="https://eknowledger.wordpress.com/2012/05/01/max-number-of-threads-per-windows-process/" target="_blank" rel="noopener">Max Number of Threads Per Windows Process</a></li>
+<li><a href="http://baddotrobot.com/blog/2009/02/26/less-is-more/" target="_blank" rel="noopener">Less is More</a></li>
+<li><a href="https://stackoverflow.com/questions/5483047/why-is-creating-a-thread-said-to-be-expensive" target="_blank" rel="noopener">Why is creating a Thread said to be expensive?</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/java_thread_pool_executor/" data-id="ck8ppfg3v0066cjqi0tembwgv"
+         class="article-share-link">Share</a>
+      
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/java_datetime/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            Java中的时间
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/java_cocurrent_basics/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">理解Java并发(1)：基本机制</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

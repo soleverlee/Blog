@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    LaTeX(1)：章节和段落 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-tex/latex_sections" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      LaTeX(1)：章节和段落
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/tex/latex_sections/" class="article-date">
+  <time datetime="2020-02-07T00:00:00.000Z" itemprop="datePublished">2020-02-07</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/TeX/">TeX</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>LaTeX适用于学术论文等的写作，在这类文章中一个很重要的部分就是段落和章节了。回想起当年使用Word写作的时候调整标题是何等的痛苦，那么在LaTeX中是怎样设置段落和章节的呢？ <a id="more"></a></p>
+<h1 id="标题">标题</h1>
+<p>通过下面的命令可以生成一个默认的标题：</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">\title</span>{一种新型冠状病毒的防治方法}</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">\author</span>{Dr. Riguz}</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">\date</span>{2020-02-07}</span>
+<span id="cb1-4"><a href="#cb1-4"></a></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">\maketitle</span> <span class="co">% 生成标题页</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="fu">\newpage</span>   <span class="co">% 分页</span></span></code></pre></div>
+<p>这样效果如下：</p>
+<p><img src="/images/Latex-title.png" style="width:400px"></p>
+<h1 id="latex段落层次">LaTeX段落层次</h1>
+<p>LaTeX中可以分成如下的几个部分：</p>
+<ul>
+<li>section：一级标题</li>
+<li>subsection：二级标题</li>
+<li>subsubsection：三级标题</li>
+<li>paragraph：段落</li>
+<li>subpragraph：二级段落</li>
+</ul>
+<p>下面是一个例子：</p>
+<p><img src="/images/Latex-sections.png" style="width:400px"></p>
+<p>对应的代码如下，非常简洁：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">\section</span>{背景}</span>
+<span id="cb2-2"><a href="#cb2-2"></a>首先简要介绍一下这个项目的背景。</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="kw">\subsection</span>{冠状病毒简介}</span>
+<span id="cb2-4"><a href="#cb2-4"></a>冠状病毒是一个大型病毒家族，包括引起普通感冒的病毒以及严重急性呼吸综合征冠状病毒和中东呼吸综合征冠状病毒。这一新病毒暂时命名为2019新型冠状病毒（2019-nCoV）。</span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="kw">\subsection</span>{现有的防治方法}</span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="kw">\subsubsection</span>{居家隔离法}</span>
+<span id="cb2-7"><a href="#cb2-7"></a>待在家里不出门。</span>
+<span id="cb2-8"><a href="#cb2-8"></a><span class="kw">\subsubsection</span>{自我安慰法}</span>
+<span id="cb2-9"><a href="#cb2-9"></a>反正也死不了。</span>
+<span id="cb2-10"><a href="#cb2-10"></a><span class="kw">\section</span>{新的防治方法}</span>
+<span id="cb2-11"><a href="#cb2-11"></a>实在编不下去了：</span>
+<span id="cb2-12"><a href="#cb2-12"></a><span class="kw">\paragraph</span>{气功}</span>
+<span id="cb2-13"><a href="#cb2-13"></a>是一种中华民族祖传的神功。气功又可以分为两种：</span>
+<span id="cb2-14"><a href="#cb2-14"></a><span class="kw">\subparagraph</span>{硬气功}</span>
+<span id="cb2-15"><a href="#cb2-15"></a>可以开山断石，金钟罩铁布衫。</span>
+<span id="cb2-16"><a href="#cb2-16"></a><span class="kw">\subparagraph</span>{内功}</span>
+<span id="cb2-17"><a href="#cb2-17"></a>可以运行体内的真气激发一种神奇的力量运行于经络之上。</span></code></pre></div>
+<h1 id="生成目录">生成目录</h1>
+<h2 id="目录">目录</h2>
+<p>想要生成目录页特别简单，一个命令就可以搞定：</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">\tableofcontents</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">\newpage</span></span></code></pre></div>
+<p><img src="/images/Latex-contents.png" style="width:400px"></p>
+<h2 id="自定义级别">自定义级别</h2>
+<p>如果在生成目录的时候，只希望生成到特定的级别，可以这样设置：</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb4-1"><a href="#cb4-1"></a><span class="fu">\setcounter</span>{tocdepth}{2}</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">\tableofcontents</span></span></code></pre></div>
+<p>这样生成的目录就只会到<code>subsection</code>级别。当然这样设置的话会对所有的内容生效，如果只是希望对某个章节生效怎么办呢？</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">\addtocontents</span>{toc}{<span class="fu">\setcounter</span>{tocdepth}{1}}</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="kw">\section</span>{背景}</span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="co">% ...</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="fu">\addtocontents</span>{toc}{<span class="fu">\setcounter</span>{tocdepth}{3}}</span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="kw">\section</span>{新的防治方法}</span></code></pre></div>
+<p>可以像上面这样，在需要设置的章节之前设置，然后再其他地方恢复默认级别。</p>
+<h2 id="行距">行距</h2>
+<p>如果希望调整行距，可以使用</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">\doublespacing</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="fu">\tableofcontents</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="fu">\newpage</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="fu">\singlespacing</span></span></code></pre></div>
+<p>单倍行距：</p>
+<p><img src="/images/Latex-singlespacing.png" style="width:400px"></p>
+<p>双倍行距：</p>
+<p><img src="/images/Latex-doublespacing.png" style="width:400px"></p>
+<h2 id="图表目录">图表目录</h2>
+<p>另外，如果想对图表生成目录，可以采用：</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">\begin</span>{<span class="ex">appendix</span>}</span>
+<span id="cb7-2"><a href="#cb7-2"></a>    <span class="fu">\listoffigures</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>    <span class="fu">\listoftables</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="kw">\end</span>{<span class="ex">appendix</span>}  </span></code></pre></div>
+<p>参考：</p>
+<ul>
+<li><a href="https://www.latex-tutorial.com/tutorials/sections/" target="_blank" rel="noopener">Using LaTeX paragraphs and sections</a></li>
+<li><a href="http://yakeworld.myesci.com/node/1397" target="_blank" rel="noopener">xelatex中文换行</a></li>
+<li><a href="https://www.ntg.nl/doc/biemesderfer/ltxcrib.pdf" target="_blank" rel="noopener">LATEX Command Summary</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/tex/latex_sections/" data-id="ck8ppfg1s003acjqiejbo28le"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LaTeX/" rel="tag">LaTeX</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/tex/latex_images/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            LaTeX(2)：插入图片
+          
+        </div>
+      </a>
+    
+    
+      <a href="/tex/latex_environment/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Mac上的LaTeX环境搭建</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

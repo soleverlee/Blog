@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    B-Tree算法 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/algorithm/btree_algorithm" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      B-Tree算法
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/algorithm/btree_algorithm/" class="article-date">
+  <time datetime="2018-12-18T00:00:00.000Z" itemprop="datePublished">2018-12-18</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Algorithm/">Algorithm</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>B-Tree(区别于二叉树)是一种平衡多叉搜索树。它的插入、搜索、删除、</p>
+<figure>
+<img src="/images/btree-order5.png" alt="" /><figcaption>btree of order 5</figcaption>
+</figure>
+<a id="more"></a>
+<h1 id="b-tree的定义">B-Tree的定义</h1>
+<p>根据Knuth的定义<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>，<span class="math inline">\({\displaystyle m}\)</span>阶的B-Tree有如下的特性：</p>
+<ol>
+<li>节点左边的元素都比它小，节点右边的元素都比它大</li>
+<li>每个节点最多有<span class="math inline">\({\displaystyle m}\)</span>个子节点</li>
+<li>除了根节点之外，非叶节点<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>至少有<span class="math inline">\({\displaystyle m/2}\)</span>个子节点</li>
+<li>如果根节点不是叶子节点则其至少有两个子节点</li>
+<li>包含<span class="math inline">\({\displaystyle k}\)</span>个子节点的节点共有<span class="math inline">\({\displaystyle k-1}\)</span>个键</li>
+<li>所有的叶子节点的高度相同</li>
+</ol>
+<p>一般表示B-Tree有两种表示方法<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>：</p>
+<ul>
+<li>B-Tree of order <span class="math inline">\({\displaystyle d}\)</span> or <span class="math inline">\({\displaystyle M}\)</span></li>
+<li>B-Tree of degree or <span class="math inline">\({\displaystyle t}\)</span></li>
+</ul>
+<h2 id="kuath-b-tree-of-order-displaystyle-d">Kuath: B-Tree of Order <span class="math inline">\({\displaystyle d}\)</span></h2>
+<p>其中<span class="math inline">\({\displaystyle M=5}\)</span> 表示每一个节点中<em>至多有5个子节点</em>；则有如下的特性： <span class="math display">\[
+\begin{align}
+&amp;Max(children) = 5 \\
+&amp;Min(children) = ceil(M/2) = 3 \\
+&amp;Max(keys) = Max(children) - 1 = 4 \\
+&amp;Min(keys) = Min(children) - 1 = 2
+\end{align}
+\]</span></p>
+<h2 id="clrs-b-tree-of-min-degree-displaystyle-t">CLRS: B-Tree of min degree <span class="math inline">\({\displaystyle t}\)</span></h2>
+<p>而<span class="math inline">\({\displaystyle t=5}\)</span> 则定义了一个节点中<em>至少有5个子节点</em> <span class="math display">\[
+\begin{align}
+&amp;Max(children) = 2t = 10 \\
+&amp;Min(children) = t = 5 \\
+&amp;Max(keys) = 2t -1 = 9 \\
+&amp;Min(keys) = t - 1 = 4
+\end{align}
+\]</span></p>
+<pre><code>Knuth Order, k |  (min,max)  | CLRS Degree, t
+---------------|-------------|---------------
+     0         |      -      |        –
+     1         |      –      |        –
+     2         |      –      |        –
+     3         |    (2,3)    |        –
+     4         |    (2,4)    |      t = 2
+     5         |    (3,5)    |        –
+     6         |    (3,6)    |      t = 3
+     7         |    (4,7)    |        –
+     8         |    (4,8)    |      t = 4
+     9         |    (5,9)    |        –
+     10        |    (5,10)   |      t = 5</code></pre>
+<h2 id="b-tree的高度">B-Tree的高度<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></h2>
+<p>根据B-Tree的定义（Min Degree t)，如果Btree的高度为<span class="math inline">\({\displaystyle h}\)</span>, 考虑最少含有多少个key, 则当：</p>
+<ul>
+<li>Root节点包含1个key</li>
+<li>其他所有节点有且仅有有<span class="math inline">\({\displaystyle t-1}\)</span> 个key</li>
+</ul>
+<p>这种场景时，所包含的key最少：</p>
+<figure>
+<img src="/images/btree_height_3.gif" alt="" /><figcaption>Btree of height 3</figcaption>
+</figure>
+<p>设<span class="math inline">\({\displaystyle S_{h}}\)</span>为Btree第h层的节点数，容易看出:</p>
+<ul>
+<li>当<span class="math inline">\({\displaystyle depth=0}\)</span> 时，<span class="math inline">\({\displaystyle S_{0}=1}\)</span></li>
+<li>当<span class="math inline">\({\displaystyle depth=1}\)</span> 时，<span class="math inline">\({\displaystyle S_{1}=2}\)</span></li>
+<li>当<span class="math inline">\({\displaystyle depth=2}\)</span> 时，<span class="math inline">\({\displaystyle S_{2}=2\cdot t}\)</span></li>
+<li>当<span class="math inline">\({\displaystyle depth=h}\)</span> 时，<span class="math inline">\({\displaystyle S_{h}=2\cdot t^{h-1}}\)</span></li>
+</ul>
+<p>从<span class="math inline">\({\displaystyle h=1}\)</span>开始，每一层的key数目即<span class="math inline">\({\displaystyle S(key)_{h}=S_{h}\cdot (t-1)}\)</span>，根据等比数列求和公式即可算出总的key数目为：</p>
+<p><span class="math display">\[
+\begin{aligned}  
+Min(keys) &amp;=1 + \sum_{i=1}^{h}{(t-1)\cdot 2t^{i-1}} \\
+    &amp;=1 + (t-1)\sum_{i=1}^{h}{2t^{i-1}} \\
+    &amp;=1 + 2(t-1)\sum_{i=1}^{h}{t^{i-1}} \\
+    &amp;=1 + 2(t-1){\Big(\frac{1-t^h}{1-t}\Big)} \\
+    &amp;=2t^h-1
+\end{aligned}
+\]</span></p>
+<p>设<span class="math inline">\({\displaystyle n}\)</span> 为B-Tree的所有key数，则有：</p>
+<p><span class="math display">\[
+\begin{aligned} 
+n &amp;\geq Min(keys) \\
+  &amp;=2t^h-1
+\end{aligned}
+\]</span></p>
+<p>可以得：</p>
+<p><span class="math display">\[
+h \leq log_{t}\frac{1+n}{2}
+\]</span></p>
+<h1 id="btree操作">Btree操作</h1>
+<h2 id="btree查找">Btree查找</h2>
+<p>查找算法类似于2叉树的查找，步骤如下：</p>
+<ul>
+<li>从根节点开始，依次同节点中<span class="math inline">\({\displaystyle k_{i}}\)</span>进行比较，如果大于或者等于<span class="math inline">\({\displaystyle k_{i}}\)</span>则停止</li>
+<li>如果找到相等的key，则停止搜索</li>
+<li>如果没有找到，则到下一级节点中进行查找；如果已经是叶子节点，则查找结束</li>
+</ul>
+<p>通常当<span class="math inline">\({\displaystyle M}\)</span>较小时，我们在节点中查找的时候只需要进行顺序查找即可；如果较大的情况下，可以进行二分查找提高搜索的效率。</p>
+<h2 id="btree插入">Btree插入</h2>
+<h3 id="split">Split</h3>
+<p>在进行insert之前，需要考虑的就是，btree规定了一个节点中最大的child的数目，当一个节点中子节点的数目超过允许的最大值的时候，需要将节点拆分为两个。例如：</p>
+<ul>
+<li>Order=8时，每个节点最多允许7个key，这样split之后正好平均</li>
+</ul>
+<figure>
+<img src="/images/btree-split-1.png" alt="" /><figcaption>btree of order 8</figcaption>
+</figure>
+<ul>
+<li>Order=7时，每个节点最多6个key，这样拆分之后，节点是不平均的：</li>
+</ul>
+<figure>
+<img src="/images/btree-split-2.png" alt="" /><figcaption>btree of order 7</figcaption>
+</figure>
+<h3 id="insert">Insert</h3>
+<p>当order为奇数时，插入A~Q的过程如下：</p>
+<figure>
+<img src="/images/btree_order_5_insert.png" alt="" /><figcaption>btree of order 5</figcaption>
+</figure>
+<p>当order为偶数时，插入A-J的过程如下：</p>
+<figure>
+<img src="/images/btree_order_4_insert.png" alt="" /><figcaption>btree of order 4</figcaption>
+</figure>
+<p>在Insert的过程中，一般的做法是先将元素插入到叶节点，这时候如果发现叶节点满了，需要将其Split，并将其中一个key提升到父节点中。同时，需要看父节点是否满，如果满了也需要进行拆分，直到根节点。但是这种做法需要插入后再回溯，比较难以实现。<a href="http://staff.ustc.edu.cn/~csli/graduate/algorithms/book6/chap19.htm" target="_blank" rel="noopener">另一种方式</a>则是在插入的过程中，一旦发现节点已经满了，无法再容纳元素，则先将其拆分，然后再继续朝下查找。这样只需要查找一次，再最后插入到叶子节点的时候，能够保证不会溢出。</p>
+<h3 id="preemtive-split">Preemtive Split</h3>
+<p>如上所说，在insert操作的时候，是先插入元素，然后再进行拆分的，这样可能插入之后还需要一直递归到上层节点进行拆分。例如下面的一个场景：</p>
+<figure>
+<img src="/images/btree_order_4_insert_normal.png" alt="" /><figcaption>btree of order 4</figcaption>
+</figure>
+<p>而Preemtive Split正是在insert之前即进行拆分，当发现一个节点快要满了的时候，就先split之后再插入，自顶向下，不需要再回溯到上一层的节点。</p>
+<figure>
+<img src="/images/btree_order_4_insert_preemtive.png" alt="" /><figcaption>btree of order 4</figcaption>
+</figure>
+<p>从上面的例子可以看到，两种方式构造出的Btree在插入I之后其实是不大一样的，而当J插入之后则变成一致了。</p>
+<h2 id="删除操作">删除操作</h2>
+<p>More:</p>
+<ul>
+<li><a href="https://www.cs.usfca.edu/~galles/cs673/lecture/lecture11.pdf" target="_blank" rel="noopener">Graduate Algorithms CS673-2016F-11 B-Trees</a></li>
+</ul>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>https://en.wikipedia.org/wiki/B-tree<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>没有孩子的节点<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>https://stackoverflow.com/questions/28846377/what-is-the-difference-btw-order-and-degree-in-terms-of-tree-data-structure<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4" role="doc-endnote"><p>http://staff.ustc.edu.cn/~csli/graduate/algorithms/book6/chap19.htm<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/algorithm/btree_algorithm/" data-id="ck8ppfg2l003rcjqi5fwu3y8r"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/B-Tree/" rel="tag">B-Tree</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/arch/microservice_and_migration/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            一个数据导入的有趣问题
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/c/visual_studio_code_cpp_ide/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Visual Studio Code for C++ development on MacOS</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    Burrows-Wheeler变换(Burrows–Wheeler Transform) |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/algorithm/about_bwt" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Burrows-Wheeler变换(Burrows–Wheeler Transform)
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/algorithm/about_bwt/" class="article-date">
+  <time datetime="2020-03-04T00:00:00.000Z" itemprop="datePublished">2020-03-04</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Algorithm/">Algorithm</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>最近听一个医学专业的同学提到了在进行基因分析中用到BWT算法，觉得挺有意思的，正巧赶上这次疫情在家，于是想研究一下这个算法。这个算法的核心思想在于，调整原来的字符串中字符的顺序（而不改变其长度及内容）从而更多的将重复的字符排列到一起，这样有助于其他的压缩算法获得更高的压缩比。这个算法在基因分析中大有用处也就顺理成章了，想想DNA的双链表示大概都是G-T-A-C会有很多这样的字符，那么运用BWT应该可以有比较好的效果。 <a id="more"></a></p>
+<h1 id="算法实现">算法实现</h1>
+<p>考虑一个字符串，要想将相同的字符排列到一起，那么最简单的办法就是，将字符串中的字符进行排序。可是单纯的排序之后，虽然还是那么多字符，但是丢失了一个重要的信息就是字符原来的顺序，而BWT的核心思想就是在于排序并想办法保存字符的顺序信息。</p>
+<h2 id="编码">编码</h2>
+<p>编码方式如下：</p>
+<ul>
+<li>将 <span class="math inline">\({\displaystyle \$}\)</span> 作为字符串结尾标记加入到原字符串（记为 <span class="math inline">\({\displaystyle S}\)</span> )末尾</li>
+<li>将字符串从左到右进行轮换，对于一个长度为 <span class="math inline">\({\displaystyle N}\)</span> 的字符串，产生 <span class="math inline">\({\displaystyle N}\)</span> 个新的字符串，记为 <span class="math inline">\({\displaystyle S_{n}}\)</span></li>
+<li>将 <span class="math inline">\({\displaystyle S, S_{1}...S_{n}}\)</span> 进行字典序排序， <span class="math inline">\({\displaystyle \$}\)</span> 权值最小放在最前面，也即 <span class="math inline">\({\displaystyle S_{n}}\)</span> 在第一个</li>
+<li>取排序后的所有字符串的最后一个字符，生成一个新的字符串（记为<span class="math inline">\({\displaystyle S^{&quot;}}\)</span> )，即编码完成</li>
+</ul>
+<p>以字符串<code>banana</code>举例来说：</p>
+<p><span class="math display">\[
+S = banana, N = 6\\
+\begin{cases}
+S_{0} = banana\color{blue}{$}\\
+S_{1} = anana\color{blue}{$}b\\
+S_{2} = nana\color{blue}{$}ba\\
+S_{3} = ana\color{blue}{$}ban\\
+S_{4} = na\color{blue}{$}bana\\
+S_{5} = a\color{blue}{$}banan\\
+S_{6} = \color{blue}{$}banana
+\end{cases}
+\xrightarrow[\text{字典序排序}]{}
+\begin{cases}
+S_{6} = \color{blue}{$}banana\\
+S_{5} = a\color{blue}{$}banan\\
+S_{3} = ana\color{blue}{$}ban\\
+S_{1} = anana\color{blue}{$}b\\
+S_{0} = banana\color{blue}{$}\\
+S_{4} = na\color{blue}{$}bana\\
+S_{2} = nana\color{blue}{$}ba
+\end{cases}
+\xrightarrow[\text{获取最后一个字符}]{}
+\begin{cases}
+S_{6} = $banan\color{red}{a}\\
+S_{5} = a$bana\color{red}{n}\\
+S_{3} = ana$ba\color{red}{n}\\
+S_{1} = anana$\color{red}{b}\\
+S_{0} = banana\color{red}{$}\\
+S_{4} = na$ban\color{red}{a}\\
+S_{2} = nana$b\color{red}{a}
+\end{cases}\\
+S^{&quot;} = BWT(banana) = annb$aa
+\]</span></p>
+<p>可以看出，转换后的字符串<code>annb$aa</code>比原来的字符串重复相连的字符的确更多了。实际上<a href="http://www.bzip.org/" target="_blank" rel="noopener">bzip</a>就是应用了BWT结合进行压缩的：</p>
+<blockquote>
+<p>bzip2 compression program is based on Burrows–Wheeler algorithm.</p>
+</blockquote>
+<p>BWT转换后的重复相连字符更多并不绝对，有时候可能转换后的情况反而更糟，比如这个例子：</p>
+<p><span class="math display">\[
+BWT(appellee) = e$elplepa
+\]</span></p>
+<p>反而不如原始字符串了。</p>
+<h2 id="解码">解码</h2>
+<h3 id="利用还原矩阵法">利用还原矩阵法</h3>
+<p>解码的过程分为以下几步：</p>
+<ul>
+<li>根据编码后的字符串 <span class="math inline">\({\displaystyle S^{&quot;}}\)</span> ，得到还原矩阵</li>
+<li>根据还原矩阵，逐个还原出原来的顺序</li>
+</ul>
+<p>根据编码的过程我们知道，实际上是这样的对应： <span class="math display">\[
+\begin{cases}
+S_{6} = \color{green}{$}banan\color{red}{a}\\
+S_{5} = \color{green}{a}$bana\color{red}{n}\\
+S_{3} = \color{green}{a}na$ba\color{red}{n}\\
+S_{1} = \color{green}{a}nana$\color{red}{b}\\
+S_{0} = \color{green}{b}anana\color{red}{$}\\
+S_{4} = \color{green}{n}a$ban\color{red}{a}\\
+S_{2} = \color{green}{n}ana$b\color{red}{a}
+\end{cases}
+\xrightarrow[\text{还原矩阵}]{}
+\begin{pmatrix}
+$ &amp; a\\
+a &amp; n\\
+a &amp; n\\
+a &amp; b\\
+b &amp; $\\
+n &amp; a\\
+n &amp; a
+\end{pmatrix}
+\]</span></p>
+<p>得到这个矩阵非常简单，直接将字符串 <span class="math inline">\({\displaystyle S^{&quot;}}\)</span> 排个序就可以得到：</p>
+<p><span class="math display">\[
+\begin{cases}
+------a\\
+------n\\
+------n\\
+------b\\
+------$\\
+------a\\
+------a
+\end{cases}
+\xrightarrow[\text{排序}]{}
+\begin{cases}
+------$\\
+------a\\
+------a\\
+------a\\
+------b\\
+------n\\
+------n
+\end{cases}
+\xrightarrow[\text{还原矩阵}]{}
+\begin{pmatrix}
+$ &amp; a\\
+a &amp; n\\
+a &amp; n\\
+a &amp; b\\
+b &amp; $\\
+n &amp; a\\
+n &amp; a
+\end{pmatrix}
+\]</span></p>
+<p>在这样的一个还原矩阵中，每一个字符对应的就是它最末尾的字符。解码的过程如下：</p>
+<ul>
+<li>从左边列的 <span class="math inline">\({\displaystyle S}\)</span> 开始，找到对应的字符作为下一个字符 <span class="math inline">\({\displaystyle C_{n}}\)</span></li>
+<li>根据 <span class="math inline">\({\displaystyle C_{n}}\)</span> 这个字符，在左边列找到对应的字符，其对应的字符即 <span class="math inline">\({\displaystyle C_{n-1}}\)</span></li>
+<li>以此类推，直到结尾</li>
+<li>如果出现了多个相同的字符，那么就从上到下按顺序找就可以了</li>
+</ul>
+<p><span class="math display">\[
+\begin{pmatrix}
+\color{red}{$} &amp; \color{red}{a}\\
+a &amp; n\\
+a &amp; n\\
+a &amp; b\\
+b &amp; $\\
+n &amp; a\\
+n &amp; a
+\end{pmatrix}
+\xrightarrow[\text{\$a}]{}
+\begin{pmatrix}
+\color{gray}{$} &amp; \color{gray}{a}\\
+\color{red}{a} &amp; \color{red}{n}\\
+a &amp; n\\
+a &amp; b\\
+b &amp; $\\
+n &amp; a\\
+n &amp; a
+\end{pmatrix}
+\xrightarrow[\text{\$an}]{}
+\begin{pmatrix}
+\color{gray}{$} &amp; \color{gray}{a}\\
+\color{gray}{a} &amp; \color{gray}{n}\\
+a &amp; n\\
+a &amp; b\\
+b &amp; $\\
+\color{red}{n} &amp; \color{red}{a}\\
+n &amp; a
+\end{pmatrix}
+\xrightarrow[\text{\$ana}]{}
+\begin{pmatrix}
+\color{gray}{$} &amp; \color{gray}{a}\\
+\color{gray}{a} &amp; \color{gray}{n}\\
+\color{red}{a} &amp; \color{red}{n}\\
+a &amp; b\\
+b &amp; $\\
+\color{gray}{n} &amp; \color{gray}{a}\\
+n &amp; a
+\end{pmatrix}
+\xrightarrow[\text{\$anan}]{}
+\begin{pmatrix}
+\color{gray}{$} &amp; \color{gray}{a}\\
+\color{gray}{a} &amp; \color{gray}{n}\\
+\color{gray}{a} &amp; \color{gray}{n}\\
+a &amp; b\\
+b &amp; $\\
+\color{gray}{n} &amp; \color{gray}{a}\\
+\color{red}{n} &amp; \color{red}{a}\\
+\end{pmatrix}
+\xrightarrow[\text{\$anana}]{}
+\begin{pmatrix}
+\color{gray}{$} &amp; \color{gray}{a}\\
+\color{gray}{a} &amp; \color{gray}{n}\\
+\color{gray}{a} &amp; \color{gray}{n}\\
+\color{red}{a} &amp; \color{red}{b}\\
+b &amp; $\\
+\color{gray}{n} &amp; \color{gray}{a}\\
+\color{gray}{n} &amp; \color{gray}{a}\\
+\end{pmatrix}
+\xrightarrow[\text{\$ananab}]{}
+\begin{pmatrix}
+\color{gray}{$} &amp; \color{gray}{a}\\
+\color{gray}{a} &amp; \color{gray}{n}\\
+\color{gray}{a} &amp; \color{gray}{n}\\
+\color{gray}{a} &amp; \color{gray}{b}\\
+\color{red}{b} &amp; \color{red}{$}\\
+\color{gray}{n} &amp; \color{gray}{a}\\
+\color{gray}{n} &amp; \color{gray}{a}\\
+\end{pmatrix}\\
+S^{&#39;} = \$ananab\\
+S = reverse(S^{&#39;}) \\= banana\$
+\]</span></p>
+<h3 id="变种">变种</h3>
+<p>另一种方式可能更清晰，但实质上是一回事，只是做法看着不一样。在上述构建还原矩阵的过程中，我们实际已知的是最后一列的数据，那么，如果我们想办法把其他的列都构建出来，就可以得到原来的字符串了。</p>
+<p><span class="math display">\[
+\begin{cases}
+------a\\
+------n\\
+------n\\
+------b\\
+------$\\
+------a\\
+------a
+\end{cases}
+\xrightarrow[\text{想办法变成这样}]{}
+\begin{cases}
+S_{6} = \color{green}{$}banan\color{red}{a}\\
+S_{5} = \color{green}{a}$bana\color{red}{n}\\
+S_{3} = \color{green}{a}na$ba\color{red}{n}\\
+S_{1} = \color{green}{a}nana$\color{red}{b}\\
+S_{0} = \color{green}{b}anana\color{red}{$}\\
+S_{4} = \color{green}{n}a$ban\color{red}{a}\\
+S_{2} = \color{green}{n}ana$b\color{red}{a}
+\end{cases}
+\xrightarrow[\text{然后拿到S6就可以了}]{}
+S_{6} = \color{green}{$}banan\color{red}{a}
+\]</span></p>
+<p>过程是这样的： <span class="math display">\[
+\begin{cases}
+------a\\
+------n\\
+------n\\
+------b\\
+------$\\
+------a\\
+------a
+\end{cases}
+\xrightarrow[\text{将最后一列排序，作为第一列}]{}
+\begin{cases}
+$-----a\\
+a-----n\\
+a-----n\\
+a-----b\\
+b-----$\\
+n-----a\\
+n-----a
+\end{cases}
+\]</span></p>
+<p>得到这个之后，从又到左得到<code>a$,na,na,ba,$b, an, an</code>，再将其排序作为第二列, 以此类推：</p>
+<p><span class="math display">\[
+\begin{cases}
+------a\\
+------n\\
+------n\\
+------b\\
+------$\\
+------a\\
+------a
+\end{cases}
+\rightarrow
+\begin{cases}
+$-----a\\
+a-----n\\
+a-----n\\
+a-----b\\
+b-----$\\
+n-----a\\
+n-----a
+\end{cases}
+\rightarrow
+\begin{cases}
+a$\\
+na\\
+na\\
+ba\\
+$b\\
+an\\
+an
+\end{cases}
+\xrightarrow[\text{排序}]{}
+\begin{cases}
+$\color{green}{b}\\
+a\color{green}{$}\\
+a\color{green}{n}\\
+a\color{green}{n}\\
+n\color{green}{a}\\
+n\color{green}{a}\\
+b\color{green}{a}
+\end{cases}
+\xrightarrow[\text{得到第三列}]{}
+\begin{cases}
+$b----a\\
+a$----n\\
+an----n\\
+an----b\\
+ba----$\\
+na----a\\
+na----a
+\end{cases}\\
+\rightarrow
+\begin{cases}
+a$b\\
+na$\\
+nan\\
+ban\\
+$ba\\
+ana\\
+ana
+\end{cases}
+\rightarrow
+\begin{cases}
+$b\color{green}{a}\\
+a$\color{green}{b}\\
+an\color{green}{a}\\
+an\color{green}{a}\\
+ba\color{green}{n}\\
+na\color{green}{$}\\
+na\color{green}{n}
+\end{cases}
+\xrightarrow[\text{得到第三列}]{}
+\begin{cases}
+$ba---a\\
+a$b---n\\
+ana---n\\
+ana---b\\
+ban---$\\
+na$---a\\
+nan---a
+\end{cases}
+\xrightarrow[\text{如此反复，最终得到全部列}]{}
+\]</span></p>
+<h1 id="代码实现">代码实现</h1>
+<p>看似复杂的操作，没想到用python可以写的如此简单，不过不见得一看就懂...</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a>EOL <span class="op">=</span> <span class="st">&#39;$&#39;</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">def</span> encode(source):</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    source <span class="op">=</span> source <span class="op">+</span> EOL</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    table <span class="op">=</span> [source[i:] <span class="op">+</span> source[:i] <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(source))]</span>
+<span id="cb1-6"><a href="#cb1-6"></a>    table.sort()</span>
+<span id="cb1-7"><a href="#cb1-7"></a></span>
+<span id="cb1-8"><a href="#cb1-8"></a>    <span class="cf">return</span> <span class="st">&#39;&#39;</span>.join([row[<span class="op">-</span><span class="dv">1</span>] <span class="cf">for</span> row <span class="kw">in</span> table])</span>
+<span id="cb1-9"><a href="#cb1-9"></a></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="kw">def</span> decode(encoded):</span>
+<span id="cb1-11"><a href="#cb1-11"></a>    length <span class="op">=</span> <span class="bu">len</span>(encoded)</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    table <span class="op">=</span> [<span class="st">&#39;&#39;</span>] <span class="op">*</span> length</span>
+<span id="cb1-13"><a href="#cb1-13"></a></span>
+<span id="cb1-14"><a href="#cb1-14"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(length):</span>
+<span id="cb1-15"><a href="#cb1-15"></a>        table <span class="op">=</span> <span class="bu">sorted</span>([encoded[m] <span class="op">+</span> table[m] <span class="cf">for</span> m <span class="kw">in</span> <span class="bu">range</span>(length)])</span>
+<span id="cb1-16"><a href="#cb1-16"></a>        <span class="bu">print</span>(table)</span>
+<span id="cb1-17"><a href="#cb1-17"></a>    s <span class="op">=</span> [row <span class="cf">for</span> row <span class="kw">in</span> table <span class="cf">if</span> row.endswith(EOL)][<span class="dv">0</span>]</span>
+<span id="cb1-18"><a href="#cb1-18"></a>    <span class="cf">return</span> s.rstrip(EOL)</span></code></pre></div>
+<p>解码的这个循环不大好理解，打出来一看就懂了：</p>
+<pre><code>[&#39;$&#39;, &#39;a&#39;, &#39;a&#39;, &#39;a&#39;, &#39;b&#39;, &#39;n&#39;, &#39;n&#39;]
+[&#39;$b&#39;, &#39;a$&#39;, &#39;an&#39;, &#39;an&#39;, &#39;ba&#39;, &#39;na&#39;, &#39;na&#39;]
+[&#39;$ba&#39;, &#39;a$b&#39;, &#39;ana&#39;, &#39;ana&#39;, &#39;ban&#39;, &#39;na$&#39;, &#39;nan&#39;]
+[&#39;$ban&#39;, &#39;a$ba&#39;, &#39;ana$&#39;, &#39;anan&#39;, &#39;bana&#39;, &#39;na$b&#39;, &#39;nana&#39;]
+[&#39;$bana&#39;, &#39;a$ban&#39;, &#39;ana$b&#39;, &#39;anana&#39;, &#39;banan&#39;, &#39;na$ba&#39;, &#39;nana$&#39;]
+[&#39;$banan&#39;, &#39;a$bana&#39;, &#39;ana$ba&#39;, &#39;anana$&#39;, &#39;banana&#39;, &#39;na$ban&#39;, &#39;nana$b&#39;]
+[&#39;$banana&#39;, &#39;a$banan&#39;, &#39;ana$ban&#39;, &#39;anana$b&#39;, &#39;banana$&#39;, &#39;na$bana&#39;, &#39;nana$ba&#39;]</code></pre>
+<ul>
+<li><a href="https://zh.wikipedia.org/wiki/Burrows-Wheeler%E5%8F%98%E6%8D%A2" target="_blank" rel="noopener">维基百科-Burrows-Wheeler变换</a></li>
+<li><a href="https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/bwt.pdf" target="_blank" rel="noopener">BWT</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/algorithm/about_bwt/" data-id="ck8ppfg2k003qcjqiat6bbewo"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BWT/" rel="tag">BWT</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/devops/install_local_openshift/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            搭建Openshift本地环境
+          
+        </div>
+      </a>
+    
+    
+      <a href="/tex/latex_tikz/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">LaTeX(3)：使用TikZ绘制图形</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    使用JMH进行Benchmark测试 |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/java/benchmark_using_jmh" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用JMH进行Benchmark测试
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/java/benchmark_using_jmh/" class="article-date">
+  <time datetime="2018-05-09T00:00:00.000Z" itemprop="datePublished">2018-05-09</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/Java/">Java</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>JMH是一个测试Java程序性能的工具，比如我们现在要测试一下JDK8自带的Base64和<a href="http://www.java2s.com/Code/Java/Development-Class/AfastandmemoryefficientclasstoencodeanddecodetoandfromBASE64infullaccordancewithRFC2045.htm" target="_blank" rel="noopener">另一个实现</a>的性能。 <a id="more"></a> 先看看 build.gradle 中怎么写：</p>
+<pre class="groovy"><code>group &#39;riguz&#39;
+version &#39;1.0-SNAPSHOT&#39;
+
+apply plugin: &#39;java&#39;
+
+sourceCompatibility = 1.8
+
+sourceSets {
+    jmh
+}
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    jmhCompile project
+    jmhCompile &#39;org.openjdk.jmh:jmh-core:1.21&#39;
+    jmhCompile &#39;org.openjdk.jmh:jmh-generator-annprocess:1.21&#39;
+    jmhCompile group: &#39;junit&#39;, name: &#39;junit&#39;, version: &#39;4.12&#39;
+    testCompile group: &#39;junit&#39;, name: &#39;junit&#39;, version: &#39;4.12&#39;
+}
+
+task jmh(type: JavaExec, description: &#39;Executing JMH benchmarks&#39;) {
+    classpath = sourceSets.jmh.runtimeClasspath
+    main = &#39;org.openjdk.jmh.Main&#39;
+}
+</code></pre>
+<p>然后写一个类：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="at">@Benchmark</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>    <span class="at">@Warmup</span>(iterations = <span class="dv">1</span>, time = <span class="dv">5</span>)</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    <span class="at">@Measurement</span>(iterations = <span class="dv">1</span>, time = <span class="dv">5</span>)</span>
+<span id="cb2-4"><a href="#cb2-4"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">encodeWithJdk</span>() {</span>
+<span id="cb2-5"><a href="#cb2-5"></a>        <span class="dt">final</span> <span class="dt">byte</span>[] bytes = Dream.<span class="fu">text</span>.<span class="fu">getBytes</span>();</span>
+<span id="cb2-6"><a href="#cb2-6"></a>        <span class="dt">byte</span>[] encoded = Base64.<span class="fu">getEncoder</span>().<span class="fu">encode</span>(bytes);</span>
+<span id="cb2-7"><a href="#cb2-7"></a>        <span class="dt">byte</span>[] decoded = Base64.<span class="fu">getDecoder</span>().<span class="fu">decode</span>(encoded);</span>
+<span id="cb2-8"><a href="#cb2-8"></a>        <span class="fu">assertTrue</span>(<span class="bu">Arrays</span>.<span class="fu">equals</span>(bytes, decoded));</span>
+<span id="cb2-9"><a href="#cb2-9"></a>    }</span>
+<span id="cb2-10"><a href="#cb2-10"></a></span>
+<span id="cb2-11"><a href="#cb2-11"></a>    <span class="at">@Benchmark</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>    <span class="at">@Warmup</span>(iterations = <span class="dv">1</span>, time = <span class="dv">5</span>)</span>
+<span id="cb2-13"><a href="#cb2-13"></a>    <span class="at">@Measurement</span>(iterations = <span class="dv">1</span>, time = <span class="dv">5</span>)</span>
+<span id="cb2-14"><a href="#cb2-14"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">encodeWithBase64Codec</span>() <span class="kw">throws</span> <span class="bu">IOException</span> {</span>
+<span id="cb2-15"><a href="#cb2-15"></a>        <span class="dt">final</span> <span class="dt">byte</span>[] bytes = Dream.<span class="fu">text</span>.<span class="fu">getBytes</span>();</span>
+<span id="cb2-16"><a href="#cb2-16"></a>        <span class="dt">byte</span>[] encoded = Base64Codec.<span class="fu">encodeToByte</span>(bytes, <span class="kw">true</span>);</span>
+<span id="cb2-17"><a href="#cb2-17"></a>        <span class="dt">byte</span>[] decoded = Base64Codec.<span class="fu">decodeFast</span>(encoded, encoded.<span class="fu">length</span>);</span>
+<span id="cb2-18"><a href="#cb2-18"></a>        <span class="fu">assertTrue</span>(<span class="bu">Arrays</span>.<span class="fu">equals</span>(bytes, decoded));</span>
+<span id="cb2-19"><a href="#cb2-19"></a>    }</span></code></pre></div>
+<p>其中Dream.text是一个很长的字符串。执行gradle的jmh task之后，可以得到结果</p>
+<pre><code>Benchmark                               Mode  Cnt   Score   Error  Units
+Base64BenchMark.encodeWithBase64Codec  thrpt    5  15.296 ± 2.538  ops/s
+Base64BenchMark.encodeWithJdk          thrpt    5  13.029 ± 1.563  ops/s</code></pre>
+<p>看样子要比JDK的实现强一丢丢，当然只是在上面的这种情况之下。差距并不大。</p>
+<p>参考:</p>
+<ul>
+<li>http://tutorials.jenkov.com/java-performance/jmh.html#why-are-java-microbenchmarks-hard</li>
+<li>https://www.jianshu.com/p/192b782c31bc</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/java/benchmark_using_jmh/" data-id="ck8ppfg3o005jcjqidoc47ysr"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Base64/" rel="tag">Base64</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Benchmark/" rel="tag">Benchmark</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JMH/" rel="tag">JMH</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Perfomance/" rel="tag">Perfomance</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/java/antlr_as_config/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            使用 Antlr 解析配置文件
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/java/compile_openjdk8_in_macosx/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">Compile OpenJDK8 on MacOSX</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>

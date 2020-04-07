@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  
+  
+    <meta name="keywords" content="Riguz, soleverlee, dr riguz, solever, riguz lee, blog, programing">
+  
+  
+    <meta name="description" content="筋肉程序员">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>
+    搭建GOCD Server |
+    
+    RIGUZ Lee</title>
+  
+    <link rel="shortcut icon" href="/images/logo.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/vs.min.css">
+  
+    <link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+  
+  <script src="/js/pace.min.js"></script>
+  <script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+  <script src="https://cdn.bootcss.com/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<link rel="alternate" href="/atom.xml" title="RIGUZ Lee" type="application/atom+xml">
+</head>
+
+<body>
+<main class="content">
+  <section class="outer">
+  
+
+<article id="post-it/devops/deploy_gocd" class="article article-type-post" itemscope itemprop="blogPost" data-scroll-reveal>
+  
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      搭建GOCD Server
+    </h1>
+  
+  
+
+
+
+
+      </header>
+    
+
+    
+      <div class="article-meta">
+        <a href="/it/devops/deploy_gocd/" class="article-date">
+  <time datetime="2017-06-20T00:00:00.000Z" itemprop="datePublished">2017-06-20</time>
+</a>
+        
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Programing/">Programing</a> / <a class="article-category-link" href="/categories/Programing/MicroService/">MicroService</a>
+  </div>
+
+      </div>
+    
+
+    
+      
+
+
+
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+
+
+      
+
+      
+        <p>来部署一个<a href="https://hub.docker.com/r/gocd/gocd-server/" target="_blank" rel="noopener">GOCD</a>的容器。 <a id="more"></a></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">sudo</span> docker pull gocd/gocd-server:v17.5.0</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="ex">docker</span> run -d \</span>
+<span id="cb1-3"><a href="#cb1-3"></a>    --name gocd \</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    -p 8153:8153 \</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    -p 8154:8154 \</span>
+<span id="cb1-6"><a href="#cb1-6"></a>    -v /home/docker/go/data:/godata \</span>
+<span id="cb1-7"><a href="#cb1-7"></a>    -v /home/docker/go/home:/home/go \</span>
+<span id="cb1-8"><a href="#cb1-8"></a>    gocd/gocd-server:v17.5.0</span></code></pre></div>
+<p>启动起来后，访问8153端口，这时可以看到添加pipeline的界面了。</p>
+<p>安装<a href="https://github.com/gocd-contrib/script-executor-task/releases" target="_blank" rel="noopener">Script Executor</a>插件：</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="bu">cd</span> /home/docker/go/data/plugins/external</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="fu">wget</span> https://github.com/gocd-contrib/script-executor-task/releases/download/0.3/script-executor-0.3.0.jar</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="fu">chown</span> 1000 script-executor-0.3.0.jar</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="fu">sudo</span> docker restart gocd</span></code></pre></div>
+<p>安装go-agent到Ubuntu宿主机上，参考<a href="https://docs.gocd.org/current/installation/install/agent/linux.html" target="_blank" rel="noopener">GOCD文档</a></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1"></a><span class="bu">echo</span> <span class="st">&quot;deb https://download.gocd.io /&quot;</span> <span class="kw">|</span> <span class="fu">sudo</span> tee /etc/apt/sources.list.d/gocd.list</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="ex">curl</span> https://download.gocd.io/GOCD-GPG-KEY.asc <span class="kw">|</span> <span class="fu">sudo</span> apt-key add -</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="fu">sudo</span> apt-get install go-agent</span></code></pre></div>
+<p>注意，go-agent只能运行在jdk8上，如果装了jdk9是运行不起来的</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="ex">dpkg</span> -l <span class="kw">|</span> <span class="fu">grep</span> jdk</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">sudo</span> apt-get autoremove openjdk-9-jre-headless</span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="fu">sudo</span> apt-get install openjdk-8-jre-headless</span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="fu">sudo</span> apt-get install go-agent</span></code></pre></div>
+<p>记得修改环境变量/etc/profile：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="bu">export</span> <span class="va">JAVA_HOME=</span>/usr/lib/jvm/java-8-openjdk-amd64</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="bu">export</span> <span class="va">CLASSPATH=</span>.:<span class="va">$JAVA_HOME</span>/lib:<span class="va">$JAVA_HOME</span>/jre/lib:<span class="va">$CLASSPATH</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="bu">export</span> <span class="va">PATH=$JAVA_HOME</span>/bin:<span class="va">$JAVA_HOME</span>/jre/bin:<span class="va">$PATH</span></span></code></pre></div>
+<p>配置gocd的工作目录：</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">mkdir</span> /home/gocd</span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="fu">chown</span> -R go.go /home/gocd</span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="fu">chown</span> go.go /usr/share/go-agent/*.jar</span>
+<span id="cb6-4"><a href="#cb6-4"></a></span>
+<span id="cb6-5"><a href="#cb6-5"></a><span class="ex">vim</span> /etc/default/go-agent</span>
+<span id="cb6-6"><a href="#cb6-6"></a></span>
+<span id="cb6-7"><a href="#cb6-7"></a><span class="va">GO_SERVER_URL=</span>https://192.168.56.101:8154/go</span>
+<span id="cb6-8"><a href="#cb6-8"></a><span class="va">AGENT_WORK_DIR=</span>/home/gocd/<span class="va">${SERVICE_NAME:-</span>go-agent<span class="va">}</span></span>
+<span id="cb6-9"><a href="#cb6-9"></a><span class="va">DAEMON=</span>Y</span>
+<span id="cb6-10"><a href="#cb6-10"></a><span class="va">VNC=</span></span></code></pre></div>
+<p>下面我们就来建一个pipe line试试吧。</p>
+<ul>
+<li>在Agents中启用我们的go-agent，并在Resource中添加一个LINUX的标签</li>
+<li>新建一个Environment，把我们的这个agent加入进去</li>
+<li>新建一个Pipeline，名称为hello，group为dev</li>
+<li>选择Material的地方选择Git，填写http://root:****<span class="citation" data-cites="192.168.56.101/springcloud/helloworld.git">@192.168.56.101/springcloud/helloworld.git</span>，其中root:****为GIT的账号密码，如果是public的库则无需这样设置，可以check connection查看是否可以访问</li>
+<li>新建一个Stage，名称为build，然后Initial Job中设置为Script Executor，可以随便执行个bash命令，例如<code>echo "Hello World!"</code> 这样运行就可以看到pipeline绿了~~~</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://riguz.com/it/devops/deploy_gocd/" data-id="ck8ppfg3c004wcjqi06jp16e9"
+         class="article-share-link">Share</a>
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CICD/" rel="tag">CICD</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GOCD/" rel="tag">GOCD</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+    
+  <nav class="article-nav">
+    
+      <a href="/it/arch/about_event_sourcing/" class="article-nav-link">
+        <strong class="article-nav-caption">Newer posts</strong>
+        <div class="article-nav-title">
+          
+            关于Event Sourcing架构
+          
+        </div>
+      </a>
+    
+    
+      <a href="/it/devops/deploy_gitlab/" class="article-nav-link">
+        <strong class="article-nav-caption">Olde posts</strong>
+        <div class="article-nav-title">搭建Gitlab私服</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+    
+  <div class="gitalk" id="gitalk-container"></div>
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="https://cdn.bootcss.com/blueimp-md5/2.10.0/js/md5.min.js"></script>
+  <script type="text/javascript">
+    var gitalk = new Gitalk({
+      clientID: '57d61245ff82e94d67b3',
+      clientSecret: 'dac16d0960bdce5d0041def03bdcf35754308431',
+      repo: 'soleverlee.github.io',
+      owner: 'soleverlee',
+      admin: ['soleverlee'],
+      // id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),
+      distractionFreeMode: false,  // Facebook-like distraction free mode
+      pagerDirection: 'last'
+    })
+
+  gitalk.render('gitalk-container')
+  </script>
+
+  
+
+</article>
+
+
+
+</section>
+  <footer class="footer">
+  <div class="outer">
+    <div class="float-right">
+      <ul class="list-inline">
+  
+    <li><i class="fe fe-smile-alt"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+    <li><i class="fe fe-bookmark"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul>
+    </div>
+    <ul class="list-inline">
+      <li>&copy; 2020 RIGUZ Lee</li>
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>Theme  <a href="https://github.com/zhwangart/hexo-theme-ocean" target="_blank" rel="noopener">Ocean</a></li>
+    </ul>
+  </div>
+</footer>
+
+</main>
+
+<aside class="sidebar sidebar-specter">
+  
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+    <div class="logo">
+      <a href="/"><img src="/images/logo.png" alt="RIGUZ Lee"></a>
+    </div>
+  
+  <ul class="nav nav-main">
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/">主页</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/archives">归档</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://wiki.riguz.com" target="_blank" rel="noopener">维基</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://view.riguz.com" target="_blank" rel="noopener">相册</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://bug.riguz.com" target="_blank" rel="noopener">项目</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="/about/">关于</a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-item-link" href="https://github.com/soleverlee" target="_blank" rel="noopener">代码</a>
+      </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="Search">
+        <i class="fe fe-search"></i>
+        Search
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+        <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+          <i class="fe fe-feed"></i>
+        </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/lazyload.min.js"></script>
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+  <script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+  <script src="/js/tocbot.min.js"></script>
+  <script>
+    // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+    tocbot.init({
+      tocSelector: '.tocbot',
+      contentSelector: '.article-entry',
+      headingSelector: 'h1, h2, h3, h4, h5, h6',
+      hasInnerContainers: true,
+      scrollSmooth: true,
+      positionFixedSelector: '.tocbot',
+      positionFixedClass: 'is-position-fixed',
+      fixedSidebarOffset: 'auto',
+    });
+  </script>
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+</html>
