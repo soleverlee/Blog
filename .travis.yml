@@ -13,6 +13,7 @@ before_install:
     - wget https://github.com/jgm/pandoc/releases/download/2.7.3/pandoc-2.7.3-1-amd64.deb
     - sudo dpkg -i ./pandoc-2.7.3-1-amd64.deb
 script:
+    - cd new
     - hexo generate
 deploy:
     provider: pages
@@ -21,7 +22,7 @@ deploy:
     keep-history: true
     on:
         branch: master
-    local-dir: public
+    local-dir: new/public
 after_success:
     - print 'Successfully eployed to github'
     
