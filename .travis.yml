@@ -6,26 +6,22 @@ node_js:
 branches:
     only:
         - master
-cache:
-    directories:
-        - node_modules
+cache: npm
 
 before_install:
     - npm install -g hexo-cli
     - wget https://github.com/jgm/pandoc/releases/download/2.7.3/pandoc-2.7.3-1-amd64.deb
     - sudo dpkg -i ./pandoc-2.7.3-1-amd64.deb
-
-install:
-    - cd riguz.com
-    - npm install
-before_script:
-    - git config user.name "Riguz Lee"
-    - git config user.email "solee.linux@gmail.com"
-    - sed -i "s/deploy_token/${GITHUB_TOKEN}/g" ./_config.yml
 script:
-    - hexo clean
-    - hexo generate --deploy
-    - hexo deploy
+    - hexo generate
+deploy:
+    provider: pages
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN
+    keep-history: true
+    on:
+        branch: master
+    local-dir: public
 after_success:
     - print 'Successfully eployed to github'
     
