@@ -24,7 +24,7 @@ before_script:
     - sed -i "s/deploy_token/${GITHUB_TOKEN}/g" ./_config.yml
 script:
     - hexo clean
-    - hexo generate
+    - hexo generate --deploy
     - hexo deploy
 after_success:
     - print 'Successfully eployed to github'
