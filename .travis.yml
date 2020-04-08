@@ -16,7 +16,7 @@ script:
     - hexo generate
 deploy:
     provider: pages
-    repo: solever/solever.github.io
+    repo: soleverlee/soleverlee.github.io
     skip-cleanup: true
     github-token: $GITHUB_TOKEN
     keep-history: false
