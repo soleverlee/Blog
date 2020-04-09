@@ -9,7 +9,7 @@ tags:
     - CMake
 ---
 之前写过一篇文章[Visual Studio Code for C++ development on MacOS](../visual_studio_code_cpp_ide), 因为在Mac上一直没有找到免费且又比较好用的C++开发工具。但相比起Visual Studio而言，Visual Studio Code还是太难用了。最近Eclipse-CDT又更新了一下，所以再次体验了一下。
-
+<!-- more -->
 # 导入CMake工程
 Eclipse CDT默认是支持CMake的，所以不用使用cmake生成eclipse的工程，直接就可以用。新建项目的时候是可以直接选用CMake项目的，那么，怎么导入一个现有的CMake工程呢？
 
