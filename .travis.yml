@@ -21,8 +21,8 @@ before_install:
 - sudo apt-get install -y optipng
 script:
 - hexo generate --silent
-- cd public
-- find . -name '*.jpg' or --name '*.jpeg' | xargs jpegoptim --strip-all
+- cd public/images
+- find . -name '*.jpg' -o --name '*.jpeg' | xargs jpegoptim --strip-all
 - optipng *.png
 deploy:
     provider: pages
