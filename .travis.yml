@@ -17,8 +17,13 @@ before_install:
 - npm install -g hexo-cli
 - wget https://github.com/jgm/pandoc/releases/download/2.7.3/pandoc-2.7.3-1-amd64.deb
 - sudo dpkg -i ./pandoc-2.7.3-1-amd64.deb
+- sudo apt-get install -y jpegoptim
+- sudo apt-get install -y optipng
 script:
 - hexo generate --silent
+- cd public
+- find . -name '*.jpg' or --name '*.jpeg' | xargs jpegoptim --strip-all
+- optipng *.png
 deploy:
     provider: pages
     repo: soleverlee/soleverlee.github.io
