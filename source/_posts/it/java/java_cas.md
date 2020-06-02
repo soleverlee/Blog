@@ -9,12 +9,10 @@ tags:
     - JVM
 ---
 
+CAS：Compare and Swap，即比较再交换。jdk5增加了并发包java.util.concurrent.*,其下面的类使用CAS算法实现了区别于synchronouse同步锁的一种乐观锁。
+<!-- more -->
 
-
-
-# CAS 无锁操作
-
-## 实现机制
+# 实现机制
 
 在Java中很多原子操作是通过CAS实现的，是一种无锁的方式，比如AtomicIntger的自增操作：
 
@@ -71,7 +69,7 @@ UNSAFE_END
 * [openjdk8/unsafe.cpp](http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/tip/src/share/vm/prims/unsafe.cpp)
 * [openjdk8/atomic.cpp](http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/tip/src/share/vm/runtime/atomic.cpp)
 
-## ABA问题
+# ABA问题
 
 使用CAS一个问题就是可能出现A-B-A问题，因为CAS到逻辑就是，假设更新到时候判断出值跟期望的一致那么就会进行更改；但实际值跟期望的一致并不能代表值没有发生过变化。可能的场景就是，值被改成别的然后又改回来了，就是从A-B，然后又变成A。
 
@@ -92,10 +90,12 @@ UNSAFE_END
  }
 ```
 
-https://docs.huihoo.com/javaone/2006/java_se/JAVA%20SE/TS-3412.pdf
-https://fliphtml5.com/tzor/bqxz/basic
-https://www.artima.com/insidejvm/ed2/index.html
+References:
+
+* https://docs.huihoo.com/javaone/2006/java_se/JAVA%20SE/TS-3412.pdf
+* https://fliphtml5.com/tzor/bqxz/basic
+* https://www.artima.com/insidejvm/ed2/index.html
 * [OpenJDK Wiki - Synchronization](https://wiki.openjdk.java.net/display/HotSpot/Synchronization)
-https://www.zhihu.com/question/53826114
+* https://www.zhihu.com/question/53826114
 * [Biased Locking in HotSpot](https://blogs.oracle.com/dave/biased-locking-in-hotspot)
-http://gee.cs.oswego.edu/dl/jmm/cookbook.html
+* http://gee.cs.oswego.edu/dl/jmm/cookbook.html

@@ -8,6 +8,9 @@ tags:
     - Hotspot
     - JVM
 ---
+学习一下Hotspot中的锁实现。
+
+<!-- more -->
 
 # Head word
 
@@ -70,15 +73,16 @@ Java对象初始化的时候的header word有会有一个是否允许偏向的�
 * 恢复线程，按照thin lock的方式执行（包括膨胀机制）
 
 
-只有一个线程会（反复）去获取锁
-多个线程交替加锁（但没有竞争）
-多个线程存在竞争（意即同时加锁）
 
-https://docs.huihoo.com/javaone/2006/java_se/JAVA%20SE/TS-3412.pdf
-https://fliphtml5.com/tzor/bqxz/basic
-https://www.artima.com/insidejvm/ed2/index.html
+Reference:
+
+* https://docs.huihoo.com/javaone/2006/java_se/JAVA%20SE/TS-3412.pdf
+* https://fliphtml5.com/tzor/bqxz/basic
+* https://www.artima.com/insidejvm/ed2/index.html
 * [OpenJDK Wiki - Synchronization](https://wiki.openjdk.java.net/display/HotSpot/Synchronization)
-https://www.zhihu.com/question/53826114
+* https://www.zhihu.com/question/53826114
 * [Biased Locking in HotSpot](https://blogs.oracle.com/dave/biased-locking-in-hotspot)
 http://gee.cs.oswego.edu/dl/jmm/cookbook.html
 * [Eliminating synchronization-related atomic operations with biased locking and bulk rebiasing](https://www.semanticscholar.org/paper/Eliminating-synchronization-related-atomic-with-and-Russell-Detlefs/356a2d9859520c9161d67828d45e758a24ecce20)
+* https://www.javazhiyin.com/24364.html
+* https://pdfs.semanticscholar.org/b8e4/cb0c212fd799522817b914ffcd24470f707e.pdf?_ga=2.218049237.2144104280.1590746224-418849090.1590746224
