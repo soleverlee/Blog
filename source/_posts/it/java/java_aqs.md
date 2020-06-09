@@ -89,6 +89,78 @@ class Mutex implements Lock, java.io.Serializable {
 
 AQS内部是使用的基于CLH队列的同步机制。
 
+![AQS CLH](/images/AQS_queue.png)
+
 ## acquire获取状态
+
+acquire意味着尝试通过获取某个状态从而获取到锁。acquire的过程如下：
+
+* 首先尝试直接通过CAS的方式改变state，如果成功则直接获取到锁
+* 如果上一步失败，那么表明其他线程获取到锁，则尝试将当前线程加入到队列末尾进行排队（同样加入到队列末尾也是通过CAS实现）
+* 加入到队列后，中断当前线程（但具体线程如何处理中断要看线程自己了）
+
+```java
+public final void acquire(int arg) {
+    if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+        selfInterrupt();
+}
+```
+
+```java
+private Node addWaiter(Node mode) {
+    Node node = new Node(Thread.currentThread(), mode);
+    Node pred = tail;
+    // 如果发现队列不为空，那么尝试一次性快速插入到尾部（如果失败的话则通过enq方法插入）
+    // 在没有线程竞争的情况下，会比enq稍微快一点，enq里面还要处理队列为空的情况
+    if (pred != null) {
+        node.prev = pred;
+        if (compareAndSetTail(pred, node)) {
+            // 通过CAS设置tail成功，这时候tail已经是当前node，再把之前的tail（pred）连接到自己
+            pred.next = node;
+            return node;
+        }
+    }
+    // enq的逻辑基本上与上面一样，区别在于1. 处理队列为空的情况，要插入到队列头部；2.CAS失败后会重试直到成功
+    enq(node);
+    return node;
+}
+```
+
+```java
+private Node enq(final Node node) {
+    for (;;) {
+        Node t = tail;
+        if (t == null) {
+            // 如果发现队列为空那么首先把head和tail都设置为空节点
+            if (compareAndSetHead(new Node()))
+                tail = head;
+        } else {
+            node.prev = t;
+            if (compareAndSetTail(t, node)) {
+                t.next = node;
+                return t;
+            }
+        }
+    }
+}
+```
+
+## release操作
+
+当释放锁的时候，会唤醒一个后继节点，这个节点通常是后一个节点（如果后一个节点cancel了则要从队列尾部遍历直到找到真正的后继节点）。
+
+```java
+public final boolean release(int arg) {
+    if (tryRelease(arg)) {
+        Node h = head;
+        if (h != null && h.waitStatus != 0)
+            unparkSuccessor(h);
+        return true;
+    }
+    return false;
+}
+
+```
+
 
 * [The java.util.concurrent Synchronizer Framework](http://gee.cs.oswego.edu/dl/papers/aqs.pdf)
