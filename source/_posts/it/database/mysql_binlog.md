@@ -13,7 +13,9 @@ This kind of feature enables mysql in replication from master to slave servers b
 
 <!-- more -->
 
-# Enable mysql binlog
+# binary log configuration
+
+## enable mysql binlog
 
 By default the binlog feature is not enabled by mysql, we can enable this by adding the following settings to `my.cnf` file:
 
@@ -21,7 +23,6 @@ By default the binlog feature is not enabled by mysql, we can enable this by add
 [mysqld]
 log-bin=mysql-bin
 server_id=1
-binlog_format="ROW"
 ```
 
 Since MySQL5.7, the `server_id` must be specified if binlog is enabled, and this value should be unique among the cluster. Then we can find binlog like the following:
@@ -36,7 +37,30 @@ mysql> show binary logs;
 1 row in set (0.00 sec)
 ```
 
-# binlog format
+## binlog format
+
+There are 3 kinds of binlog format supported by mysql:
+
+* STATEMENT: statement-based logging
+* ROW: row-based logging
+* MIXED: in mixed mode
+
+By default, the statement-based binlog format is used, and that could be changed by settings:
+
+```ini
+[mysqld]
+log-bin=mysql-bin
+server_id=1
+binlog_format="ROW"
+```
+
+But be aware that the statement-based binlog may cause inconsistency in replication, accroding to the warning in mysql manual:
+
+> When using statement-based logging for replication, it is possible for the data on the master and slave to become different if a statement is designed in such a way that the data modification is nondeterministic; that is, it is left to the will of the query optimizer. In general, this is not a good practice even outside of replication. 
+
+So in general maybe it's better to use row-based logging, however that could result in larger binlog files.
+
+# events in binlog
 
 ## View events in binlog
 
