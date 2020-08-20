@@ -4,9 +4,8 @@ menu:
   归档: /archives
   维基: https://wiki.riguz.com
   相册: https://view.riguz.com
-  项目: https://bug.riguz.com
   关于: /about/
-  代码: https://github.com/soleverlee
+  代码: https://github.com/drriguz
 rss: /atom.xml
 
 
@@ -16,24 +15,13 @@ brand: /images/logo.png
 
 # Ocean Video
 # Because I put videos in multiple formats on the same path, I just labeled the path here.
-background:
+ocean:
   overlay: true
-  overlay_path: /images/bg/overlay-hero.png
-  cover: /images/bg/Night-Traffic.jpg
-  mp4: /images/bg/Night-Traffic.mp4
-  ogv: /images/bg/Night-Traffic.ogv
-  webm: /images/bg/Night-Traffic.webm
-  brand: /images/logo.png
+  path: /images/ocean/
+  brand: /images/hexo-inverted.svg
 
 # Content
 excerpt_link: Read More...
-share_text: Share
-search_text: Search
-nav_text:
-  page_prev: Prev page
-  page_next: Next page
-  post_prev: Newer posts
-  post_next: Olde posts
 
 # Tags
 show_count: true
@@ -46,9 +34,21 @@ fancybox: true
 
 # Gitalk
 gitalk:
+  enable: false # true
+  clientID: # GitHub Application Client ID
+  clientSecret: # Client Secret
+  repo: # Repository name
+  owner: # GitHub ID
+  admin: # GitHub ID
+
+# Valine
+valine:
   enable: true # true
-  clientID: 57d61245ff82e94d67b3
-  clientSecret: dac16d0960bdce5d0041def03bdcf35754308431
-  repo: soleverlee.github.io
-  owner: soleverlee
-  admin: soleverlee
+  el: 'vcomments'
+  appId: odNr9tGpxX5wbSIi7Tlvn3vK-gzGzoHsz
+  appKey: f1kkYUr6e6TpA9r31KXprsqd
+  notify: false
+  verify: true
+  avatar: 'mp'
+  pageSize: '10'
+  placeholder: '请输入...' 

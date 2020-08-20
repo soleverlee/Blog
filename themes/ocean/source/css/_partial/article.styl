@@ -1,8 +1,6 @@
 
 .article
-  position relative
-  padding 16px 20px
-  background white
+  padding 3rem 0
 
 //.article-inner
 //  overflow hidden
@@ -219,30 +217,6 @@ $article-share-link
     background google-color
     text-shadow 0 1px darken(google-color, 20%)
 
-article.articles article .dog-ears-container
-  position absolute
-  right 0
-  top 0
-  border none
-  padding 1.6em
-  overflow hidden
-  transition border-radius 0s
-  cursor pointer
-  &:hover
-    &:before
-      border-width 18px
-  &:before
-    cursor pointer
-    content ""
-    position absolute
-    top 0
-    right 0
-    border-style solid
-    box-shadow 1px 1px 5px rgba(0,0,0,0.4)
-    width 0
-    border-width 12px
-    border-color #f6f6f6 #f6f6f6 #FFF #FFF
-    transition border-width .2s, border-color .2s
 
 @import "tocbot"
 @import "gallery"

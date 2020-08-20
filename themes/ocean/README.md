@@ -9,13 +9,13 @@ Ocean is a mobile-enabled Hexo theme based on the features in Hexo's default the
 
 ![Screenshot](screenshots/hexo-theme-ocean.jpg)
 
-### Install
+## Install
 
 ``` bash
 $ git clone https://github.com/zhwangart/hexo-theme-ocean.git themes/ocean
 ```
 
-### Enable
+## Enable
 
 Modify `theme` setting in `_config.yml` to `ocean`
 
@@ -23,14 +23,14 @@ Modify `theme` setting in `_config.yml` to `ocean`
 theme: ocean
 ```
 
-### Update
+## Update
 
 ``` bash
 cd themes/ocean
 git pull
 ```
 
-### Configuration
+## Configuration
 
 let me know if you can’t find something.
 
@@ -41,6 +41,7 @@ menu:
   Archives: /archives
   Gallery: /gallery
   About: /about
+  Links: /links
 rss: /atom.xml
 
 # Miscellaneous
@@ -56,12 +57,6 @@ ocean:
 
 # Content
 excerpt_link: Read More...
-share_text: Share
-nav_text:
-  page_prev: Prev page
-  page_next: Next page
-  post_prev: Newer posts
-  post_next: Olde posts
 
 # fancybox
 fancybox: true
@@ -75,8 +70,20 @@ gitalk:
   clientID: # GitHub Application Client ID
   clientSecret: # Client Secret
   repo: # Repository name
-  owner: GitHub ID
-  admin: GitHub ID
+  owner: # GitHub ID
+  admin: # GitHub ID
+
+# Valine
+valine:
+  enable: false    # Default: false.
+  el: 'vcomments'    # The DOM element to be mounted on initialization.
+  appId:    # Application appId from Leancloud.
+  appKey:    # Application appKey from Leancloud.
+  notify: false    # Mail notifier, Default: false.
+  verify: true    # Validation code, Default: true.
+  avatar: 'mp'    # Gravatar type.
+  pageSize: '10'    # Number of pages per page.
+  placeholder: '请输入...'    # Comment box placeholders.
 ```
 
 The [feathericon](https://feathericon.com) in the menu is programmed ordely in "CSS `source/css/_partial/navbar.styl` " and can be changed or added if needed.
@@ -101,7 +108,7 @@ The [feathericon](https://feathericon.com) in the menu is programmed ordely in "
   //      content '\f174'
 ```
 
-### Plugins
+## Plugins
 
 + [hexo-generator-search](https://github.com/hexojs/hexo-theme-landscape) Local search
 	
@@ -145,7 +152,7 @@ The [feathericon](https://feathericon.com) in the menu is programmed ordely in "
   $ npm install hexo-generator-index-pin-top --save
   ```
 
-### Post poster
+## Post poster
 
 ``` md
 ---
@@ -158,7 +165,7 @@ photos: [
 ---
 ```
 
-### Gallery
+## Gallery
 Need to write in the head of the markdown, this is not a good way to write, I hope to get a better way to write on github.
 
 ``` md
@@ -172,7 +179,7 @@ albums: [
 ---
 ```
 
-### Toc
+## Toc
 
 Use Tocbot to parse the title tags (h1~h6) in the content and insert the directory. 
 
@@ -191,5 +198,3 @@ Use Tocbot to parse the title tags (h1~h6) in the content and insert the directo
 	```
 
 ---
-
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">Ocean</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/zhwangart/hexo-theme-ocean" property="cc:attributionName" rel="cc:attributionURL">zhwangart</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.

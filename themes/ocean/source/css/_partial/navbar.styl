@@ -20,36 +20,37 @@
         &::before
           font-family 'feathericon'
       .nav-item
-        &:nth-child(1)        
+        &:nth-child(1)         // home
           .nav-item-link
             &::before
               content '\f12f'
-        &:nth-child(2)         
+        &:nth-child(2)         // archives
           .nav-item-link
             &::before
               content '\f12a'
-        &:nth-child(3)         
+        &:nth-child(3)         // gallery
           .nav-item-link
             &::before
-              content '\f11e'
+              content '\f1a9'
 
-        &:nth-child(4)
-          .nav-item-link
-            &::before
-              content '\f195'
-        &:nth-child(5) 
-          .nav-item-link
-            &::before
-              content '\f153'
+        //&:nth-child(4)         // categories
+        //  .nav-item-link
+        //    &::before
+        //      content '\f18c'
+        //&:nth-child(5)         // tags
+        //  .nav-item-link
+        //    &::before
+        //      content '\f153'
 
-        &:nth-child(6) 
+        &:nth-child(4)         // about
           .nav-item-link
             &::before
               content '\f174'
-        &:nth-child(7) 
-          .nav-item-link
-            &::before
-              content '\f12c'
+
+        // &:nth-child(5)         // links
+        //   .nav-item-link
+        //     &::before
+        //       content '\f136'
 
 .navbar-bottom
   position absolute
