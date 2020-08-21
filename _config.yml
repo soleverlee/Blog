@@ -47,9 +47,9 @@ index_generator:
   per_page: 10
   order_by: -date
 search:
-  path: search.json
+  path: search.xml
   field: post
-  format: html
+  format: xml
   content: true
 feed:
     type: atom

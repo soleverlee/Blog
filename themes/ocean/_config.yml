@@ -18,7 +18,7 @@ brand: /images/logo.png
 ocean:
   overlay: true
   path: /images/ocean/
-  brand: /images/hexo-inverted.svg
+  brand: /images/logo.png
 
 # Content
 excerpt_link: Read More...
