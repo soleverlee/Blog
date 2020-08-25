@@ -7,6 +7,7 @@ categories:
 tags:
   - LaTeX
   - TikZ
+  - Series-LaTeX
 ---
 
 [PGF](https://www.ctan.org/pkg/pgf)是一个用来进行图形绘制的（底层）包，TikZ是利用这个包实现的用户友好的接口。所以通常在LaTeX中会用TikZ来进行矢量图形的绘制。

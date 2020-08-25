@@ -7,6 +7,8 @@ categories:
 tags:
     - Hotspot
     - JVM
+    - Concurrent
+    - Series-Understand-Java-Concurrent
 ---
 
 CAS：Compare and Swap，即比较再交换。jdk5增加了并发包java.util.concurrent.*,其下面的类使用CAS算法实现了区别于synchronouse同步锁的一种乐观锁。

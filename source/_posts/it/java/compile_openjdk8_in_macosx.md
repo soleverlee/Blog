@@ -5,7 +5,8 @@ categories:
     - Programing
     - Java
 tags:
-	- OpenJDK
+    - OpenJDK
+    - Series-JDK-Source
 ---
 纯手工编译[OpenJDK8](http://openjdk.java.net/projects/jdk8u/)。在Mac上尝试了一下，因为编译这玩意需要XCode4*，而现在XCode都升级到9了，虽然可以下载旧版的XCode，但试了一下貌似不太兼容。于是在Virtualbox中装lubuntu来编译一下玩玩。在Virtualbox使用NAT网络做端口转发的时候，竟然发现不支持主机的22端口（貌似是[权限的问题](https://apple.stackexchange.com/questions/235518/ssh-to-virtualbox-mac-host-linux-guest-using-nat)），改为10240则Ok。
 <!--more-->

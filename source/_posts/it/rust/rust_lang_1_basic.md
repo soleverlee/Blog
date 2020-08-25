@@ -5,6 +5,8 @@ date: 2019-10-22
 categories:  
     - Programing
     - Rust
+tags:
+    - Series-Rust
 ---
 使用rust语言编写hello world再容易不过了：
 ```rust

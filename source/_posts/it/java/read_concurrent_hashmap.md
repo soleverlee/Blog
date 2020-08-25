@@ -5,7 +5,9 @@ categories:
     - Programing
     - Java
 tags:
-	- JDK1.8
+    - JDK1.8
+    - Concurrent
+    - Series-JDK-Source
 ---
 我们知道HashMap不是Thread-safe的，而HashTable内部采取了同步操作，是线程安全的。然而有趣的是你去看HashTable的文档，它会建议你：如果不要Thread-Safe你就用HashMap吧，否则你用ConcurrentHashMap好了。
 
