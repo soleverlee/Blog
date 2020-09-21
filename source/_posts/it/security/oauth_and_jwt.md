@@ -1,5 +1,5 @@
 ---
-title: OAuth/JWT
+title: OAuth 2.0小记
 date: 2020-09-17
 categories:  
     - Programing
@@ -9,7 +9,7 @@ tags:
 	- OAuth2.0
 	- JWT
 ---
-最近有一个问题一直比较困惑，起因是我们有一个React的应用使用OAuth进行权限验证，而我之前的实践通常是基于Token的权限验证（即通过用户名和密码获取JWT Token），那么这两种方式究竟有些什么差别？到底怎么做好一点？
+最近有一个问题一直比较困惑，起因是我们有一个React的应用使用OAuth进行权限验证，而我之前的实践通常是基于Token的权限验证（即通过用户名和密码获取JWT Token），那么OAuth是否适合这样的场景呢？
 <!-- more -->
 
 # OAuth 2.0
@@ -51,14 +51,22 @@ OAuth中定义了四个角色：
 
 值得注意的是，这些角色并不要求是分开的实体，同一个server也可以拥有多个角色，例如resource server和authorization server可以是同一个服务。
 
+对于client，又可以分为两种：
+
+* confidential clients: 可以认证的客户端，能够（安全的）保存自身的认证信息
+* public clients: 无法存储自身认证信息，例如运行在浏览器或者移动端的应用
+
+
 ## 授权流程
 
-OAuth中定义了4种授权方式：
+OAuth中最初定义了4种授权方式：
 
 * Authorization Code
 * Implicit
 * Resource Owner Password Credentials
 * Client Credentials
+
+后面又发布了一些新的流程和增强，有些已经过时了。
 
 ### Authorization Code Grant
 
@@ -178,7 +186,7 @@ grant_type=authorization_code
 
 ![OAuth PKCE](/images/OAuth-authorization-code-PKCE-flow.png)
 
-### Implicit Grant
+### Legacy: Implicit Grant
 
 首先客户端需要生成一个授权的URL,例如：
 
@@ -207,9 +215,66 @@ https://authorization-server.com/authorize?
 
 > Public clients such as native apps and JavaScript apps should now use the authorization code flow with the PKCE extension instead.
 
-### Device Code
+### Legacy: Resource Owner Password Credentials （Password Grant）
 
-在这个流程中，客户端首先请求一个device code：
+这种方式即通过用户名和密码来直接获取access token，应用需要将用户的用户名和密码发送给授权服务器来获取token，已经不推荐使用。
+
+### Client Credentials
+
+将客户端的认证信息作为获取access token的凭证，通常用于访问一些客户端自身的一些资源（而不是用户的资源）。
+
+请求的参数为：
+
+* grant_type: 为`client_credentials`
+* scope（Optional)：请求授权的scope
+
+例如，一个授权请求：
+
+```lua
+POST /token HTTP/1.1
+     Host: server.example.com
+     Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+     Content-Type: application/x-www-form-urlencoded
+
+     grant_type=client_credentials
+```
+
+这里授权服务器必须要对客户端进行认证（上面的请求中带了客户端的认证信息），如果没有问题则返回token信息：
+
+```json
+{
+  "access_token":"2YotnFZFEjr1zCsicMWpAA",
+  "token_type":"example",
+  "expires_in":3600,
+  "example_parameter":"example_value"
+}
+```
+注意，在这个flow中是不允许包含`refresh token`在返回结果中的。
+
+### Refresh Token
+在前面的流程中，获取access token的同时也会拿到一个refresh token，客户端可以通过这个refresh token来重新拿到一个token。
+
+请求参数：
+
+* grant_type: 必须为`refresh_token`
+* refresh_token: token返回中的refresh token
+* scope(Optional): 请求的授权scope，必须是包含在最初拿token时请求的scope中
+
+例子：
+
+```lua
+POST /token HTTP/1.1
+     Host: server.example.com
+     Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+     Content-Type: application/x-www-form-urlencoded
+
+     grant_type=refresh_token&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA
+```
+
+服务端必须要对客户端进行认证，并对refresh token进行校验（确保这个refresh_token有效并且是之前签发给这个client的）。
+
+### Device Code
+对于无法使用浏览器或者说有输入限制的互联网设备，OAuth 提供了一个Device code的flow。在这个流程中，客户端首先请求一个device code：
 
 ```lua
 POST https://example.okta.com/device
@@ -252,20 +317,121 @@ grant_type=urn:ietf:params:oauth:grant-type:device_code
 }
 ```
 
-### Resource Owner Password Credentials
+# OAuth与其他授权/认证方式
+## Authentication vs Authorization
 
-这种方式即通过用户名和密码来直接获取access token，应用需要将用户的用户名和密码发送给授权服务器来获取token，已经不推荐使用。
+Authentication与Authorization是有区别的。
 
-### Client Credentials
+* Authentication：the process of verifying an identity (who they say they are)
+* Authorization：the process of verifying what someone is allowed to do (permissions)
 
-将客户端的认证信息作为获取access token的凭证，通常用于访问一些客户端自身的一些资源（而不是用户的资源）。
+而OAuth的流程中主要是针对应用签发access_token，而access_token的受众是resource owner。而resource owner是不需要关心client的，只关心其所需使用的权限。因此，access_token是代表了被授权的权限，而不能代表这个用户，即便通常权限里面会包含用户的一些信息。另一个client不应该依赖access_token的原因是，OAuth中并没有对token的格式做出限制，即便通常会采用注入JWT之类的token，但假设做出了改变，客户端就不能使用了。
 
+在OAuth的使用场景中，一种比较常见的攻击场景是“Threat: Code Substitution (OAuth Login)”，即使用OAuth得到的code来登陆到应用中，通常在“social login"中会存在这样的威胁。
 
+需要使用认证的场合，是推荐使用OpenID或者SAML来进行的。
+
+> Clients should use an appropriate protocol, such as OpenID (cf. [OPENID]) or SAML (cf. [OASIS.sstc-saml-bindings-1.1]) to implement user login.  Both support audience restrictions on clients.
+
+## access_token的验证
+
+当resource server拿到一个access_token的时候，是需要对其进行验证的，这再RFC7662中已经标准化，可以通过api来进行：
+
+```lua
+POST /introspect HTTP/1.1
+Host: server.example.com
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+Authorization: Bearer 23410913-abewfq.123483
+
+token=2YotnFZFEjr1zCsicMWpAA
+```
+
+返回如下：
+
+```json
+{
+  "active": true,
+  "client_id": "l238j323ds-23ij4",
+  "username": "jdoe",
+  "scope": "read write dolphin",
+  "sub": "Z5O3upPC88QrAjx00dis",
+  "aud": "https://protected.example.net/resource",
+  "iss": "https://server.example.com/",
+  "exp": 1419356238,
+  "iat": 1419350238,
+  "extension_field": "twenty-seven"
+}
+```
+
+## OpenID Connect flow
+
+OpenID Connect 是构建在OAuth 2.0 协议之上的，而OAuth本身只提供了授权（Authorization）而不包含认证（Authentication），
+
+(Identity, Authentication) + OAuth 2.0 = OpenID Connect
+
+OpenID flow最终会生成一个"ID Token"而不是access token，借此来对用户进行认证。
+OpenID Connect的流程如下:
+
+首先是客户端生成授权的URL：
+
+```lua
+https://authorization-server.com/authorize?
+  response_type=code
+  &client_id=egHuu4oJxgOLeBzPAQ9sXg4i
+  &redirect_uri=https://www.oauth.com/playground/oidc.html
+  &scope=openid+profile+email+photos
+  &state=sRROJ_iPTam39Dc7
+  &nonce=eFRvo_n5ecyYU_Sv
+```
+
+这里比OAuth的流程多了一个`nonce`的随机字符串。这是用来防止replay攻击的，相当于对token的一个额外的验证，而state设计师为了防止CSRF的。然后跳转到授权服务器登陆成功后，会redirect并附带一些参数：
+
+```
+?state=sRROJ_iPTam39Dc7
+  &code=MsxVU0nqVYeg0BdPMV59atYOUSCZKzpbcDbCrBXwVVNt2Xw7
+```
+
+然后拿这个code去换取token:
+
+```lua
+POST https://authorization-server.com/token
+
+grant_type=authorization_code
+&client_id=egHuu4oJxgOLeBzPAQ9sXg4i
+&client_secret=p4NlH7i7o2JQJ9xpGdhG95eXWgX1I8teWYZo8pH5-vILSZXv
+&redirect_uri=https://www.oauth.com/playground/oidc.html
+&code=MsxVU0nqVYeg0BdPMV59atYOUSCZKzpbcDbCrBXwVVNt2Xw7
+```
+
+最终可以拿到access_token以及id_token:
+
+```json
+{
+  "token_type": "Bearer",
+  "expires_in": 86400,
+  "access_token": "B1dETMtgNOPBHD8CfgkcM4PEhZxOt748pUeejk_6gfUVMpfIhObdfhLigQKLQ7MVjNj4zDmb",
+  "scope": "openid profile email photo",
+  "id_token": "eyJraWQiOiJzMTZ0cVNtODhwREo4VGZCXzdrSEtQUkFQRjg1d1VEVGxteW85SUxUZTdzIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJjb25jZXJuZWQtY2FyYWNhbEBleGFtcGxlLmNvbSIsIm5hbWUiOiJDb25jZXJuZWQgQ2FyYWNhbCIsImVtYWlsIjoiY29uY2VybmVkLWNhcmFjYWxAZXhhbXBsZS5jb20iLCJpc3MiOiJodHRwczovL3BrLWRlbW8ub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJlZ0h1dTRvSnhnT0xlQnpQQVE5c1hnNGkiLCJpYXQiOjE2MDA2NzQ1MTQsImV4cCI6MTYwMzI2NjUxNCwiYW1yIjpbInB3ZCJdfQ.ZoPvZPaomdOnnz2GFRGbgaW7PPWIMFDqSBp0gbN4An4a9F-Bc-4_T9EBGV8aGetyjZYAON0gjNV0p0NGFiwettePWKuxBzusuGCEd9iXWWUO9-WTF5e2AGr3_jkg34dbxfiFXy3KgH7m0czm809cMaiZ_ofLYgJHVD8lqMQoWifhoNhpjPqa19Svc3nCHzSYHUgTXQWvA56NmQvyVPh_OM7GMpc6zHopmihJqt3eREof8N-bOd7FL39jeam2-k1TFSDogyJE513aC0OssRADr_TWvtL8xoaPkXM_7bXYs9_7erXmzF9la0hvmOuasieetpLhOvFeoiOJWCU9xhxj4Q"
+}
+```
+
+简而言之，
+
+* id_token是给client做认证用的，可能包含一些用户敏感的信息
+* access_token是给resource server用的
 
 Ref:
 
 * [RFC6749 - The OAuth 2.0 Authorization Framework](https://tools.ietf.org/html/rfc6749)
 * [RFC7636 - PKCE extension](https://tools.ietf.org/html/rfc7636)
+* [RFC8628 - OAuth 2.0 Device Authorization Grant](https://tools.ietf.org/html/rfc8628)
+* [RFC6819 - OAuth 2.0 Threat Model and Security Considerations](https://tools.ietf.org/html/rfc6819)
+* [RFC7519 - JSON Web Token Best Current Practices](https://tools.ietf.org/html/draft-ietf-oauth-jwt-bcp-07)
+* [RFC7662 - OAuth 2.0 Token Introspection
+](https://tools.ietf.org/html/rfc7662)
 * [OAuth 2.0 Playground ](https://www.oauth.com/playground/)
 * [OAuth 2.0 Security Best Current Practice](https://tools.ietf.org/html/draft-ietf-oauth-security-topics-15)
 * [Common pitfalls for authentication using OAuth](https://oauth.net/articles/authentication/#common-pitfalls)
+* [is oauth2 only used when there is a third party authorization?](https://stackoverflow.com/questions/40956418/is-oauth2-only-used-when-there-is-a-third-party-authorization)
+* [What is going on with OAuth 2.0? And why you should not use it for authentication.](https://medium.com/securing/what-is-going-on-with-oauth-2-0-and-why-you-should-not-use-it-for-authentication-5f47597b2611)

@@ -50,7 +50,7 @@ $$
 \end{align}
 $$
 
-```
+```lua
 Knuth Order, k |  (min,max)  | CLRS Degree, t
 ---------------|-------------|---------------
      0         |      -      |        –
@@ -110,6 +110,14 @@ $$
 h \leq log_{t}\frac{1+n}{2}
 $$
 
+## BTree变种
+
+* 2-3-4树：Order为4的B-tree又被称之为2-3-4 tree (每个非叶子节点有2个、3个或者4个子节点)
+* 2-3树：Order为3的B-tree又被称之为2-3 tree (每个非叶子节点有2个或者3个子节点)
+* B+-tree：A B-tree in which keys are stored in the leaves. 
+* B*-tree：A B-tree in which nodes are kept 2/3 full by redistributing keys to fill two child nodes, then splitting them into three nodes. 
+
+
 # Btree操作
 ## Btree查找
 
@@ -120,6 +128,19 @@ $$
 * 如果没有找到，则到下一级节点中进行查找；如果已经是叶子节点，则查找结束
 
 通常当${\displaystyle M}$较小时，我们在节点中查找的时候只需要进行顺序查找即可；如果较大的情况下，可以进行二分查找提高搜索的效率。
+
+```ruby
+B-TREE-SEARCH(x, k)
+  i ← 1
+  while i ≤ n[x] and k ≥ key[x, i]
+    do i ← i + 1
+  if i ≤ n[x] and k = key[x, i]
+    then return (x, i)
+  if leaf[x]
+    then return NIL
+    else c = DISK-READ(c[x, i])
+      return B-TREE-SEARCH(c, k)
+```
 
 ## Btree插入
 ### Split
@@ -162,3 +183,5 @@ $$
 More:
 
 * [Graduate Algorithms CS673-2016F-11 B-Trees](https://www.cs.usfca.edu/~galles/cs673/lecture/lecture11.pdf)
+* [NIST B-tree](https://xlinux.nist.gov/dads/HTML/btree.html)
+* [CHAPTER 19: B-TREES](http://staff.ustc.edu.cn/~csli/graduate/algorithms/book6/chap19.htm)
