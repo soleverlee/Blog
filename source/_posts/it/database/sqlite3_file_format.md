@@ -279,6 +279,32 @@ insert into person values(1, 'riguz', 20, 'a programmer');
 
 ![Example](/images/Sqlite3-rowformat-e1.png)
 
+一直向表中插入数据，
+
+```sql
+insert into person values(1, 'riguz1', 20, 'a programmer');
+insert into person values(2, 'riguz2', 20, 'a programmer');
+insert into person values(3, 'riguz3', 20, 'a programmer');
+insert into person values(4, 'riguz4', 20, 'a programmer');
+insert into person values(5, 'riguz5', 20, 'a programmer');
+insert into person values(6, 'riguz6', 20, 'a programmer');
+insert into person values(7, 'riguz7', 20, 'a programmer');
+insert into person values(8, 'riguz8', 20, 'a programmer');
+insert into person values(9, 'riguz9', 20, 'a programmer');
+insert into person values(10, 'riguz10', 20, 'a programmer');
+insert into person values(11, 'riguz11', 20, 'a programmer');
+insert into person values(12, 'riguz12', 20, 'a programmer');
+insert into person values(13, 'riguz13', 20, 'a programmer');
+insert into person values(14, 'riguz14', 20, 'a programmer');
+insert into person values(15, 'riguz15', 20, 'a programmer');
+insert into person values(16, 'riguz16', 20, 'a programmer');
+insert into person values(17, 'riguz17', 20, 'a programmer');
+insert into person values(18, 'riguz18', 20, 'a programmer');
+
+```
+当插入到第18条数据的时候，split了节点，如图：
+
+![Sqlite split](/images/Sqlite-split-18.png)
 
 [Database File Format ](https://www.sqlite.org/fileformat.html)
 [](http://barbra-coco.dyndns.org/sqlite/fileformat.html)
