@@ -249,6 +249,36 @@ type   description
 
 在某些情况下，值的个数可能少于column，例如通过alter table来增加列，sqlite并未修改已有数据。这种情况下新增列的值为默认值。
 
+# 样例分析
+
+## 内置表sqlite_schema
+
+系统的第一页是内置的表，这个表类似这样：
+
+```sql
+CREATE TABLE sqlite_schema(
+  type text,
+  name text,
+  tbl_name text,
+  rootpage integer,
+  sql text
+);
+```
+
+创建一个新表并插入数据：
+
+```sql
+create table person(
+    id integer not null primary key,
+    name text,
+    age number,
+    remark text
+);
+insert into person values(1, 'riguz', 20, 'a programmer');
+```
+
+![Example](/images/Sqlite3-rowformat-e1.png)
+
 
 [Database File Format ](https://www.sqlite.org/fileformat.html)
 [](http://barbra-coco.dyndns.org/sqlite/fileformat.html)
