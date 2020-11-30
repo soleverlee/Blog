@@ -117,6 +117,12 @@ export ANDROID_NDK_HOME=/Users/hfli/Library/Android/sdk/ndk/21.3.6528147
 make clean
 make
 ```
+默认生成的so是带有后缀的，（类似*.so.1.1)，因为安卓打包的时候不支持，解决办法是在make的时候覆盖掉参数：
+
+```bash
+make SHLIB_VERSION_NUMBER= SHLIB_EXT=.so
+```
+
 ### 集成sqlcipher
 
 <!-- tbd -->
@@ -134,3 +140,4 @@ SqlCipher依赖一个非标准的选项，但是这个选项[最近已经被移�
 * [Adding SQLCipher to Xcode Projects](https://www.zetetic.net/sqlcipher/ios-tutorial/)
 * [Dart ffi sqlite example](https://github.com/dart-lang/sdk/blob/master/samples/ffi/sqlite/)
 * [error: Library crypto not found. Install openssl!](https://github.com/sqlcipher/sqlcipher/issues/132#issuecomment-122912569)
+* [shared library without version suffix for android (feature request)](https://github.com/openssl/openssl/issues/3902)
