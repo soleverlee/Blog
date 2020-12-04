@@ -1,5 +1,5 @@
 ---
-title: OAuth 2.0小记
+title: OAuth2授权流程
 date: 2020-09-17
 categories:  
     - Programing
@@ -12,7 +12,7 @@ tags:
 最近有一个问题一直比较困惑，起因是我们有一个React的应用使用OAuth进行权限验证，而我之前的实践通常是基于Token的权限验证（即通过用户名和密码获取JWT Token），那么OAuth是否适合这样的场景呢？
 <!-- more -->
 
-# OAuth 2.0
+# OAuth 2.0简介
 ## 什么是OAuth 
 
 RFC6749对OAuth 2.0进行了介绍：
@@ -57,7 +57,7 @@ OAuth中定义了四个角色：
 * public clients: 无法存储自身认证信息，例如运行在浏览器或者移动端的应用
 
 
-## 授权流程
+# 授权流程
 
 OAuth中最初定义了4种授权方式：
 
@@ -317,22 +317,8 @@ grant_type=urn:ietf:params:oauth:grant-type:device_code
 }
 ```
 
-# OAuth与其他授权/认证方式
-## Authentication vs Authorization
 
-Authentication与Authorization是有区别的。
-
-* Authentication：the process of verifying an identity (who they say they are)
-* Authorization：the process of verifying what someone is allowed to do (permissions)
-
-而OAuth的流程中主要是针对应用签发access_token，而access_token的受众是resource owner。而resource owner是不需要关心client的，只关心其所需使用的权限。因此，access_token是代表了被授权的权限，而不能代表这个用户，即便通常权限里面会包含用户的一些信息。另一个client不应该依赖access_token的原因是，OAuth中并没有对token的格式做出限制，即便通常会采用注入JWT之类的token，但假设做出了改变，客户端就不能使用了。
-
-在OAuth的使用场景中，一种比较常见的攻击场景是“Threat: Code Substitution (OAuth Login)”，即使用OAuth得到的code来登陆到应用中，通常在“social login"中会存在这样的威胁。
-
-需要使用认证的场合，是推荐使用OpenID或者SAML来进行的。
-
-> Clients should use an appropriate protocol, such as OpenID (cf. [OPENID]) or SAML (cf. [OASIS.sstc-saml-bindings-1.1]) to implement user login.  Both support audience restrictions on clients.
-
+# 其他
 ## access_token的验证
 
 当resource server拿到一个access_token的时候，是需要对其进行验证的，这再RFC7662中已经标准化，可以通过api来进行：
@@ -364,62 +350,6 @@ token=2YotnFZFEjr1zCsicMWpAA
 }
 ```
 
-## OpenID Connect flow
-
-OpenID Connect 是构建在OAuth 2.0 协议之上的，而OAuth本身只提供了授权（Authorization）而不包含认证（Authentication），
-
-(Identity, Authentication) + OAuth 2.0 = OpenID Connect
-
-OpenID flow最终会生成一个"ID Token"而不是access token，借此来对用户进行认证。
-OpenID Connect的流程如下:
-
-首先是客户端生成授权的URL：
-
-```lua
-https://authorization-server.com/authorize?
-  response_type=code
-  &client_id=egHuu4oJxgOLeBzPAQ9sXg4i
-  &redirect_uri=https://www.oauth.com/playground/oidc.html
-  &scope=openid+profile+email+photos
-  &state=sRROJ_iPTam39Dc7
-  &nonce=eFRvo_n5ecyYU_Sv
-```
-
-这里比OAuth的流程多了一个`nonce`的随机字符串。这是用来防止replay攻击的，相当于对token的一个额外的验证，而state设计师为了防止CSRF的。然后跳转到授权服务器登陆成功后，会redirect并附带一些参数：
-
-```
-?state=sRROJ_iPTam39Dc7
-  &code=MsxVU0nqVYeg0BdPMV59atYOUSCZKzpbcDbCrBXwVVNt2Xw7
-```
-
-然后拿这个code去换取token:
-
-```lua
-POST https://authorization-server.com/token
-
-grant_type=authorization_code
-&client_id=egHuu4oJxgOLeBzPAQ9sXg4i
-&client_secret=p4NlH7i7o2JQJ9xpGdhG95eXWgX1I8teWYZo8pH5-vILSZXv
-&redirect_uri=https://www.oauth.com/playground/oidc.html
-&code=MsxVU0nqVYeg0BdPMV59atYOUSCZKzpbcDbCrBXwVVNt2Xw7
-```
-
-最终可以拿到access_token以及id_token:
-
-```json
-{
-  "token_type": "Bearer",
-  "expires_in": 86400,
-  "access_token": "B1dETMtgNOPBHD8CfgkcM4PEhZxOt748pUeejk_6gfUVMpfIhObdfhLigQKLQ7MVjNj4zDmb",
-  "scope": "openid profile email photo",
-  "id_token": "eyJraWQiOiJzMTZ0cVNtODhwREo4VGZCXzdrSEtQUkFQRjg1d1VEVGxteW85SUxUZTdzIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJjb25jZXJuZWQtY2FyYWNhbEBleGFtcGxlLmNvbSIsIm5hbWUiOiJDb25jZXJuZWQgQ2FyYWNhbCIsImVtYWlsIjoiY29uY2VybmVkLWNhcmFjYWxAZXhhbXBsZS5jb20iLCJpc3MiOiJodHRwczovL3BrLWRlbW8ub2t0YS5jb20vb2F1dGgyL2RlZmF1bHQiLCJhdWQiOiJlZ0h1dTRvSnhnT0xlQnpQQVE5c1hnNGkiLCJpYXQiOjE2MDA2NzQ1MTQsImV4cCI6MTYwMzI2NjUxNCwiYW1yIjpbInB3ZCJdfQ.ZoPvZPaomdOnnz2GFRGbgaW7PPWIMFDqSBp0gbN4An4a9F-Bc-4_T9EBGV8aGetyjZYAON0gjNV0p0NGFiwettePWKuxBzusuGCEd9iXWWUO9-WTF5e2AGr3_jkg34dbxfiFXy3KgH7m0czm809cMaiZ_ofLYgJHVD8lqMQoWifhoNhpjPqa19Svc3nCHzSYHUgTXQWvA56NmQvyVPh_OM7GMpc6zHopmihJqt3eREof8N-bOd7FL39jeam2-k1TFSDogyJE513aC0OssRADr_TWvtL8xoaPkXM_7bXYs9_7erXmzF9la0hvmOuasieetpLhOvFeoiOJWCU9xhxj4Q"
-}
-```
-
-简而言之，
-
-* id_token是给client做认证用的，可能包含一些用户敏感的信息
-* access_token是给resource server用的
 
 Ref:
 
