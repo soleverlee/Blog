@@ -1,6 +1,6 @@
 ---
 title:  Vert.X(1)：简介
-date: 2020-08-25
+date: 2020-12-07
 categories:  
     - Programing
     - Java
@@ -32,9 +32,22 @@ Vert.x的另一个特点就是提供了多种语言的绑定（并不仅仅是�
 * Kotlin
 * Scala
 
+## 什么是响应式（Reactive）
+
+根据[The Reactive Manifesto](https://www.reactivemanifesto.org/)的定义，一个响应式的系统具有四个特点：
+![Reactive manifesto](https://www.reactivemanifesto.org/images/reactive-traits.svg)
+
+* Responsive：The system responds in a timely manner if at all possible. 
+* Resilient：The system stays responsive in the face of failure.
+* Elastic: The system stays responsive under varying workload. 
+* Message-driven: Reactive Systems rely on asynchronous message-passing to establish a boundary between components that ensures loose coupling, isolation and location transparency.
+
+
+## 组件
+
 Vert.x又包含了很多个部分：
 
-## Web组件
+### Web组件
 
 * Core: 包含底层的Http/TCP、文件等的访问功能。
 * Web: 可以用来创建Web应用和微服务
@@ -42,7 +55,7 @@ Vert.x又包含了很多个部分：
 * Web API Contract: 用来实现契约先行的开发模式以及契约测试
 * 其他: Web API Service, Web GraphQL Handler等，不过目前都还在Technical Preview阶段
 
-## 数据访问
+### 数据访问
 数据访问组件提供了一系列的异步访问client，当然也可以直接使用原始的数据库驱动。支持的数据库有：
 
 * MongoDB client
@@ -52,7 +65,7 @@ Vert.x又包含了很多个部分：
 * JDBC client
 * Reactive MySQL/DB2/PostgreSQL client(Technical preview)
 
-## Reactive
+### Reactive
 提供了各种创建响应式应用程序的组件。
 
 * Vert.x Rx: 不喜欢回调可以使用RxJava风格的API
@@ -60,16 +73,17 @@ Vert.x又包含了很多个部分：
 * Vert.x Sync: 用来部署使用fiber(纤程，一种轻量级的线程)的节点，可以编写串行化风格的代码
 * Kotlin coroutines: 携程的支持，可以使用`async/await`或者channels。
 
-## Microservices
+### Microservices
 创建微服务的组件：
+
 * service discovery
 * circuit breaker
 * config
 
-## MQTT
+### MQTT
 提供了MQTT的server和client端组件。
 
-## Authentication and Authorisation
+### Authentication and Authorisation
 认证授权相关：
 
 * Auth common
@@ -80,14 +94,14 @@ Vert.x又包含了很多个部分：
 * OAuth2
 * .htdigest Auth
 
-## Messaging
+### Messaging
 
 * AMQP client(Technical preview)
 * STOMP client & Server
 * RabbitMQ client
 * AMQP bridge
 
-## 其他
+### 其他
 
 * Kafka client
 * Mail client: SMTP 客户端
@@ -99,4 +113,23 @@ Vert.x又包含了很多个部分：
 * Shell
 * Docker
 * Vert.x Unit
-* ...
+* ... 
+
+# 使用
+## Hello World
+
+```java
+public class VertxEcho {
+    public static void main(String[] args) {
+        Vertx vertx = Vertx.vertx();
+
+        vertx.createNetServer()
+            .connectHandler(socket -> {
+                socket.handler(buffer -> {
+                    socket.write("Hello:" + buffer);
+                });
+            })
+            .listen(3000);
+    }
+}
+```
