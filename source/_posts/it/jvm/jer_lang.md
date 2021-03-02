@@ -28,22 +28,124 @@ tags:
 ## 数据类型
 数据类型与Java基本一致，对应到JVM的各个数据类型：
 
-* bool : JVM boolean
-* int8 : JVM byte
-* int16: JVM short
-* int32: JVM int
-* int64: JVM long
-* float: JVM float
-* double: JVM double
-* char: JVM char
+* Bool : JVM boolean
+* Byte : JVM byte
+* Short: JVM short
+* Integer: JVM int
+* Long: JVM long
+* Float: JVM float
+* Double: JVM double
+* Char: JVM char
+* Class: class type
+
+## 变量
+
+变量分为普通变量和常量，但不论哪种类型都必须在申明的时候赋予初始值，这样不存在null的情况。
+```lisp
+Bool x -> true
+Float f -> 3.1415926
+String msg -> "Hello world!"
+Person me -> Person("Riguz")
+
+const Float PI -> 3.1415926
+```
 
 ## 方法
 在Jer中方法分为过程(process)和函数(function)，过程即没有返回值的方法；函数即有返回值的方法。
 
 ```lisp
 // Hello.jer
+process sayHello -> {
+    println("Hello world")
+}
 
-process main(args: String){
-    (println "Hello world!")
+process sayHelloTo(Person someone) -> {
+    String msg -> "Hello" + someone__name
+    System__out::println(msg)
+}
+```
+
+而函数是具有返回值的，
+
+```lisp
+function<Integer> sum(Integer a, Integer b) -> {
+    return a::add(b)
+}
+
+function<String> buildErrorMsg(Integer code, String desc) -> {
+    StringBuilder sb -> StringBuilder()
+    sb => sb::append(code::toString())
+    sb => sb::append("\n")
+    sb => sb::append(desc)
+
+    return sb::toString()
+}
+```
+
+## 类
+每一个源文件对应到一个类或者多个类。其中可以包含：
+
+* program 对应一个无状态的类
+* abstract 即对应到Java的接口
+* type 对应到一个有状态的类
+
+```lisp
+program Hello {
+    const String MESSAGE = "Hello world!"
+
+    process sayHello(String name) -> {
+        println(buildMessage(name))
+    }
+
+    function<String> buildMessage(String name) -> {
+        return "Hello ${name}"
+    }
+}
+```
+
+而对于有状态的类，则按如下方式进行编写：
+
+```lisp
+
+abstract Animal {
+   name -> String
+   age  -> Integer
+
+   run      -> ()
+   sayHello -> ( -> String)
+   sayHelloTo -> (friend -> Animal)
+}
+
+type Person {
+    String name -> ""
+    Integer age -> 0
+
+    new(String n, Integer a) -> {
+        name => n
+        age => a
+    }
+}
+```
+
+```lisp
+// Animal.jer
+
+abstract Animal {
+    String name
+    function<Integer> getAge()
+}
+
+// Dog.jer
+type Dog is Animal {
+    Integer age
+
+    new(String n, Integer a) {
+        name => n
+        age => a
+    }
+
+    finction<Integer> getAge() -> {
+        return age
+    }
 }
 ```
