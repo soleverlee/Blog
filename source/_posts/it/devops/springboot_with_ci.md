@@ -18,7 +18,7 @@ sudo /etc/init.d/docker restart
 newgrp - docker
 ```
 我们现在来通过GOCD部署一个eureka的服务端。eureka用作服务发现，包含server端和client端，每个微服务是一个client注册到server上。看看需要哪些包：
-```grovvy
+```groovy
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '1.5.3.RELEASE'
@@ -51,7 +51,7 @@ ENV JAVA_OPTS=""
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]
 ```
 然后在build.gradle中添加一个构建任务：
-```grovvy
+```groovy
 buildscript {
     repositories {
         mavenCentral()

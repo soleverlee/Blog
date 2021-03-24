@@ -14,7 +14,7 @@ tags:
 # 同步(Synchronization)与监视器(Monitor)机制
 显而易见最基本最常见的和多线程有关的就是同步`synchronized`关键字了，它底层是使用Monitor实现的。那么究竟什么是`Monitor`呢？根据JavaSE Specification的描述，在Java中，每一个对象都有一个与之关联的monitor，允许线程可以去`lock`或者`unlock`这个monitor。实际上：
 
-* `monitor`是独立于Java语言之上的一个概念（没想到还有另外一个名字`管程`），保证在运行线程之前获取互斥锁
+* `monitor`是独立于Java语言之上的一个概念（没想到还有另外一个名字`管程`），保证在运行线程之前获取互斥锁
 * 在Java中，任何对象(`java.lang.Object`)都可以允许作为一个monitor，所以会有`wait`、`notify`之类的方法
 
 `synchronized`可以作用于代码块或者方法上。如果作用在代码块上，它会尝试去lock这个对象的monitor，如果不成功将会等待直到lock成功。而当执行完毕后，无论是否出现异常，都将会释放这个锁。

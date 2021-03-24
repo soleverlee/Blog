@@ -36,9 +36,13 @@ scope dev_db {
 };
 ```
 其实是一个k-v形式的文本文件，支持的基本类型有：字符串、布尔值、整数、小数、数组。定义的方法类似于Java或者C语言，
-```string _baseUrl = "http://localhost:8080"```
+```
+string _baseUrl = "http://localhost:8080"
+```
 前面会限定数据类型。如果要定义数组，则用
-```bool sslArray       = [true, false];```
+```
+bool sslArray       = [true, false];
+```
 这种形式。
 
 然后使用scope区分不同的配置块。因为可能有些相同的配置会重名，这样我们利用不同的scope去区分就好了。考虑到有些配置中需要共同的变量的使用，所以定义了一个shared的scope，这个是写死的scope，其他scope中只能引用shared scope中的变量。

@@ -75,7 +75,7 @@ beep :(1)1599108280
 
 > If any execution of this task takes longer than its period, then subsequent executions may start late, but will not concurrently execute.
 
-所以实际上，这个线程池是为了配置多个scheduler使用的，也就是说，调用多次`scheduler.scheduleAtFixedRate`创建了很多任务，那么这些任务是有可能会同时执行的，这个时候，就会利用到线程池了。假设线程池中只有一个线程，那么如果两个任务都需要执行，而这时候第一个任务没有执行完成，是需要等到第一个任务执行完之后才能得到空闲的线程来执行第二个任务的。
+所以实际上，这个线程池是为了配置多个scheduler使用的，也就是说，调用多次`scheduler.scheduleAtFixedRate`创建了很多任务，那么这些任务是有可能会同时执行的，这个时候，就会利用到线程池了。假设线程池中只有一个线程，那么如果两个任务都需要执行，而这时候第一个任务没有执行完成，是需要等到第一个任务执行完之后才能得到空闲的线程来执行第二个任务的。
 
 ## FixedDelay
 FixedRate允许按照固定的间隔来运行，例如：
